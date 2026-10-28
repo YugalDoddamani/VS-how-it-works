@@ -1,7 +1,7 @@
 # Episode [NNNN]: [Question]
 
 <!--
-This file is written by `npm run sheet:build` into projects/<slug>/script.md.
+This file is written by `npm run sheet:build` into <series>/episodes/<slug>/script.md.
 Do not edit the generated copy — edit the workbook and rebuild.
 -->
 

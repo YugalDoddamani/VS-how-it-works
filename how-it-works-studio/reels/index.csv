@@ -1,6 +1,0 @@
-reel_id,slug,title,question,series,outfit,seconds,frames,shots,status
-R01,r01-your-phone-isnt-dying-its-cold,Your phone isn't dying. It's cold.,Why does my phone die the second I step outside?,Small Tech Mysteries,hoodie,48.4,1452,26,scripted
-R02,r02-the-padlock-isnt-a-safety-badge,The padlock isn't a safety badge.,Does the padlock in my browser mean the site is safe?,"Your Data, Explained",office-casual,52.0,1560,26,scripted
-R03,r03-why-the-ad-follows-you,Why the ad follows you around.,How does an ad know I looked at that?,"Your Data, Explained",casual-dress,45.0,1350,23,scripted
-R04,r04-why-your-wifi-dies-at-9pm,Why your wifi dies at nine pm.,Why does the wifi get bad at the same time every night?,Small Tech Mysteries,sporty,50.0,1500,26,scripted
-R05,r05-your-photos-live-in-a-warehouse,Your photos live in a warehouse.,Where do my photos actually go when I back them up?,The Cloud,casual,55.2,1656,27,scripted

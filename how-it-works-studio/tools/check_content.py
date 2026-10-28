@@ -26,7 +26,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CSV_DIR = ROOT / "content" / "csv"
-REELS_DIR = ROOT / "reels"
+SERIES_DIR = ROOT / "series"
 
 # Shot grammar, mirrored from docs/12-reels-format.md.
 SHOT_CODES = {"ISO-WIDE", "TOP-DOWN", "MCU", "CU", "ECU", "INSERT", "CORNER",
@@ -351,17 +351,23 @@ DUR_RE = re.compile(r"^([\d.]+)s$")
 
 
 def check_reels(report):
-    if not REELS_DIR.exists():
-        report.warn("reels", "no reels/ folder")
+    if not SERIES_DIR.exists():
+        report.error("series", "no series/ folder")
         return
     seen_outfits = []
-    for folder in sorted(REELS_DIR.glob("r[0-9]*")):
+    for series_dir in sorted(p for p in SERIES_DIR.iterdir() if p.is_dir()):
+        if not (series_dir / "series.md").exists():
+            report.warn(f"series/{series_dir.name}", "no series.md")
+        if not (series_dir / "reels").exists() and not (series_dir / "episodes").exists():
+            report.error(f"series/{series_dir.name}", "has neither reels/ nor episodes/")
+    for folder in sorted(SERIES_DIR.glob("*/reels/r[0-9]*")):
         script = folder / "script.md"
+        series_slug = folder.parent.parent.name
         if not script.exists():
-            report.error(f"reels/{folder.name}", "missing script.md")
+            report.error(f"series/{series_slug}/reels/{folder.name}", "missing script.md")
             continue
         text = script.read_text(encoding="utf-8")
-        where = f"reels/{folder.name}"
+        where = f"series/{series_slug}/reels/{folder.name}"
 
         length = re.search(r"\| Length \| \*\*([\d.]+) s\*\* · (\d+) frames", text)
         if not length:
@@ -378,6 +384,8 @@ def check_reels(report):
             report.error(where, "no Outfit row")
         else:
             seen_outfits.append((folder.name, outfit.group(1)))
+        if not (folder.parent.parent / "series.md").exists():
+            report.error(where, f"parent series {series_slug} has no series.md")
 
         rows = []
         for line in text.splitlines():
@@ -462,7 +470,7 @@ def check_reels(report):
     for i in range(1, len(seen_outfits)):
         if seen_outfits[i][1] == seen_outfits[i - 1][1]:
             report.warn(
-                "reels",
+                "series",
                 f"{seen_outfits[i][0]} repeats the outfit from {seen_outfits[i-1][0]} "
                 f"({seen_outfits[i][1]}); the rotation asks for a different look each reel",
             )

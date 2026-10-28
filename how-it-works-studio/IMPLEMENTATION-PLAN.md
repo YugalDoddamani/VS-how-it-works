@@ -127,7 +127,7 @@ episodes honestly:
 | Content validator | `tools/check_content.py` | The five episodes had to be held to the rules the docs promise. It also defines what `src/lib/plan.js` must agree with. |
 | Workbook builder | `tools/build-sheet.py` | The CSV mirror is canonical; the `.xlsx` is generated so the two cannot disagree. |
 | Project generator + **lip-sync engine** | `tools/build-projects.mjs`, `src/stage/rig/{visemes,lipsync}.js`, `test/lipsync.test.js` | Lip-sync is text-driven and pure, so it could be built and tested before the renderer. 22 tests pass without a browser. |
-| **Five reel scripts** | `reels/r01…r05/script.md`, `reels/index.csv` | The 45–60 s format is what actually gets posted, so it was authored before the long-form renderer. `docs/12-reels-format.md` is the grammar; `tools/check_content.py` already validates the shot tables (length, shot count, lens, shot codes, cut continuity, captions, outfit rotation). |
+| **Five reel scripts** | `series/<series>/reels/r01…r05/script.md`, `series/index.csv` | The 45–60 s format is what actually gets posted, so it was authored before the long-form renderer. `docs/12-reels-format.md` is the grammar; `tools/check_content.py` already validates the shot tables (length, shot count, lens, shot codes, cut continuity, captions, outfit rotation). |
 
 Phase 1 below therefore starts from a working validator, and Phase 2 gains a
 mouth that already works.
@@ -418,7 +418,7 @@ gallery entry.
 
 ## Phase 6 — Sound and polish (2–3 days)
 
-- **Narration**: one file per beat, `projects/<slug>/audio/vo-NN.mp3`, named by
+- **Narration**: one file per beat, `<series>/episodes/<slug>/audio/vo-NN.mp3`, named by
   `beat_no`. If files exist, `encode.js` offsets each to its beat's start frame
   and mixes. If they do not, the render is silent and `render-report.json`
   records `audio.mode: "silent"` — never a half-mixed film.
@@ -435,7 +435,7 @@ gallery entry.
 ## Phase 7 — Publishing (1 day)
 
 - `npm run publish -- <slug>` copies the `Publish` tab into
-  `projects/<slug>/publishing.md` and appends the `Sources` list.
+  `<series>/episodes/<slug>/publishing.md` and appends the `Sources` list.
 - `status` guards: `render` refuses a `draft`, `publish` refuses an unrendered
   episode. The sheet is the state machine, so a status can never lie about
   whether a file exists — the CLI checks both.

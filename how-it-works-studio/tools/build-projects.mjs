@@ -5,11 +5,11 @@
  * build-projects.mjs - generate the derived documents for every episode.
  *
  * Source of truth:   content/csv/*.csv   (hand-authored)
- * Generated:         projects/<slug>/script.md
- *                    projects/<slug>/storyboard.md
- *                    projects/<slug>/publishing.md
+ * Generated:         <series>/episodes/<slug>/script.md
+ *                    <series>/episodes/<slug>/storyboard.md
+ *                    <series>/episodes/<slug>/publishing.md
  *
- * Hand-authored (never overwritten by this script): projects/<slug>/README.md
+ * Hand-authored (never overwritten by this script): <series>/episodes/<slug>/README.md
  *
  * The viseme strips in storyboard.md are produced by the real lip-sync engine
  * (src/stage/rig/visemes.js + lipsync.js), so the storyboard cannot drift from
@@ -28,6 +28,15 @@ const Visemes = require('../src/stage/rig/visemes.js');
 const LipSync = require('../src/stage/rig/lipsync.js');
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+/** "Your Data, Explained" -> "your-data-explained" */
+function seriesSlug(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/[\u2018\u2019']/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
 const CSV = path.join(ROOT, 'content', 'csv');
 const FPS = 30;
 
@@ -379,7 +388,7 @@ let written = 0;
 
 for (const ep of episodes) {
   const model = buildModel(ep);
-  const dir = path.join(ROOT, 'projects', model.slug);
+  const dir = path.join(ROOT, 'series', seriesSlug(model.ep.series), 'episodes', model.slug);
   fs.mkdirSync(dir, { recursive: true });
 
   fs.writeFileSync(path.join(dir, 'script.md'), renderScript(model));
@@ -390,7 +399,7 @@ for (const ep of episodes) {
   written++;
   console.log(
     `${model.id}  ${String(model.beats.length).padStart(2)} beats  ` +
-      `${model.totalSeconds.toFixed(1)}s  ${model.totalFrames} frames  → projects/${model.slug}/`
+      `${model.totalSeconds.toFixed(1)}s  ${model.totalFrames} frames  → series/${seriesSlug(model.ep.series)}/episodes/${model.slug}/`
   );
 }
 
