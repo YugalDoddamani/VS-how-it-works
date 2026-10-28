@@ -1,0 +1,57 @@
+1
+00:00:00,000 --> 00:00:04,000
+You did NOT get replaced by AI.
+You got replaced by a CHECKLIST.
+
+2
+00:00:04,000 --> 00:00:07,000
+How AI AUTOMATION actually works.
+
+3
+00:00:07,000 --> 00:00:14,000
+AUTOMATION just means steps a machine
+follows without asking you first.
+
+4
+00:00:14,000 --> 00:00:21,000
+For fifty years those steps
+were RULES. If this, then that.
+
+5
+00:00:21,000 --> 00:00:28,000
+RULES BREAK the moment real life looks
+slightly different from the example.
+
+6
+00:00:28,000 --> 00:00:37,000
+Now add a MODEL. Something that reads a
+messy pile and guesses the sensible thing.
+
+7
+00:00:37,000 --> 00:00:45,000
+Set a GOAL. Give it tools.
+CHECK the result. Go again.
+
+8
+00:00:45,000 --> 00:00:53,000
+That LOOP is the AUTOMATION. The
+model is only one part of it.
+
+9
+00:00:53,000 --> 00:01:01,000
+It is NOT one genius robot. It is a
+loop with a safety check bolted on.
+
+10
+00:01:01,000 --> 00:01:08,000
+And the CHECK is where it fails. No
+CHECK means no automation, just VIBES.
+
+11
+00:01:08,000 --> 00:01:13,000
+GOAL. TOOLS. Check. Repeat.
+
+12
+00:01:13,000 --> 00:01:18,000
+So next time someone says the AI
+does it, ask where the CHECK is.

@@ -152,6 +152,25 @@ export function framingFor(placement, code) {
   };
 }
 
+/**
+ * Her footprint on this frame, in canvas pixels.
+ *
+ * The layout engine needs this *before* anything is drawn - it is how the frame
+ * knows which region she owns - and it must answer even when the sprites have
+ * not been loaded (a headless layout check, a test). Hence the fallback maths
+ * from the framing numbers rather than from the image size.
+ */
+export function figureBox(shot) {
+  const box = framingFor(shot.placement, shot.code);
+  if (!box) return null;
+  const anchor = poses.manifest?.anchor?.headWidth || 212;
+  const canvasW = poses.manifest?.canvas?.width || 900;
+  const canvasH = poses.manifest?.canvas?.height || 1500;
+  const w = box.head * (canvasW / anchor);
+  const h = box.head * (canvasH / anchor);
+  return { x: box.cx - w / 2, y: box.top, w, h };
+}
+
 // ---------------------------------------------------------------------------
 // timing helpers (still used: the schedule now drives her body, not her mouth)
 // ---------------------------------------------------------------------------

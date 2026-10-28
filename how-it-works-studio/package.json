@@ -35,7 +35,11 @@
     "reel:stills": "node tools/render-reel.mjs --stills 0,240,700",
     "reel:render": "node tools/render-reel.mjs --all --mp4 series/your-data-explained/reels/r03-why-the-ad-follows-you/output/r03-why-the-ad-follows-you.mp4",
     "reel:preview": "node tools/preview-server.mjs",
-    "sprites": "python3 tools/build-nao-sprites.py"
+    "sprites": "python3 tools/build-nao-sprites.py",
+    "episode:compile": "node tools/compile-episode.mjs",
+    "episode:report": "node tools/compile-episode.mjs --report",
+    "reels:collect": "node tools/collect-reels.mjs",
+    "reels:check": "node tools/collect-reels.mjs --check"
   },
   "dependencies": {
     "playwright-core": "^1.64.1",

@@ -31,33 +31,42 @@ itself is a tool that will not find the other format.
 A beat is 3–10 seconds. That is right for the sheet — it is one thought, one line,
 one world — and wrong for the cut: a ten-second beat drawn as one shot is four
 seconds of a still image. `compile-episode.mjs` therefore splits each beat into
-shots by *beat type*, divides the beat's frames between them exactly, and gives
-each shot its own placement for her. The split is editorial, so it is written
-down as a table (`BEAT_PLAN`) rather than guessed:
+shots and divides the beat's frames between them exactly.
 
-| Beat type | Shots | Where she stands |
-| --- | --- | --- |
-| hook | CU, INSERT | corner-br, off |
-| title | TITLE | absent |
-| explain | MCU, INSERT, INSERT | corner-bl, off, off |
-| analogy | MCU, INSERT ×3 | corner-br, off |
-| step-by-step | INSERT, INSERT, MCU, INSERT | off, off, corner-bl, off |
-| myth-check | MCU, INSERT, INSERT | corner-br, off |
-| recap | INSERT, MCU | off, corner-bl |
-| outro | CU | corner-bl |
+**How** it splits them is the part that changed. The first version keyed the split
+on beat type alone: every `explain` became `MCU, INSERT, INSERT` regardless of
+what the sentence was doing, which is why two unrelated ideas were cut
+identically. That is now the job of `content/csv/visual.csv` — one authored row
+per beat giving the stage, intent, focal subject, supporting subjects, her role,
+the action, the caption treatment, the cameras and the reason for the transition.
+[Document 16](16-composition-and-story.md) is the whole contract; the short
+version is:
 
-Three rules hold the table together:
+- a beat chooses **five cameras** by name — `wide-establish`, `object-detail`,
+  `character-reaction`, `overhead-process`, `comparison` — instead of a scale
+  offset by shot number;
+- the **layout reserves the caption and her footprint first**, then places the
+  focal subject on the bench and the supporting subjects in the band it reserved
+  for them;
+- every prop has a **role** and props with no role in the beat are not drawn;
+- a beat with no authored row still compiles — it falls back to a mechanical
+  split — but it is marked `source.authored: false` and the strict quality gates
+  do not close on it.
 
-1. **She is never centred in an episode.** The bench needs the frame; she stands
-   in a corner and the graphic reads around her. (The reels do centre her, because
-   a reel's corner shot is 1.2 seconds long and an episode's is 8.)
+Three rules still hold from the first version, and they are now enforced rather
+than remembered:
+
+1. **She is never centred in an episode.** The bench needs the frame; she stands in
+   a corner. The exception is a `character-reaction` shot, where her face *is* the
+   information — and those shots exist because the plan asked for them, not
+   because a beat type happens to produce one.
 2. **A caption is one line per beat, not per shot.** Splitting a sentence across
-   the cuts of a beat reads as a typo — "Automation just means" / "steps a
-   machine". The line stays whole and holds for the beat, which is also exactly
-   what the reading check in `script.md` measures.
-3. **Two shots of the same world must not look identical.** Every shot draws the
-   world through its own lens: a small scale offset by shot number plus a slow
-   push. Three percent reads as a camera; ten percent reads as a mistake.
+   the cuts of a beat reads as a typo. The line stays whole and holds for the beat,
+   which is also exactly the window the reading check measures.
+3. **Two shots of the same beat must not look identical.** The compiler rejects two
+   consecutive shots on the same camera unless the beat is marked as a deliberate
+   `hold`, and the signature test (camera + focal + supports + her role) rejects
+   the rest.
 
 ## The workshop worlds
 
@@ -107,5 +116,16 @@ git-ignored; the delivered film is explicitly un-ignored in `.gitignore`, becaus
 a gitignored render does not survive a fresh checkout and "where is the video" is
 not a question the repo should be able to lose the answer to.
 
+Every delivered film is also copied to `final-reels/` at the repository root, with
+its subtitles and key-frame sheet, and indexed in that folder's README:
+
+```bash
+npm run reels:collect     # copy every finished film, rewrite the index
+npm run reels:check       # fail when a delivered film has not been collected
+```
+
+The project's `output/` folder stays the source of truth — the root folder is the
+one place a reviewer looks, and `test/composition.test.js` fails if it is stale.
+
 `0102` is the worked example: 78 s, 32 shots from 12 beats, 145 effects, 10 voice
-clips, peak −1.0 dBFS.
+clips, peak −1.0 dBFS, mean −20.1 dBFS.

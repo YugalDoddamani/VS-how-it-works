@@ -1,6 +1,6 @@
 # The Spec
 
-Fifteen documents, in reading order. Read `01` and `02` before writing anything; read
+Sixteen documents, in reading order. Read `01` and `02` before writing anything; read
 the rest when you touch that part of the system.
 
 | # | Document | Answers |
@@ -20,6 +20,11 @@ the rest when you touch that part of the system.
 | 13 | [Reel Rendering](13-reel-rendering.md) | script.md → reel.json → frames → MP4, the rig, the sound, the captions, and what is still missing. |
 | 14 | [Production Report](14-production-report.md) | What it took to finish R03 end to end: systems, assets, decisions, and the recipes for improvising it. |
 | 15 | [Episode Rendering](15-episode-rendering.md) | The long-form chain: beats → shots → the workshop worlds → voice, effects, captions, delivery. |
+| 16 | [Composition and Story](16-composition-and-story.md) | The shot contract, the five cameras, the layout order, the story spine, the staged pipeline, and the quality checks that gate a film. |
+
+`baseline/` holds frozen before/after evidence — `0102-p0/` is the delivered film
+as it was before the composition rebuild, with its measured failures. It is never
+regenerated.
 
 Two companion files sit outside `docs/`:
 
@@ -45,7 +50,10 @@ Two companion files sit outside `docs/`:
  ├── 10 quality             how it is judged
  ├── 11 lip-sync            how her mouth moves
  ├── 12 reels format        how a 50-second video is cut
- └── 13 reel rendering      how it actually gets drawn and encoded
+ ├── 13 reel rendering      how it actually gets drawn and encoded
+ ├── 14 production report   what it cost to finish one reel
+ ├── 15 episode rendering   how a 78-second episode becomes a film
+ └── 16 composition        how a shot is composed, and why it exists
 ```
 
 ## Keeping them true

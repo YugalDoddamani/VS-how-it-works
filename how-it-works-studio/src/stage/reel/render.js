@@ -12,7 +12,7 @@
 
 import { drawWorld } from './worlds.js';
 import { drawNao } from './nao.js';
-import { drawCaption, drawBadge, drawProgress, drawGuides } from './chrome.js';
+import { drawCaption, drawBadge, drawProgress, drawGuides, captionTop } from './chrome.js';
 import { P, alpha } from './palette.js';
 
 const W = 1080;
@@ -79,32 +79,27 @@ export function drawFrame(ctx, reel, frame, opts = {}) {
   ctx.save();
   ctx.clearRect(0, 0, W, 1920);
 
-  // 1 + 2: paper and world, through the shot's own lens.
+  // 1 + 2: the set and its subjects.
   //
-  // Every shot gets its own slight scale and a slow push, so a cut between two
-  // shots of the same world is still a cut: the eye sees the camera move, not a
-  // duplicated frame. The offsets are small on purpose - 3 % reads as a lens,
-  // 10 % reads as a mistake.
-  const lens = 1 + 0.028 * ((shot.n % 3) - 1) + 0.02 * t;
-  ctx.save();
-  ctx.translate(W / 2, 880);
-  ctx.scale(lens, lens);
-  ctx.translate(-W / 2, -880);
+  // The camera preset belongs to the *set*: the painter applies it to the paper,
+  // the bench and the kicker, so the room drifts and crops like a lens. The
+  // subjects are drawn outside it, at exactly the rectangles composition.js
+  // reserved for them - otherwise a camera move would silently rescale the very
+  // object the shot is about, and the layout would be a suggestion.
   drawWorld(ctx, shot, f, t);
-  ctx.restore();
 
   // 3: her
   drawNao(ctx, shot, f, t);
 
-  // 4: chrome
-  drawBadge(ctx, reel);
+  // 4: chrome - only what this shot asked for
+  drawBadge(ctx, reel, shot);
   drawCaption(ctx, shot, f);
-  drawProgress(ctx, reel, f);
+  drawProgress(ctx, reel, f, shot);
 
   // 5: transition
   drawWhip(ctx, shot, f);
 
-  if (opts.guides) drawGuides(ctx);
+  if (opts.guides) drawGuides(ctx, { captionTopY: captionTop(ctx, shot) });
   ctx.restore();
   return shot;
 }

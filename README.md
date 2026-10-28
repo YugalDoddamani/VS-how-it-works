@@ -10,6 +10,13 @@ Instagram Reels · YouTube Shorts · TikTok
 
 ---
 
+**Watching the films:** every finished reel and episode is copied, unchanged, into
+[`final-reels/`](final-reels/) at the root of this repository — one folder, every
+film, with a subtitle track and a key-frame sheet beside it. Refresh it with
+`cd how-it-works-studio && npm run reels:collect`.
+
+---
+
 ## The one-line pitch
 
 > **Nao Explains** — the tech you use every day, explained like a friend showing
