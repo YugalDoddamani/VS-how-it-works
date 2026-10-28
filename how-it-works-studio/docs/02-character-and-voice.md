@@ -2,219 +2,303 @@
 
 ## Who she is
 
-**Nao** (ナオ) — a drawn presenter. Nothing more than that, on purpose.
+**Nao** (ナオ) — a drawn presenter with pink bobbed hair, a black headband, gold
+eyes and a choker. She is an illustrated character, and the video says so.
 
-- She is an illustrated character, and the video says so out loud on the first
-  and last beat.
-- She has no age, no school, no family, no love interest, and no opinions
-  outside the topic. Anything you give her becomes a continuity problem across
-  two hundred episodes; anything you withhold becomes freedom.
-- She is not a mascot for a product, and she does not have a sponsor
-  personality.
-- Her job: make a technical idea feel like something a person is showing you,
-  not something being recited at you.
+- She is not a real person, not an avatar of one, and not a likeness of anyone.
+- She has no biography: no age given on screen, no school, no family, no love
+  interest, no opinions outside the topic. Anything you give her becomes a
+  continuity problem across two hundred episodes.
+- She is the channel's fixed point. Topics change, props change, the world
+  changes — Nao does not.
+- Her job: make a technical idea feel like a friend showing you something on her
+  phone, not a lecture.
 
-She is the fixed point in the channel. Props change, topics change, palettes
-shift by series — Nao does not.
+## The reference sheets
 
-## Visual design
+Two sheets define her. They live in `assets/nao/` and are the only authority on
+her design.
+
+| File | Contains | Used for |
+| --- | --- | --- |
+| `model-sheet.webp` | Character sheet, turnaround, 15 expressions, 18 hand poses, 9 body poses, 7 outfits, accessories | Full-body and mid-shot frames |
+| `talking-head-sheet-1k.webp` | 12 visemes for lip-sync | Talking-head frames |
+| `reference/01…05-*.webp` | The model sheet split into its five sections | Fast lookup while drawing |
+| `visemes/*.webp` | The 12 visemes, cropped and named | The lip-sync pipeline |
+
+Nao is **generated per beat from the sheets**, not drawn by hand and not a
+different image every episode. That is the difference between a character and a
+mascot-of-the-week.
+
+## Design
 
 ### Silhouette
 
-Readable at 100 px tall, from the thumbnail, in one colour. If the silhouette
-stops working, the design has drifted.
+Readable at 100 px tall, in one colour, from a thumbnail.
 
-- Height in frame: 1120 px, drawn at two-thirds of the `presenter` zone.
-- Proportions: 6.5 heads. Anime-stylised but not chibi, because a chibi reads as
-  "for children" and the audience is adults.
-- Hair: mid-length, asymmetric, one long forelock on her left. The asymmetry is
-  what makes the silhouette recognisable and what gives secondary motion
-  something to do.
-- Costume: a plain hooded top with a high collar, a short overshirt, and a
-  lanyard with a blank badge. The lanyard is the one "explainer" signal, and the
-  blank badge is where a series icon can be swapped in later.
+- Height in frame: 1120 px at full body (two-thirds of the `presenter` zone).
+- Proportions: 6.5 heads at full body. Adult-stylised, not chibi — a chibi reads
+  as "for children", and the audience is adults.
+- **Hair is the silhouette**: a chin-length bob with a soft inward curl, a heavy
+  fringe swept right, one longer strand on her left. Short enough to read as
+  practical, distinct enough to recognise at thumbnail size.
+- **The headband** is the one accessory that must never be dropped. It is the
+  cheapest recognition cue in the design and it reads at 80 px.
+- The choker is visible in close-ups only. At full-body scale it is a 4 px line,
+  so it is optional there.
 
 ### Palette
 
-Nao's own colours are separate from the world's, so she never blends into it.
+Sampled from the model sheet. Set as CSS custom properties in
+`src/stage/style.css` `:root`, and used **only** for Nao. The world's palette
+(`04-visual-style.md`) never tints her.
 
 | Token | Hex | Use |
 | --- | --- | --- |
-| `--nao-skin` | `#FBE3D6` | Face, hands |
-| `--nao-skin-shade` | `#F0C7B4` | Under-chin, neck, inner sleeve |
-| `--nao-hair` | `#2E2A3B` | Hair mass |
-| `--nao-hair-light` | `#4C4663` | Hair highlight band |
-| `--nao-hair-line` | `#191725` | Hair outlines and strand lines |
-| `--nao-cloth` | `#5B7FA8` | Hooded top |
-| `--nao-cloth-dark` | `#3F5D80` | Overshirt, shadow side |
-| `--nao-accent` | `#F2A65A` | Lanyard, cuffs, eye highlight |
-| `--nao-eye` | `#3E8FA8` | Iris |
-| `--nao-line` | `#221F2E` | All line art |
-| `--nao-blush` | `#F19C9C` @ 40% | Expression accent |
+| `--nao-hair` | `#F2A6C0` | Hair mass |
+| `--nao-hair-light` | `#FFD3E0` | Fringe highlight band |
+| `--nao-hair-shadow` | `#D98AA6` | Under-fringe, nape |
+| `--nao-hair-line` | `#B76A87` | Strand lines |
+| `--nao-skin` | `#FBE0D2` | Face, hands |
+| `--nao-skin-shade` | `#F3C8B4` | Under-chin, neck, inner sleeve |
+| `--nao-eye` | `#E3A64E` | Iris |
+| `--nao-eye-dark` | `#A9691F` | Iris rim, pupil edge |
+| `--nao-line` | `#5A4048` | All line art |
+| `--nao-band` | `#3A343C` | Headband, choker |
+| `--nao-cloth` | `#F49BB8` | Tee |
+| `--nao-cloth-shade` | `#E27FA1` | Tee shadow side, sleeve roll |
+| `--nao-shorts` | `#4A4453` | Shorts |
+| `--nao-shoe` | `#E9DFDA` | Trainers |
+| `--nao-blush` | `#F08FA8` @ 45 % | Expression accent |
 
 Rules:
-- Line art is one weight (3 px at full size) and one colour. No gradients on
-  lines.
-- Shading is flat, two tones per material, with the shade always on the
-  viewer-right and under-side. One light, upper-left, forever.
-- Never tint her with the world's palette. If the world goes dark, she gets a
-  rim light, not a colour wash.
 
-### Face
+- Line art is one weight (3 px at full size), one colour. No gradient strokes.
+- Shading is flat: two tones per material, shade always under-side and
+  viewer-right. One light, upper-left, forever.
+- The eyes are the exception to flat shading: iris gradient (gold → dark gold),
+  two highlights (large upper-left, small lower-right). This is where the anime
+  read lives.
+- If the background goes dark, she gets a rim light — never a colour wash.
 
-- Eyes: large but not enormous — the iris is about 1/5 of head height. Two
-  highlights, one large upper-left, one small lower-right.
-- The eye shape carries most of the expression, so the brows move less than a
-  western cartoon's would.
-- Mouth: three shapes only (`closed`, `mid`, `open`) plus a curve override for
-  smiles and frowns. She is not lip-synced to phonemes.
-- Blush appears only for `delighted`, `embarrassed`, `thinking-hard`.
+### Face and eyes
+
+- Eye shape carries most of the expression; the brows move less than a western
+  cartoon's would.
+- Mouth is a **viseme overlay** from the talking-head sheet (see below), not a
+  drawn curve per frame.
+- Blush appears only on `blushing`, `flirty`, `happy`, `laughing`.
+
+## Expressions (15)
+
+Taken directly from the model sheet. These are the `expression` values in the
+`Vocab` tab.
+
+| id | Reads as | Typical beat |
+| --- | --- | --- |
+| `neutral` | resting, half-lidded calm | default, transitions |
+| `happy` | closed smile, soft brows | a satisfying fact |
+| `smiling-eyes-closed` | full smile, eyes shut | the payoff |
+| `excited` | open mouth, bright eyes | a reveal |
+| `surprised` | wide eyes, small open mouth | the hook's twist |
+| `confused` | tilted brows, flat mouth | a genuinely hard step |
+| `angry` | low brows, frown | a bad practice |
+| `sad` | downcast brows | a consequence |
+| `pout` | small mouth, one brow | a joke, a complaint |
+| `wink` | one eye shut | playfulness, CTA |
+| `flirty` | half-lidded, smirk | sparingly — a tease, never the topic |
+| `blushing` | blush + soft mouth | an honest admission |
+| `thinking` | eyes up, finger to chin | "so how does it…" |
+| `shocked` | wide eyes, open mouth | a number that surprises |
+| `laughing` | eyes closed, wide open mouth | an absurd truth |
+
+Use `flirty` at most once per episode, and never while the topic is security,
+privacy, money, or health. The channel's promise is "she can explain anything" —
+a presenter who flirts with the camera instead of explaining loses that.
+
+## Hand poses (18)
+
+From the model sheet, used as the `hand` part of a rig pose.
+
+`open-palm`, `point-up`, `point-right`, `point-left`, `thumbs-up`, `ok-sign`,
+`peace-sign`, `stop-palm`, `fist`, `palm-up-present`, `palm-out-welcome`,
+`index-touch`, `finger-heart`, `holding-pen`, `holding-phone`,
+`holding-tablet`, `holding-cup`, `arms-crossed`.
+
+Mapping to beat intent:
+
+| Intent | Hand |
+| --- | --- |
+| Present the board | `palm-up-present` |
+| Point at a prop | `point-right` / `point-left` (mirrored to the prop's side) |
+| Count a step | `point-up` (1), then two/three fingers via `peace-sign` variants |
+| Stop / "don't do this" | `stop-palm` |
+| Agreement, encouragement | `thumbs-up` |
+| Warmth, sign-off | `finger-heart` (outro only) |
+| Holding a device prop | `holding-phone` / `holding-tablet` |
+| Thinking | `index-touch` |
+| Refusal, correction | `stop-palm` + `arms-crossed` |
+
+## Body poses (9)
+
+`standing-neutral`, `pointing-explaining`, `holding-tablet-working`,
+`thinking`, `presenting-palm-up`, `cheerful-jump`, `sitting-cross-legged`,
+`lying-down-relaxed`, plus the `hoodie` outfit variant.
+
+**Channel default is `standing-neutral` → `pointing-explaining` →
+`presenting-palm-up`.** The seated and lying poses exist but are `restricted`:
+they read as lifestyle content, and this channel is an explainer. `cheerful-jump`
+is allowed once per episode, maximum, on the recap.
+
+## Outfits (7)
+
+| id | Outfit | Status |
+| --- | --- | --- |
+| `casual` | pink tee, charcoal shorts | **default, every episode** |
+| `hoodie` | black oversized hoodie | allowed for "cosy/evening" topics |
+| `sporty` | black crop, black shorts | allowed, sparingly |
+| `casual-dress` | off-shoulder top, pink plaid skirt | allowed |
+| `office-casual` | white shirt, pencil skirt | allowed for work/career topics |
+| `sleepwear` | pink character pyjamas | allowed for late-night topics |
+| `summer` | two-piece swimwear | **restricted — never rendered** |
+
+`summer` exists in the reference sheet and is deliberately excluded from the
+channel. Explainers aimed at a broad audience do not need it, and platform
+recommendation systems punish creators who mix it in. The exclusion is a rule in
+this document, not a preference.
+
+## Accessories and marks
+
+- `headband` — always on. Never removed.
+- `choker` — close-ups only.
+- `heart-icons`, `emotion-marks` (`!`, `?`) — up to two per beat, above the
+  shoulder, never over the face.
+- Props she can hold: `tablet`, `phone`, `cup`, `pen`, `cat-pillow`.
+- The `cat-pillow` is the channel's one running visual joke. It may appear in
+  exactly one beat per episode, and it must be doing something useful (a cushion,
+  a stand-in for a server, a sleeping "idle process").
 
 ## The rig
 
-Nao is drawn once, as a rig, and posed by data. There are no per-episode drawings.
+Nao is assembled from the sheets by parts, so poses and expressions compose.
 
 ```
 head ─┬─ hair-back
-      ├─ face ─┬─ eyes (open|half|shut|wide|squint)
-      │        ├─ brows (neutral|raised|furrowed|one-up)
-      │        └─ mouth (closed|mid|open) + curve
-      ├─ hair-front ─┬─ forelock-left
-      │              └─ side-strands
-      └─ ear, blush
-neck
-torso ─┬─ hood
-       ├─ overshirt
-       └─ lanyard+badge
-arm-left  ── upper ── fore ── hand (open|point|grip|flat)
+      ├─ face ─┬─ eyes (per expression)
+      │        ├─ brows (per expression)
+      │        └─ mouth ── VISEME OVERLAY (per phoneme, per frame)
+      ├─ hair-front ─┬─ fringe-right
+      │              └─ side-strand-left
+      └─ band, choker, blush
+torso ─┬─ tee ─┬─ sleeve / roll
+       └─ lanyard-badge (optional)
+arm-left  ── upper ── fore ── hand (per hand pose)
 arm-right ── upper ── fore ── hand
+legs      ── per body pose
 ```
 
-### Poses (from `Vocab`)
-
-Poses are joint angles, not drawings: shoulders, elbows, wrists, torso tilt,
-head tilt. Blending two poses is interpolation of those numbers, which is why
-`neutral-open → point-board` is a smooth 12-frame move for free.
-
-| Pose id | Reads as | Typical beat |
-| --- | --- | --- |
-| `neutral-open` | hands at rest, slight open | `explain`, `recap` |
-| `present-open` | both palms up, presenting the board | `explain`, `analogy` |
-| `point-board` | one arm to the board, head turned | `zoom-in`, `step-by-step` |
-| `point-camera` | one hand toward the viewer | `hook`, `myth-check` |
-| `think-chin` | hand at chin, head tilted | `explain` (a beat of pause) |
-| `shrug-open` | shoulders up, palms up | `myth-check` |
-| `thumbs-up` | one hand up, confident | `outro` |
-| `hands-on-hips` | squared up, emphatic | `compare` |
-| `count-two` | fingers counting a step | `step-by-step` |
-| `lean-in` | torso forward, conspiratorial | `hook`, `packet-trip` |
-| `present-wide` | both arms wide, framing the whole world | `title`, `diagram` |
-| `tired-drop` | shoulders down, a comic beat | `explain` (rare, sparing) |
-
-Twelve poses cover every beat type. Adding a thirteenth needs two episodes that
-both needed it.
-
-### Expressions (from `Vocab`)
-
-| Expression | Eyes | Brows | Mouth | Used for |
-| --- | --- | --- | --- | --- |
-| `neutral` | open | neutral | closed | default |
-| `curious` | open, one brow up | one-up | mid | a question |
-| `delighted` | squint, blush | raised | smile | a satisfying fact |
-| `surprised` | wide | raised | open | a reveal |
-| `focused` | half | furrowed | closed | a mechanism |
-| `skeptical` | half, one brow up | one-up | flat | a myth |
-| `confused` | squint, brows tilt | furrowed | mid | a genuinely hard step |
-| `confident` | open | neutral | smile | a conclusion |
-| `sheepish` | looking away, blush | raised | flat | an honest caveat |
-| `emphatic` | open, leaning | furrowed | open | the key sentence |
-| `relieved` | half, soft | neutral | smile | after a metaphor lands |
-| `blank` | open, no brows | neutral | closed | a deadpan beat |
-
-### Gestures
-
-A gesture is a short additive curve on top of a pose, with a start, a duration,
-and an optional loop. They exist so a single `explain` beat does not look like a
-statue.
-
-| Gesture | What it does | Default length |
-| --- | --- | --- |
-| `talk-hands` | small circular hand movement, 2 loops | whole beat |
-| `point-board` | arm extends toward the board, holds 20 f | 24 f |
-| `tap-step` | a downward tap on the current step chip | 12 f |
-| `sweep-wide` | one arm sweeps across the whole board | 18 f |
-| `count-one` / `count-two` / `count-three` | raises the matching number of fingers | 15 f |
-| `shrug` | shoulders and palms up, then down | 20 f |
-| `nod` | head nod, 2 cycles | 18 f |
-| `shake-no` | head shake, 2 cycles | 18 f |
-| `lean-back` | torso leans away from a bad idea | 16 f |
-| `settle` | returning to neutral after a gesture | 10 f |
+Poses are joint angles, not separate drawings, so `standing-neutral →
+pointing-explaining` is a 12-frame interpolation for free. Expressions swap eye,
+brow and mouth parts. The mouth is then *overridden* every frame by the viseme
+layer — which is the whole point of the talking-head sheet.
 
 ### Idle life
 
-Without these, Nao reads as a sticker. All three are deterministic.
+Deterministic, seeded from `beat_id`:
 
-- **Blink**: a seeded schedule, one blink every 90–190 frames, 4-frame close.
-  Seeded from the `beat_id`, so a re-render blinks at the same moment.
-- **Breathe**: a 4 s sine on torso Y, ±1.5 px, and a 1 px shoulder lift.
-- **Hair lag**: the forelock and side strands follow the head with a 4-frame
-  delay and a clamped spring, so a fast turn flicks the hair.
+- **Blink**: one every 90–190 frames, 4-frame close. Suspended while a viseme is
+  open (you cannot blink mid-vowel without it looking like a glitch).
+- **Breathe**: 4 s sine on torso Y, ±1.5 px; 1 px shoulder lift.
+- **Hair lag**: fringe and side strand follow the head with a 4-frame delay and a
+  clamped spring.
+
+## Lip-sync
+
+Twelve visemes, one per cell of the talking-head sheet.
+
+| Viseme id | Sheet label | Covers | Mouth read |
+| --- | --- | --- | --- |
+| `rest` | REST / SILENT | silence, punctuation pauses | closed, slight smile |
+| `A` | A / AH | a, ah | wide open, tongue low |
+| `E` | E | e, eh | wide, teeth showing |
+| `I` | I | i, ee, y | narrow wide, teeth |
+| `O` | O | o, oh, aw | round, tall |
+| `U` | U / OO | u, oo, w | small round, pursed |
+| `W` | W / Q | w, qu | pursed, tiny |
+| `MBP` | M / B / P | m, b, p | closed, pressed |
+| `FV` | F / V | f, v | lower lip to teeth |
+| `L` | L | l | tongue tip up, open |
+| `SZTD` | S / Z / T / D | s, z, t, d, th | teeth close, narrow |
+| `CGK` | C / G / K / N / CH / J / SH | k, g, c, n, ch, j, sh | mid open, back |
+
+The mapping, the timing model, and the coarticulation rules are specified in
+[`11-lip-sync.md`](11-lip-sync.md) and implemented in
+`src/stage/rig/visemes.js`.
+
+**Two modes:**
+
+1. **Talking head** (the reference sheet's use case): head-and-shoulders framing,
+   viseme overlays the whole lower face, eyes and brows carry the emotion from
+   the expression sheet.
+2. **Full body** (default for explainers): the viseme still drives the mouth, but
+   at 1120 px tall a mouth is ~18 px wide, so it is expressed as **three states**
+   — `closed`, `mid`, `open` — plus a jaw offset. Same schedule, reduced
+   fidelity. Below 200 px of head height, do not attempt visemes at all.
+
+Never attempt phoneme-accurate lip-sync from audio. The schedule is derived from
+the **narration text**, which the sheet already contains, so a re-record does not
+break the animation and a silent render still animates the mouth correctly.
 
 ## Voice
 
 ### Written voice (captions)
 
-The caption band is the script. It is written to be read, which is stricter
-than being written to be heard.
+The caption band is the script.
 
-- Second person. "You type an address."
-- Present tense. "The server sends back a copy."
-- Sentences of 8–14 words. Never more than 20.
-- No parentheticals, no dashes, no semicolons. Those are reading speed, not
-  clarity.
-- Numbers as digits when they are data ("3 round trips"), as words when they
-  are rhetorical ("one machine").
-- One em-dash-free sentence per caption card. If you want a dash, you want two
+- Second person, present tense: "You type an address."
+- 8–14 words per sentence, never more than 20.
+- No parentheticals, dashes, or semicolons. If you want a dash, you want two
   cards.
+- Numbers as digits when they are data ("1.5% of the world's electricity"), as
+  words when rhetorical ("one machine").
 
 ### Spoken voice (narration)
 
-Same text as the caption, with these differences allowed:
+Same text, with two allowances:
 
-- A spoken sentence may add one filler word to breathe ("So, …", "Right —").
-  These are dropped from the caption, because they cost reading time.
-- Spoken emphasis is marked in the sheet's `emphasis` column, which tints the
-  token in the caption *and* tells the voice direction where to stress.
+- One filler word to breathe ("So,", "Okay —"), dropped from the caption.
+- `emphasis` tokens mark where the read stresses and where the caption tints.
 
-If a line reads badly aloud, it is badly written. Fix the line, not the
-performance.
+### How she talks to this audience
+
+The audience is a woman who is curious about how things work but is **not**
+searching for it — she is scrolling. She is not a developer and does not want to
+become one. She wants to understand the thing she already uses.
+
+- Never assume prior knowledge. Never say "as you probably know".
+- Never make her feel late. No "it's easy", "simply", "obviously", "just".
+- Curiosity over competence: "here's what's actually happening" beats "here's
+  how to do it".
+- The stakes are personal — her photos, her messages, her money, her time — not
+  enterprise architecture.
+- One joke per episode, at most, and it is a joke about the situation, not about
+  the viewer.
 
 ### What she never says
 
-- "As an AI…", "Let me explain…", "In this video…", "Don't forget to…" (in the
-  narration; the outro may carry a follow prompt, in the caption only).
-- Hype words: *revolutionary, game-changing, blazing, seamless, cutting-edge,
-  literally insane*.
-- Unhedged predictions about products or markets.
-- Anything that sounds like advice on money, health, or law.
+- "As an AI…", "Let me explain…", "In this video…", "Don't forget to…".
+- Hype: *revolutionary, game-changing, blazing, seamless, insane*.
+- Predictions about products, markets, or "the future of work".
+- Anything that sounds like money, health, legal, or security advice.
+- Mansplaining openers: "Actually…", "Technically…", "Fun fact:".
 - "Simply", "just", "obviously" — the three words that make a confused viewer
   feel stupid.
 
 ## Channel chrome
 
-- The `badge` zone shows `series · episode number`, e.g. `NETWORKING · 04`.
-- The first and last beat carry a footer line:
-  **"Illustrated explainer · not a real person"**.
-- The outro may carry one follow prompt, in the caption band, never spoken.
-- No subscribe animations, no bell icons, no comment-bait arrows. The reference
-  studio used an arrow for that; this channel does not, because it trades
-  attention for trust.
-
-## Model sheet
-
-A single reference image of Nao belongs at `assets/nao/model-sheet.png` once the
-rig exists: front, three-quarter, and side, with the expression grid beneath.
-It is the artefact a person checks new poses against, and the thing that keeps
-her on-model across a collaborator change. It is not used at render time.
-
-Until then, `docs/` is the model sheet.
+- The `badge` zone shows `series · episode number`, e.g. `THE CLOUD · 01`.
+- First and last beat carry: **"Illustrated explainer · not a real person"**.
+- One follow prompt maximum, in the caption band, on the outro only. Never
+  spoken, never a bell icon, never a comment-bait arrow.
+- She waves with `finger-heart` or `peace-sign` on the outro. That is the whole
+  sign-off.

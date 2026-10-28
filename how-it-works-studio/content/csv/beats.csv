@@ -1,13 +1,61 @@
 episode_id,beat_no,beat_type,duration_s,narration,on_screen_text,board_items,props,camera,gesture,expression,emphasis,transition,sfx,note
-'0001,1,hook,4.0,You type an address and press enter.,,,,wide,point-camera,curious,enter,none,pop-soft,First frame is fully composed: the feed shows it before play
-'0001,2,title,3.0,Four things happen before the page appears.,What happens when you press enter?,,desktop@B3,wide,sweep-wide,confident,Four,wipe,pop-soft,World is empty apart from the desktop
-'0001,3,explain,6.0,The address is a name. Computers route by number.,A name not a number,,desktop@B3;signpost@C4,board,point-board,focused,address;number,fade,pop-soft,Term 1 of 3: address
-'0001,4,explain,7.0,So first something has to look the name up.,The lookup,,desktop@B3;server@C3,board,talk-hands,focused,name,fade,pop-soft,
-'0001,5,analogy,8.0,That's DNS: a contacts app for the internet.,DNS is a contacts app,Name goes in;Number comes out,desktop@B3;phone@C3;server@D2,board,present-open,delighted,DNS;contacts,fade,pop-soft,The mapping is stated out loud on purpose
-'0001,6,step-by-step,9.0,You ask a resolver. It asks up the chain. The answer comes back.,The lookup,Ask a resolver;It asks the root;The answer comes back,server@C3;tower@B2;server@E4,board,count-three,focused,resolver;chain,fade,pop-soft,First time three machines are on stage together
-'0001,7,explain,7.0,Now you have a number: the server's address.,An address,,desktop@B3;server@C3;signpost@D4,board,point-board,confident,server,fade,pop-soft,Term 2 of 3: server
-'0001,8,packet-trip,9.0,Your request travels there and a reply travels back.,A round trip,,desktop@B3;server@C3,macro,lean-in,emphatic,reply,fade,whoosh,Needs a Paths row. The shot carries the beat.
-'0001,9,explain,6.0,"The reply is the page: HTML, images, styles.",The page,,desktop@B3;server@C3;parcel@D3,board,talk-hands,neutral,page,fade,pop-soft,Three things arrive in one reply
-'0001,10,myth-check,8.0,It isn't one big computer. It's copies cached close to you.,Not one big computer,,server@C3;cloud@C2;desktop@B3,board,shake-no,skeptical,copies,wipe,pop-soft,Term 3 of 3: cache. Nao changes expression mid-beat.
-'0001,11,recap,5.0,Name. Address. Request. Page.,Name to page,,desktop@B3;server@C3,wide,sweep-wide,relieved,Page,fade,pop-soft,"A list of chips, not sentences: recap is exempt from the sentence limit"
-'0001,12,outro,3.0,That's what the enter key actually does.,Episode 01,NETWORKING,desktop@B3;server@C3,wide,nod,delighted,enter,wipe,pop-soft,Follow prompt lives in the caption only. Never spoken.
+'0101,1,hook,4.0,There is a city with no people in it. And your photos live there.,No people,,cloud@C3,wide,point-camera,surprised,city;photos,none,whoosh,First frame fully composed. No fade.
+'0101,2,title,3.0,Where your photos actually live.,Where your photos live,,cloud@C3;desktop@B3,wide,present-wide,confident,,wipe,pop-soft,
+'0101,3,explain,6.0,You take a photo. The app says it is safe in the cloud.,Safe in the cloud,,phone@C3;cloud@D2,board,holding-phone,neutral,cloud,fade,pop-soft,
+'0101,4,myth-check,8.0,The cloud is not in the sky. It is a building full of computers.,Not in the sky,,warehouse@C3;cloud@D2,board,shake-no,skeptical,building,wipe,pop-soft,The myth is named out loud before it is corrected
+'0101,5,explain,7.0,"Thousands of machines, stacked in racks, in a warehouse with no windows.",A warehouse of computers,,warehouse@C3;server@B2;server@D2,board,sweep-wide,focused,warehouse,fade,pop-soft,
+'0101,6,explain,7.0,"Every one of them needs power, and every search turns into heat.","Power in, heat out",,server@C3;signpost@D3;clock@B2,board,point-board,focused,heat,fade,pop-soft,
+'0101,7,step-by-step,10.0,"First your photo is copied. Then it is checked. Then it is stored, more than once.",The journey,Copied;Checked;Stored more than once,server@C3;disk@D2;server@E3,board,count-three,focused,copied;stored,fade,pop-soft,Three steps: count-three matches
+'0101,8,explain,8.0,"Good storage keeps copies in separate buildings, so one flood cannot erase your holiday.",Copies in separate buildings,,warehouse@B2;warehouse@E3;cloud@C2,board,present-open,confident,separate,fade,pop-soft,
+'0101,9,explain,7.0,All of it adds up to about one and a half percent of the world's electricity.,1.5% of world electricity,,server@C3;signpost@D3,board,point-board,shocked,percent,fade,pop-soft,Sourced: IEA via Our World in Data
+'0101,10,myth-check,8.0,"It is not magic. It is a building, a power bill, and a very patient security guard.",Not magic. A building.,,warehouse@C3;lock@D2,board,arms-crossed,pout,power bill,wipe,pop-soft,
+'0101,11,recap,5.0,Copied. Checked. Stored. Powered.,Where it lives,Copied;Checked;Stored;Powered,warehouse@C3,wide,sweep-wide,relieved,,fade,pop-soft,"Four chips, the whole answer"
+'0101,12,outro,3.0,"So when you hit back up, you know exactly where it goes.",Episode 01,,warehouse@C3;cloud@D2,wide,finger-heart,happy,,wipe,pop-soft,Sign-off is the finger heart. Never a bell icon.
+'0102,1,hook,4.0,You did not get replaced by AI. You got replaced by a checklist.,A checklist,,board@C3,wide,point-camera,surprised,checklist,none,whoosh,
+'0102,2,title,3.0,How AI automation actually works.,How AI automation works,,board@C3;server@B2,wide,present-wide,confident,,wipe,pop-soft,
+'0102,3,explain,7.0,Automation just means steps a machine follows without asking you first.,Steps without asking,,board@C3;figure@D2,board,point-board,neutral,automation,fade,pop-soft,
+'0102,4,explain,7.0,"For fifty years those steps were rules. If this, then that.","If this, then that",,board@C3;signpost@D2,board,point-board,focused,rules,fade,pop-soft,"Rules only. No thinking. Short sentence, big point."
+'0102,5,explain,7.0,Rules break the moment real life looks slightly different from the example.,Rules break easily,,board@C3;signpost@D2;parcel@E3,board,talk-hands,confused,break,fade,pop-soft,
+'0102,6,analogy,9.0,Now add a model. Something that reads a messy pile and guesses the sensible thing.,"Messy in, sensible out",Messy in;Sensible out,board@C3;parcel@D2;envelope@E3,board,present-open,thinking,model,fade,pop-soft,Analogy: a very well-read assistant who never says I do not know unless you make them
+'0102,7,step-by-step,10.0,Set a goal. Give it tools. Check the result. Go again.,The loop,Set a goal;Give it tools;Check the result;Go again,board@C3;signpost@D2;lock@E3;clock@C2,board,count-three,focused,goal;check,fade,pop-soft,Four steps is the payload of the whole episode
+'0102,8,explain,8.0,That loop is the automation. The model is only one part of it.,The loop is the automation,,board@C3;figure@D2;server@E3,board,sweep-wide,emphatic,loop,fade,pop-soft,
+'0102,9,myth-check,8.0,It is not one genius robot. It is a loop with a safety check bolted on.,Not a genius robot,,board@C3;figure@D2;lock@D3,board,shake-no,skeptical,safety check,wipe,pop-soft,
+'0102,10,explain,7.0,"And the check is where it fails. No check means no automation, just vibes.",Where it fails,,board@C3;lock@D2;signpost@E3,board,point-board,angry,vibes,fade,pop-soft,
+'0102,11,recap,5.0,Goal. Tools. Check. Repeat.,The loop,Goal;Tools;Check;Repeat,board@C3,wide,sweep-wide,relieved,,fade,pop-soft,
+'0102,12,outro,3.0,"So next time someone says the AI does it, ask where the check is.",Episode 02,,board@C3;lock@D2,wide,finger-heart,wink,check,wipe,pop-soft,
+'0103,1,hook,4.0,Nothing on the internet is free. But some free things are genuinely worth it.,Genuinely free?,,signpost@C3,wide,point-camera,curious,free,none,whoosh,
+'0103,2,title,3.0,How to tell if a free tool is actually free.,Is it actually free?,,signpost@C3;board@D2,wide,present-wide,confident,,wipe,pop-soft,
+'0103,3,explain,7.0,Every free thing is paid for somehow. There are only four ways.,Four ways to pay,,board@C3;token@D2,board,point-board,focused,four,fade,pop-soft,
+'0103,4,step-by-step,10.0,You pay with attention. Or with data. Or later. Or somebody else pays.,The four ways,Attention;Data;Later;Somebody else,board@C3;token@D2;phone@E3,board,count-three,focused,attention;data,fade,pop-soft,Four chips: this is the saveable frame
+'0103,5,explain,7.0,Ads mean the product is your attention. The tool is just the delivery.,You pay with attention,,board@C3;phone@D2;signpost@E3,board,talk-hands,neutral,attention,fade,pop-soft,
+'0103,6,explain,7.0,"Data means the tool learns you, and that is the actual price of entry.",You pay with data,,board@C3;disk@D2;figure@E3,board,point-board,focused,data,fade,pop-soft,
+'0103,7,explain,7.0,And later means the free tier runs out exactly when you are hooked.,You pay later,,board@C3;clock@D2;lock@E3,board,point-board,skeptical,later,fade,pop-soft,
+'0103,8,explain,7.0,"Somebody else means a community, a school, or an open source project pays.",Somebody else pays,,board@C3;figure@D2;queue@E3,board,sweep-wide,happy,community,fade,pop-soft,
+'0103,9,explain,8.0,"So ask one question before you sign up. If I never pay, who is paying for this?",Who pays if I never do?,,board@C3;signpost@D2,board,point-camera,emphatic,who is paying,fade,pop-soft,The one line a viewer can reuse
+'0103,10,compare,8.0,Free and private is rare and worth finding. Free and mining you is everywhere.,Rare vs everywhere,Free and private;Free and mining you,board@C3;lock@D2;disk@E3,split,hands-on-hips,focused,private,wipe,pop-soft,
+'0103,11,recap,5.0,Attention. Data. Later. Somebody else.,Who pays,Attention;Data;Later;Somebody else,board@C3,wide,sweep-wide,relieved,,fade,pop-soft,
+'0103,12,outro,3.0,Ask who pays. Then enjoy the free stuff without the uneasy feeling.,Episode 03,,board@C3;signpost@D2,wide,finger-heart,happy,who pays,wipe,pop-soft,"Tool list is in the caption, not the video"
+'0104,1,hook,4.0,Your wifi does not hate you. It has rush hour.,Rush hour,,router@C3;clock@D2,wide,point-camera,pout,rush hour,none,whoosh,
+'0104,2,title,3.0,Why your wifi dies at nine pm.,Why nine pm?,,router@C3;clock@D2,wide,present-wide,curious,,wipe,pop-soft,
+'0104,3,explain,7.0,Wifi is radio. It travels through the same air as everyone else's.,Wifi is radio,,router@C3;tower@B2,board,present-open,neutral,radio,fade,pop-soft,
+'0104,4,explain,8.0,On the crowded band there are only three channels that do not overlap.,Three channels only,,router@C3;router@D2;router@E3,board,count-three,focused,three channels,fade,pop-soft,"Sourced: 2.4 GHz has channels 1, 6, 11"
+'0104,5,explain,7.0,So your neighbours' routers are already talking over yours.,Neighbours talking over you,,router@C3;queue@D2,board,talk-hands,confused,neighbours,fade,pop-soft,
+'0104,6,explain,8.0,"At nine, everyone in the building starts streaming at the same time.",Nine pm: everyone streams,,router@C3;figure@D2;phone@E3,board,sweep-wide,shocked,nine,fade,pop-soft,
+'0104,7,compare,8.0,"And the internet coming into your home is shared with your street, not just your flat.",Wifi vs internet,Wifi: last few metres;Internet: the long part,router@C3;tower@B2;server@E3,split,hands-on-hips,focused,shared,wipe,pop-soft,The distinction that fixes half the confusion
+'0104,8,explain,7.0,Wifi is the last few metres. The internet is the long part.,Two different things,,router@C3;tower@D2,board,point-board,emphatic,long part,fade,pop-soft,Slow can be either. The distinction that fixes half the confusion.
+'0104,9,step-by-step,9.0,Three fixes that actually work. Move closer. Use the five gigahertz band. Plug in a cable.,Fixes that work,Move closer;Use the 5GHz band;Plug in a cable,router@C3;phone@D2;cable@E3,board,count-three,confident,plug in,fade,pop-soft,Actionable: this is the share
+'0104,10,myth-check,7.0,"It is not your provider being evil. It is a queue, and queues have a shape.",Not evil. A queue.,,router@C3;queue@D2;clock@E3,board,shake-no,skeptical,queue,wipe,pop-soft,
+'0104,11,recap,5.0,Shared air. Shared pipe. Everyone at once.,Why it dies,Shared air;Shared pipe;Everyone at once,router@C3,wide,sweep-wide,relieved,,fade,pop-soft,
+'0104,12,outro,3.0,Try the cable tonight. You will hear the difference in one video.,Episode 04,,router@C3;cable@D2,wide,finger-heart,happy,cable,wipe,pop-soft,
+'0105,1,hook,4.0,You posted one photo. Seconds later there were copies you will never see.,Copies you will never see,,phone@C3,wide,point-camera,surprised,copies,none,whoosh,
+'0105,2,title,3.0,What actually happens when you post.,After you press post,,phone@C3;cloud@D2,wide,present-wide,confident,,wipe,pop-soft,
+'0105,3,explain,7.0,Your phone sends it up. The app immediately makes several smaller versions.,Several smaller versions,,phone@C3;server@D2,board,holding-phone,neutral,several,fade,pop-soft,
+'0105,4,explain,8.0,"Those copies sit on servers in many cities, near the people who will view them.",Copies in many cities,,server@C3;cloud@D2;server@E3,board,sweep-wide,focused,many cities,fade,pop-soft,
+'0105,5,explain,7.0,"And every viewer's phone keeps its own copy, quietly, to load it faster.",A copy on their phone,,phone@C3;disk@D2,board,point-board,focused,copy,fade,pop-soft,
+'0105,6,explain,7.0,"A screenshot is also a copy. The app cannot delete it, ever.",A screenshot is a copy,,phone@C3;parcel@D2,board,point-board,skeptical,screenshot,fade,pop-soft,
+'0105,7,myth-check,8.0,Deleting removes your copy and the public link. Not the screenshots.,Delete is not a recall,,phone@C3;lock@D2,board,shake-no,pout,screenshots,wipe,pop-soft,
+'0105,8,explain,8.0,"The photo can also carry hidden data: where it was taken, when, and on what.",Hidden data inside,Where;When;Which device,phone@C3;disk@D2;signpost@E3,board,point-board,shocked,hidden,fade,pop-soft,EXIF metadata
+'0105,9,step-by-step,9.0,Three habits. Strip the location. Share to a small group first. Assume it is permanent.,Three habits,Strip location;Try a small group;Assume permanent,phone@C3;lock@D2;clock@E3,board,count-three,confident,permanent,fade,pop-soft,
+'0105,10,explain,7.0,None of this is a reason to stop posting. It is a reason to post on purpose.,Post on purpose,,phone@C3;cloud@D2,board,present-open,happy,on purpose,fade,pop-soft,The line that keeps the episode from being fear-mongering
+'0105,11,recap,5.0,Copies. Caches. Screenshots. Metadata.,What a post becomes,Copies;Caches;Screenshots;Metadata,phone@C3,wide,sweep-wide,relieved,,fade,pop-soft,
+'0105,12,outro,3.0,Post like it is permanent. Because the internet already does.,Episode 05,,phone@C3;lock@D2,wide,finger-heart,wink,permanent,wipe,pop-soft,

@@ -2,7 +2,7 @@
   "name": "how-it-works-studio",
   "version": "0.1.0",
   "private": true,
-  "description": "Render illustrated isometric technology explainers, authored in a spreadsheet, from a character-led script.",
+  "description": "Render illustrated isometric technology explainers, authored in a spreadsheet, presented by an anime character with text-driven lip-sync.",
   "license": "UNLICENSED",
   "engines": {
     "node": ">=18"
@@ -14,9 +14,9 @@
     "doctor": "node src/cli.js doctor",
     "list": "node src/cli.js list",
     "new": "node src/cli.js new",
-    "sheet:check": "node src/cli.js sheet-check",
-    "sheet:build": "node src/cli.js sheet-build",
-    "sheet:export": "node src/cli.js sheet-export",
+    "sheet:check": "python3 tools/check_content.py",
+    "sheet:build": "python3 tools/build-sheet.py",
+    "sheet:export": "python3 tools/build-sheet.py",
     "sheet:pull": "node src/cli.js sheet-pull",
     "gallery": "node src/cli.js gallery",
     "preview": "node src/cli.js preview",
@@ -27,7 +27,10 @@
     "publish": "node src/cli.js publish",
     "determinism": "node src/cli.js determinism",
     "clean": "node src/cli.js clean",
-    "test": "node --test \"test/**/*.test.js\""
+    "test": "node --test \"test/**/*.test.js\"",
+    "content:check": "python3 tools/check_content.py",
+    "projects:build": "node tools/build-projects.mjs",
+    "content:strict": "python3 tools/check_content.py --strict"
   },
   "dependencies": {
     "playwright-core": "^1.64.1",

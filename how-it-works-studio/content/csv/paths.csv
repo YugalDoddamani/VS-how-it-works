@@ -1,3 +1,1 @@
 episode_id,beat_no,from_slot,to_slot,arc_height,role,delay_s,travel_s
-'0001,8,C3,D3,1.5,request,0.4,3.4
-'0001,8,D3,C3,1.8,response,3.9,3.4

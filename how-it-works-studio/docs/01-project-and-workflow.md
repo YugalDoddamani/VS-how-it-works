@@ -79,6 +79,12 @@ The user should review:
 - **Does it hold attention?** Watch it on a phone, with the sound off, once.
 - **Is Nao on-model?** Same proportions, same palette, no drift.
 
+## Where the slate stands
+
+Five episodes are written, validated and scheduled — 0101 to 0105, one per series,
+about 76 seconds each. None is rendered. The workflow below is what turns each of
+them into a film.
+
 ## Standard project folder
 
 ```

@@ -1,86 +1,333 @@
-# VS — How It Works
+# Nao Explains
 
-An animated explainer channel: **Nao**, an anime girl, explains how technology
-actually works — in plain language, over a living isometric world.
+**Tech, explained by someone who is actually nice about it.**
 
-One episode = one question ("How does HTTPS actually keep you safe?") answered in
-45–75 seconds, with an illustrated presenter, an isometric prop stage that builds
-itself as she talks, and captions that carry the whole script for viewers with
-sound off.
+Short vertical videos where a pink-haired illustrated presenter explains how the
+things you already use actually work — the cloud, wifi, AI, your own data — in
+about seventy seconds, with the whole script on screen so you can watch on mute.
 
-The whole studio lives in [`how-it-works-studio/`](how-it-works-studio/).
-Start there:
-
-```bash
-cd how-it-works-studio
-npm install
-npm run doctor
-npm run sheet:check
-npm run build -- 0001-what-happens-when-you-type-a-url
-```
-
-Those are the commands the studio is being built to expose, not commands that
-work today — `src/` does not exist yet. See **Status** below.
+Instagram Reels · YouTube Shorts · TikTok
 
 ---
 
-### The content lives in a spreadsheet
+## The one-line pitch
 
-This is the deliberate difference from a normal animation repo: **you write the
-episode in a Google Sheet / Excel workbook, not in code.**
+> **Nao Explains** — the tech you use every day, explained like a friend showing
+> you her phone instead of a man telling you it's simple.
 
-| You edit | You get |
+**Promise:** you will never be made to feel late.
+**Format:** 60–80 seconds, vertical, captioned, no talking head, no face cam.
+**Character:** Nao — illustrated, not a real person, says so on screen.
+
+---
+
+## Who this is for
+
+**Primary — "the curious scroller".**
+A woman in her twenties or thirties. Uses tech constantly, has never been given a
+straight answer about how it works. Curious, but she is not searching for this:
+she is scrolling, and the video has to earn the next three seconds. She does not
+want to become a developer. She wants to understand the thing in her hand.
+
+She is not looking for a tutorial. She is not looking for news. She wants the
+"oh, *that's* what that is" feeling, and she wants it to be pleasant.
+
+**Secondary — the anime/waifu audience.**
+Watches for the character and stays for the explanation. This audience is large,
+loyal, and shares aggressively. Important: they must never feel the channel is
+using the character as bait. Nao is the presenter, not the product.
+
+**Where the two overlap:** the videos are genuinely good explainers, and genuinely
+nice to look at. Neither audience is being tricked into the other.
+
+### What the audience is NOT
+
+- Not developers (they will find the simplification too soft — fine).
+- Not children (the tone is adult, the topics are adult: money, privacy, work).
+- Not people looking for product reviews or "top 10 AI tools" listicles.
+
+---
+
+## Why this works as a channel
+
+1. **A character, so the topic has a face.** Faces get watched. Diagrams do not.
+2. **One question per video.** Never a topic, never "everything about X".
+3. **The script is on screen.** Muted autoplay is the default feed experience;
+   captions are the product, not an accessibility afterthought.
+4. **An isometric world that builds itself.** Each prop arriving is a small
+   satisfying event, and the stack of props at the end *is* the explanation.
+5. **We say where we are wrong.** Every episode has a caveat beat: the one place
+   the analogy breaks. That is what makes the next episode believable.
+6. **Sources are listed, in public.** An explainer channel's only real asset is
+   being right.
+
+---
+
+## The character
+
+**Nao** — pink bob, black headband, gold eyes, choker, pink tee, charcoal shorts.
+Drawn, not filmed. She is the fixed point: topics change, she does not.
+
+- She is an **illustrated explainer**, and every video says so.
+- She has no age, no backstory, no opinions outside the topic. That is what lets
+  her explain anything without continuity homework.
+- She is **never sexualised**, never flirty about money, health, privacy or
+  security, and never sells a product.
+- Her sign-off is a finger heart. That is the entire CTA.
+- Her one running joke is a cat pillow that appears in exactly one beat per
+  episode, doing something useful.
+
+Full design, palette, 15 expressions, 18 hand poses, 12 visemes:
+[`how-it-works-studio/docs/02-character-and-voice.md`](how-it-works-studio/docs/02-character-and-voice.md)
+
+---
+
+## Visual identity
+
+| | |
 | --- | --- |
-| One row in `Episodes` | a new episode |
-| One row per beat in `Beats` | the scene order, timing, and narration |
-| Rows in `Props` | the isometric world behind her |
-| Rows in `Sources` | the fact-check trail for every claim |
+| **Palette** | warm paper `#FBF7F0`, ink `#241F2B`, one hot accent `#E8743B`, plus Nao's pink `#F2A6C0` |
+| **Type** | Inter — 600 weight for statement lines, 700 for titles. Nothing else. |
+| **Layout** | five fixed zones: badge, board, presenter, caption, footer. Nothing readable in the platform-risk edges. |
+| **Captions** | opaque paper card, two lines maximum, 14 words maximum. Readable over a bright world. |
+| **Motion** | the world assembles, then holds. One moving thing at a time. |
+| **Signature shot** | `packet-trip`: the camera follows one glowing packet along a path. Once per episode. |
+| **Thumbnail** | Nao's face, one prop, three words. Pink reads at every size. |
 
-The workbook is exported into the repo (`content/how-it-works.xlsx` plus a CSV
-mirror), so a render is offline, diffable, and reproducible. No sheet, no
-network, no surprises.
-
-```
-Episodes + Beats + Props + Sources   (workbook)
-        ↓  npm run sheet:build
-projects/<slug>/episode.json
-        ↓  npm run render
-output/final.mp4
-```
+The style is "a well-printed children's science book an adult is not embarrassed
+to watch". Not neon-on-black tech. Not dark mode. Nothing glowing.
 
 ---
 
-### What's in here
+## The five series
+
+Each episode belongs to one series, and the badge in the corner says which. A
+series is a promise about the *kind* of question, which is how a feed turns into
+a habit.
+
+| Series | Answers | Example episodes |
+| --- | --- | --- |
+| **The Cloud** | where your data physically lives | *Where your photos actually live* |
+| **AI Without the Hype** | what AI systems actually do | *How AI automation actually works* |
+| **Free and Actually Good** | tools, and who really pays for them | *How to tell if a free tool is actually free* |
+| **Small Tech Mysteries** | the everyday annoyances | *Why your wifi dies at nine pm* |
+| **Your Data, Explained** | privacy, calmly | *What actually happens when you post* |
+
+Series also give the audience a reason to come back: "the wifi one" and "the
+privacy one" are things people search for *after* they have seen the format once.
+
+---
+
+## Episode anatomy
+
+The shape is fixed. It is why an episode can be written in an afternoon.
+
+| Beat | Length | Job |
+| --- | --- | --- |
+| 1. Hook | 4 s | a scene she has physically lived through |
+| 2. Title | 3 s | name the episode, start the world |
+| 3–5. What it is | 18–22 s | the plain-language version, one prop at a time |
+| 6. Analogy | 8–9 s | the mental picture, with its mapping said out loud |
+| 7–9. How it works | 20–27 s | the mechanism, three steps maximum |
+| 10. Caveat / myth | 7–8 s | where the analogy breaks. The trust beat. |
+| 11. Recap | 5 s | three or four words, the whole answer |
+| 12. Outro | 3 s | the takeaway, the badge, a finger heart |
+
+**Rules that keep retention:**
+
+- The answer is stated by 10 seconds. Never later.
+- One new idea per beat. Exactly one.
+- Three new terms per episode, maximum.
+- No beat exists that could be deleted without confusing anyone.
+- The caption is on screen *before* it is needed, and nothing moves while it is
+  being read.
+
+---
+
+## Hook formulas that work for this audience
+
+Hooks are written as a **thing that already happened to her**, not as a topic.
+
+| Formula | Example (used in the slate) |
+| --- | --- |
+| Reframe a familiar annoyance | "Your wifi doesn't hate you. It has rush hour." |
+| Contradict the lazy version | "It's not the cloud. It's a building with a security guard." |
+| Name the invisible labour | "You didn't get replaced by AI. You got replaced by a checklist." |
+| Show the hidden copy | "You posted one photo. Seconds later there were copies you'll never see." |
+| Give a reusable test | "If a tool is free, one of four people is paying. None of them are the company." |
+| Small number, big scale | "1.5% of the world's electricity goes to buildings you've never seen." |
+
+**Never:** "Did you know…", "Let me explain…", "In today's video…", "Top 5…".
+
+Each episode folder contains three hook variants ready for an A/B test
+(`projects/<slug>/README.md`).
+
+---
+
+## Profile setup
+
+### Handle
+
+Proposed primary: **@naoexplains** — short, says the format, survives a name
+search, and works identically on all three platforms.
+
+Alternates, in order of preference: `@heynao` · `@naoactually` ·
+`@howitworks.nao` · `@naosplain`.
+
+Check availability before committing to one, and buy the matching domain even if
+you never use it. Use the **same handle everywhere** — a viewer who finds you on
+Shorts and searches on Instagram must land in the right place.
+
+### Instagram
+
+**Name field** (the searchable one, not the handle):
+`Nao · tech explained simply`
+
+**Bio** (150 characters maximum):
+
+```
+tech explained like a friend would
+✨ the cloud, wifi, AI, your data
+🎀 new episode every week
+illustrated character · not a person
+```
+
+**Highlights:** `the cloud` · `wifi` · `AI` · `your data` · `free tools` — one per
+series, each holding that series' episodes.
+
+**Link in bio:** a single page listing the series, the source list, and the
+"start here" episode. Five links in a bio splits attention; one page does not.
+
+### YouTube Shorts
+
+**Channel name:** `Nao Explains`
+**Handle:** `@naoexplains`
+**Banner:** paper background, Nao on the right at 40% height, three words on the
+left: "tech explained simply". Readable at 25% zoom, because that is how it is
+actually seen.
+**Channel description:**
+
+```
+The tech you use every day, explained in about a minute — the cloud, wifi, AI,
+your data — by Nao, an illustrated character. Not a real person.
+
+One question per episode. Sources in every description. New episode weekly.
+```
+
+**Shorts title formula:** the question, then the promise.
+`Why your wifi dies at 9pm (it's rush hour)` · `Where your photos actually live
+(it's not the cloud)`.
+
+Never title a Short with a bare topic ("Data Centres"). Title it with the thing
+the viewer already felt.
+
+---
+
+## Posting cadence
+
+One episode per week, same day, same time. Consistency beats volume for a channel
+whose value is a *habit* of being understood.
+
+| Slot | Use |
+| --- | --- |
+| Weekly episode | the slate in `projects/` (0101–0105 are written) |
+| Alternate weeks | a 15-second "one thing" cut from an existing episode — the single best sentence, re-hooked |
+| Never | posting twice in a day, or a "part 2" with no part 1 shipped |
+
+Each episode yields at least three assets: the Reel/Short, a 15 s cut, and a
+carousel of the recap chips.
+
+---
+
+## Hashtags
+
+Three sets, rotated so no post looks copy-pasted:
+
+- **Core (always):** `#techexplained` `#howitworks`
+- **Series (one):** `#thecloud` `#aiwithoutthehype` `#freeandactuallygood`
+  `#smalltechmysteries` `#yourdataexplained`
+- **Reach (one or two):** `#womenintech` `#techtok` `#learnontiktok`
+  `#digitalwellbeing`
+
+Five tags maximum. Tags are a weak signal on every platform right now; the hook
+and the first two seconds do the work. Do not spend a save slot on tag research.
+
+---
+
+## Engagement playbook
+
+- **Reply in character, briefly.** Nao is warm and never condescending. Never
+  "actually…".
+- **Pin a comment with the sources** for every episode. It is the cheapest trust
+  signal available and almost nobody does it.
+- **Answer "but what about X" with next week's episode.** Every objection is a
+  topic backlog entry; that is what `how-it-works-studio/topics.md` is for.
+- **Ask the question from the video back.** "Which one were you today?" outperforms
+  "follow for more" every time.
+- **Never bait comments with a deliberately wrong statement.** It works once and
+  costs the channel's entire premise.
+
+## Metrics that matter
+
+| Metric | Why | Target after 10 episodes |
+| --- | --- | --- |
+| 3-second retention | the hook either works or the episode is invisible | > 70% |
+| Saves per 1,000 views | the framework episodes should be saved, not just liked | > 15 |
+| Shares per 1,000 views | a shared explainer is a social object | > 8 |
+| Follows per 1,000 views | the feed is converting to a habit | > 4 |
+| Comments asking a question | the audience is treating us as an explainer | > 5 per episode |
+
+Likes are not on this list. A like is the cheapest possible signal.
+
+---
+
+## Disclosure and safety
+
+- Every episode opens and closes with **"Illustrated explainer · not a real
+  person"**.
+- Nao never gives medical, legal, financial or security advice, and never
+  explains how to attack a system.
+- Every factual claim has a source row with a URL and the date it was checked.
+  Sources go in the description, not just the repo.
+- No vendor logos, no real screenshots, no copied diagrams. Every visual is drawn.
+- A correction ships as a re-cut with the correction named. Never a silent swap.
+
+---
+
+## What we do not do
+
+- No face cam, no voice-only videos, no "reaction" format.
+- No engagement bait, no fake outrage, no "you're using your phone wrong".
+- No AI-generated scripts published unchecked. The pipeline renders what a person
+  wrote and sourced.
+- No listicles that expire. Frameworks that stay true.
+- No sexualised use of the character. The `summer` outfit in the model sheet is
+  never rendered — that is a written rule, not a preference.
+
+---
+
+## The repository
+
+The studio is a real, if unfinished, pipeline: the episodes are authored in a
+spreadsheet, compiled to a timeline, and rendered frame by frame in a headless
+browser.
 
 ```
 how-it-works-studio/
-├── README.md               setup, commands, workbook format
-├── CLAUDE.md               instructions for an AI coding agent in this repo
-├── IMPLEMENTATION-PLAN.md  the build plan, phase by phase, file by file
-├── docs/                   the design spec: character, style, isometric world,
-│                           motion, scenes, the content sheet, rendering, QC
-├── templates/              episode script, config, publishing copy, sheet tabs
-├── examples/               a fully written reference episode (no film yet)
-├── topics.md               question backlog, tracked as episodes ship
-└── assets/                 bundled fonts and licences
+├── README.md               the technical quick start
+├── docs/01–11              the spec: character, writing, style, world, motion,
+│                           scenes, the content sheet, rendering, QC, lip-sync
+├── IMPLEMENTATION-PLAN.md  build order, phase by phase
+├── content/how-it-works.xlsx   the workbook: 5 episodes, 60 beats, 22 sources
+├── projects/0101…0105/     one folder per episode: script, storyboard, publishing
+├── assets/nao/             model sheet, viseme set, expression and pose crops
+├── tools/                  content checker, workbook builder, project generator
+└── src/stage/rig/          the lip-sync engine (visemes + schedule)
 ```
 
-Status: **specification complete, renderer not yet built.** The documents define
-the pipeline precisely enough to implement; `IMPLEMENTATION-PLAN.md` says in what
-order. There is no `final.mp4` in this repository yet, and nothing here claims
-there is one.
+**Status, stated plainly:** five episodes are written, validated and scheduled.
+There is **no renderer yet** and no episode has been rendered. The lip-sync
+engine is real and tested (`npm test`), and the storyboards contain the actual
+mouth schedules it produces.
 
----
-
-### The character
-
-Nao is a drawn character, not a real person and not a talking-head avatar
-generated per episode. She is a rig — layered SVG parts driven by pose,
-expression, and gesture IDs from the sheet. The same three IDs always produce the
-same frame.
-
-She is a presenter, not a personality brand: she never gives medical, legal, or
-financial advice, and every factual claim in her mouth is traceable to a row in
-`Sources`.
-
-See [`docs/02-character-and-voice.md`](how-it-works-studio/docs/02-character-and-voice.md).
+Start with [`how-it-works-studio/README.md`](how-it-works-studio/README.md).

@@ -1,7 +1,8 @@
 # How It Works Studio
 
-Turn a question into a finished vertical explainer: an anime presenter, an
-isometric world that builds itself, and captions that carry the script.
+Turn a question into a vertical explainer: **Nao**, a pink-haired illustrated
+presenter with text-driven lip-sync, an isometric world that builds itself, and
+captions that carry the script.
 
 Every frame is drawn with HTML/CSS/SVG in a headless browser, then stitched with
 FFmpeg. Rendering is deterministic: the same workbook row always produces the
@@ -17,16 +18,21 @@ question → workbook row → episode.json → frames → final.mp4
 
 ```bash
 cd how-it-works-studio
-npm install
-npm run doctor                                  # Node, FFmpeg, Chromium, workbook
-npm run sheet:check                             # validate the workbook
-npm run sheet:build -- 0001-what-happens-when-you-type-a-url
-npm run preview -- 0001-what-happens-when-you-type-a-url
-npm run build   -- 0001-what-happens-when-you-type-a-url
+
+# These work today (no browser, no FFmpeg needed):
+npm test                        # 22 unit tests, including the lip-sync engine
+npm run sheet:check             # validate all 5 episodes against the Vocab tab
+npm run sheet:build             # regenerate content/how-it-works.xlsx from the CSVs
+npm run projects:build          # regenerate each project's script/storyboard/publishing
+
+# These are what the studio is being built for — src/cli.js does not exist yet:
+npm run doctor
+npm run preview -- 0104-why-your-wifi-dies-at-nine-pm
+npm run render  -- 0104-why-your-wifi-dies-at-nine-pm
 ```
 
-> **Not built yet.** This repository currently holds the specification and the
-> plan, not the renderer. `IMPLEMENTATION-PLAN.md` lists what each command needs
+> **No renderer yet.** Five episodes are written, validated and scheduled; none
+> has been rendered. `IMPLEMENTATION-PLAN.md` lists what each command needs
 > before it runs. Do not report a rendered episode that does not exist.
 
 ---
@@ -104,8 +110,10 @@ words, a `packet-trip` with no `Paths` row, an episode with no `Publish` row.
 | --- | --- |
 | `npm run doctor` | Environment report: tools, workbook, projects, free disk |
 | `npm run list` | Every episode with length, beats, and render status |
-| `npm run sheet:check` | Validate the whole workbook against `Vocab` |
-| `npm run sheet:build -- <id>` | Compile one episode to `episode.json` + `script.md` |
+| `npm run sheet:check` | Validate every episode against `Vocab` (**works today**) |
+| `npm run content:strict` | Same, with warnings treated as errors |
+| `npm run sheet:build` | Rebuild `content/how-it-works.xlsx` from `content/csv/` (**works today**) |
+| `npm run projects:build` | Regenerate each project's `script.md` / `storyboard.md` / `publishing.md` (**works today**) |
 | `npm run sheet:pull` | Download the live Google Sheet into `content/` (needs network) |
 | `npm run new -- --title "…"` | Append a scaffolded episode to the workbook |
 | `npm run preview -- <slug>` | Sampled frames, layout check, contact sheet |
@@ -115,6 +123,11 @@ words, a `packet-trip` with no `Paths` row, an episode with no `Publish` row.
 | `npm run determinism -- <slug>` | Prove two renders are byte-identical |
 | `npm run gallery` | One frame of every beat type and every prop |
 | `npm run clean -- <slug> --frames --yes` | Delete regenerable frames |
+
+`sheet:check`, `sheet:build` and `projects:build` are implemented in `tools/` and
+run today; everything else waits on `src/`. The checker is Python because writing
+`.xlsx` needs a real library and this is a build-time convenience, not part of the
+render path.
 
 Useful flags: `--frames 0,120,300` or `--frames 0-300:30` to pick exact frames,
 `--crf 16` for higher quality, `--force` to continue past layout errors,
@@ -204,6 +217,31 @@ bright isometric world and never rely on a drop shadow.
 
 ---
 
+## The character and the mouth
+
+Nao is generated from two reference sheets in `assets/nao/`: a model sheet (front,
+side, back, 15 expressions, 18 hand poses, 9 body poses, 7 outfits) and a
+talking-head sheet with **12 visemes**.
+
+Her mouth is driven by the **narration text**, not by audio analysis:
+
+```js
+const LipSync = require('./src/stage/rig/lipsync.js');
+const schedule = LipSync.buildSchedule('Your photos live in a city with no people.', 240);
+// → { mode: 'full-body', fps: 30, frames: [ {f:0,v:'rest',o:0}, {f:8,v:'I',o:0.55}, … ] }
+```
+
+- Deterministic and testable without a browser, an audio file or a network.
+- A silent render still animates the mouth correctly, and re-recording the voice
+  does not invalidate the animation.
+- Only *change points* are stored, so a 9-second beat is ~80 entries and stays
+  reviewable in `episode.json`.
+- Full-body shots reduce to three mouth states; talking-head shots use all 12.
+
+Spec: [`docs/11-lip-sync.md`](docs/11-lip-sync.md). Design:
+[`docs/02-character-and-voice.md`](docs/02-character-and-voice.md). The real
+schedule for every beat is printed in each project's `storyboard.md`.
+
 ## Audio
 
 Silent is the default and a silent render is a valid episode: the captions carry
@@ -241,11 +279,12 @@ how-it-works-studio/
 │   ├── cli.js              command dispatch
 │   ├── lib/                node side: sheet, plan, tooling, server, browser, frames, encode
 │   └── stage/              browser side: timeline, motion, iso/, rig/, scenes.js, style.css
-├── assets/fonts/           Inter, SIL OFL 1.1, with its licence
+├── assets/nao/             model sheet, 12 visemes, expression and pose crops
+├── assets/fonts/           Inter, SIL OFL 1.1 (to be added; see assets/README.md)
 ├── content/                the workbook and its CSV mirror
-├── projects/               one folder per built episode
+├── projects/               one folder per episode (5 written, none rendered)
+├── tools/                  content checker, workbook builder, project generator
 ├── templates/              script, config, publishing, and sheet-tab starting points
-├── examples/               a written reference episode
 ├── docs/                   the design spec, kept in sync with the code
 └── test/                   unit tests
 ```

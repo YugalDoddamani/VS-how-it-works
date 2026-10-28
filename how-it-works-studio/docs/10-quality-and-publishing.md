@@ -64,6 +64,20 @@ shared.
 - [ ] First and last beat carry the "Illustrated explainer · not a real person"
       footer.
 
+## Lip-sync checklist
+
+- [ ] The mouth is closed on frame 0 and on the last frame of every beat.
+- [ ] Every beat's schedule starts and ends on `rest` (`npm test` asserts this).
+- [ ] No viseme is shorter than 2 frames on screen.
+- [ ] The mouth does not blink-open during a pause, and the eyes do not blink
+      while the mouth is more than 30% open.
+- [ ] Emphasis words open slightly wider, and match the stressed word of the read.
+- [ ] Full-body beats use the three-state reduction; talking-head beats use all 12.
+- [ ] A filmstrip of the mouth region was actually looked at for one beat per
+      episode — no unit test catches a mouth that never closes.
+- [ ] The report says lip-sync is derived from spelling, not from audio, and is
+      not phoneme-aligned.
+
 ## Motion checklist
 
 - [ ] Each beat has a real hold: at least 45 frames where nothing moves but idle
