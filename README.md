@@ -118,6 +118,31 @@ privacy one" are things people search for *after* they have seen the format once
 
 ---
 
+## Two formats
+
+| Format | Length | Where | What it is |
+| --- | --- | --- | --- |
+| **Reel** | 45–60 s · 22–27 shots | [`how-it-works-studio/reels/`](how-it-works-studio/reels/README.md) | the feed format — fast cuts, multiple framings, the character in the corner over a moving isometric world |
+| Long-form explainer | ~76 s · 12 beats | [`how-it-works-studio/projects/`](how-it-works-studio/projects/README.md) | the deep-cut archive — calmer, more diagram, same character |
+
+Reels are what gets posted. Five are written and shot-listed:
+**R01** your phone in the cold · **R02** the padlock · **R03** the ad that follows
+you · **R04** wifi at 9pm · **R05** where your photos live.
+
+### The reel look
+
+- She is **in frame constantly**, at three distances: `CU` (85 mm), `MCU` (50 mm),
+  and a `CORNER` key at 34 % height over a full-frame world.
+- Portrait lenses are the default. 85 mm and 100 mm do the emotional work; 24 mm is
+  reserved for the world, never for her face.
+- `SPLIT` for comparison only (62 / 38, hard edge), `INSERT` for the mechanism.
+- **One cut every ~2.4 s**, hooks at 1.2–1.6 s, and exactly one whip per reel.
+- Every reel has one **save frame**: a single held image, legible with the sound
+  off, at the 34–44 second mark.
+
+Full grammar, including overlay measurements:
+[`docs/12-reels-format.md`](how-it-works-studio/docs/12-reels-format.md)
+
 ## Episode anatomy
 
 The shape is fixed. It is why an episode can be written in an afternoon.
@@ -301,8 +326,9 @@ Likes are not on this list. A like is the cheapest possible signal.
 - No AI-generated scripts published unchecked. The pipeline renders what a person
   wrote and sourced.
 - No listicles that expire. Frameworks that stay true.
-- No sexualised use of the character. The `summer` outfit in the model sheet is
-  never rendered — that is a written rule, not a preference.
+- No outfit is flagged off. Every look in the model sheet is in rotation, one per
+  reel, chosen to match the setting. The character stays constant: headband,
+  choker, pink palette, bob.
 
 ---
 
@@ -318,6 +344,7 @@ how-it-works-studio/
 ├── docs/01–11              the spec: character, writing, style, world, motion,
 │                           scenes, the content sheet, rendering, QC, lip-sync
 ├── IMPLEMENTATION-PLAN.md  build order, phase by phase
+├── reels/r01…r05/          five shot-by-shot reel scripts (45–60 s) + index.csv
 ├── content/how-it-works.xlsx   the workbook: 5 episodes, 60 beats, 22 sources
 ├── projects/0101…0105/     one folder per episode: script, storyboard, publishing
 ├── assets/nao/             model sheet, viseme set, expression and pose crops
@@ -325,7 +352,8 @@ how-it-works-studio/
 └── src/stage/rig/          the lip-sync engine (visemes + schedule)
 ```
 
-**Status, stated plainly:** five episodes are written, validated and scheduled.
+**Status, stated plainly:** five reels are written shot-by-shot and five long-form
+episodes are written, validated and scheduled.
 There is **no renderer yet** and no episode has been rendered. The lip-sync
 engine is real and tested (`npm test`), and the storyboards contain the actual
 mouth schedules it produces.

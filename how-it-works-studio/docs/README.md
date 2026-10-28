@@ -1,6 +1,6 @@
 # The Spec
 
-Eleven documents, in reading order. Read `01` and `02` before writing anything; read
+Twelve documents, in reading order. Read `01` and `02` before writing anything; read
 the rest when you touch that part of the system.
 
 | # | Document | Answers |
@@ -16,6 +16,7 @@ the rest when you touch that part of the system.
 | 09 | [Technical and Rendering](09-technical-and-rendering.md) | The pipeline, the frame model, determinism, audio, storage, failures. |
 | 10 | [Quality, Safety, and Publishing](10-quality-and-publishing.md) | The checklists, corrections, asset rights, and the publishing document. |
 | 11 | [Lip-Sync](11-lip-sync.md) | The 12 visemes, grapheme mapping, timing, coarticulation, and what is honest to claim. |
+| 12 | [Reel Format](12-reels-format.md) | The 45–60 s shot grammar: shot codes, lenses, corner overlay numbers, cut rhythm, interaction devices. |
 
 Two companion files sit outside `docs/`:
 
@@ -39,7 +40,8 @@ Two companion files sit outside `docs/`:
  │                      │
  ├── 09 technical ──────┘   how it is produced
  ├── 10 quality             how it is judged
- └── 11 lip-sync            how her mouth moves
+ ├── 11 lip-sync            how her mouth moves
+ └── 12 reels format        how a 50-second video is cut
 ```
 
 ## Keeping them true

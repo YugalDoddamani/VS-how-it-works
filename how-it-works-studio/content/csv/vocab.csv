@@ -43,9 +43,9 @@ pose,pointing-explaining,Pointing / explaining,"One arm to the board, weight on 
 pose,presenting-palm-up,Presenting palm up,"Both palms up, open posture.",FALSE
 pose,holding-tablet-working,Holding tablet,"Tablet held, looking at the viewer.",FALSE
 pose,thinking,Thinking,"Finger to chin, hip out.",FALSE
-pose,cheerful-jump,Cheerful jump,"Mid-air, arms up. Recap only, once per episode.",FALSE
-pose,sitting-cross-legged,Sitting cross-legged,"RESTRICTED. Lifestyle read, not used in explainers.",FALSE
-pose,lying-down-relaxed,Lying down,"RESTRICTED. Lifestyle read, not used in explainers.",FALSE
+pose,cheerful-jump,Cheerful jump,Available. Reads best on a recap or a delighted beat.,FALSE
+pose,sitting-cross-legged,Sitting cross-legged,Available. Works best in CORNER and POV shots.,FALSE
+pose,lying-down-relaxed,Lying down,Available. Works best in CORNER and POV shots.,FALSE
 hand,open-palm,Open palm,Neutral open hand.,FALSE
 hand,point-up,Point up,Index up. Counting.,FALSE
 hand,point-right,Point right,Index to the right. Points at a prop.,FALSE
@@ -88,13 +88,13 @@ expression,relieved,Relieved (composite),COMPOSITE: half-lidded eyes + soft smil
 expression,sheepish,Sheepish (composite),COMPOSITE: eyes looking away + blush + flat mouth. An honest caveat.,FALSE
 expression,blank,Blank (composite),"COMPOSITE: neutral eyes, no brow accent, mouth closed. A deadpan beat.",FALSE
 expression,delighted,Delighted (composite),COMPOSITE: smiling-eyes-closed + blush. A satisfying fact.,FALSE
-outfit,casual,Casual (default),"Pink tee, charcoal shorts. Every episode.",FALSE
-outfit,hoodie,Hoodie,Black oversized hoodie. Cosy or evening topics.,FALSE
-outfit,sporty,Sporty,Black crop and shorts.,FALSE
-outfit,casual-dress,Casual dress,"Off-shoulder top, pink plaid skirt.",FALSE
-outfit,office-casual,Office casual,"White shirt, pencil skirt. Work topics.",FALSE
-outfit,sleepwear,Sleepwear,Character pyjamas. Late-night topics.,FALSE
-outfit,summer,Summer,"RESTRICTED. Present in the model sheet, never rendered on the channel.",FALSE
+outfit,casual,Casual (default),"Pink tee, charcoal shorts. The default look; topics about your own stuff.",FALSE
+outfit,hoodie,Hoodie,"Black oversized hoodie. Cold, cosy, evening and outside topics.",FALSE
+outfit,sporty,Sporty,"Black crop and shorts. Movement, home, screens in the living room.",FALSE
+outfit,casual-dress,Casual dress,"Off-shoulder top, pink plaid skirt. Bright, weekend, shopping, social.",FALSE
+outfit,office-casual,Office casual,"White shirt, pencil skirt. Work, money, messages from your bank.",FALSE
+outfit,sleepwear,Sleepwear,Character pyjamas. Late-night scrolling and 3 a.m. topics.,FALSE
+outfit,summer,Summer,"Two-piece swimwear. In rotation: holidays, heat and travel reels.",FALSE
 prop_family,compute,Compute,"Blues. Servers, laptops, phones, chips.",FALSE
 prop_family,network,Network,"Greens. Routers, switches, cables, antennas.",FALSE
 prop_family,storage,Storage,"Tans. Disks, databases, warehouses, shelves.",FALSE

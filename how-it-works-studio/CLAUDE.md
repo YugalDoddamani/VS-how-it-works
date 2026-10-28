@@ -17,9 +17,10 @@ Read the relevant files in `docs/` before changing behaviour, and read
 
 ## Current state
 
-- **Five episodes written, none rendered.** `docs/`, `templates/`, `content/` and
-  `projects/0101…0105/` are written; the lip-sync engine exists and is tested.
-  The rest of `src/` (renderer, CLI) does not exist yet.
+- **Five reels + five long-form episodes written, none rendered.** `reels/r01…r05/`
+  are 45–60 s shot-by-shot scripts (the current posting format). `projects/0101…0105/`
+  are the 76 s long-form archive. The lip-sync engine exists and is tested; the rest
+  of `src/` (renderer, CLI) does not exist yet.
 - `IMPLEMENTATION-PLAN.md` is the build order. Do not start the renderer before
   the workbook compiler exists, because the compiler defines the contract the
   renderer consumes.
@@ -66,6 +67,24 @@ Only move `status` forward after the step it names has actually happened. A
 revision of a shipped episode gets its own project folder with a `-v2` suffix —
 never overwrite a rendered project.
 
+## Making a reel
+
+The current format. When the user says "make a reel" / "make a video":
+
+1. Pick a question from `topics.md` that can be answered in 45–60 s.
+2. **Write the hook first**: a thing the viewer has already experienced, in ≤ 14
+   words. Write three variants before choosing.
+3. Fill the shot table in `reels/<slug>/script.md`: 22–27 shots, average 1.8–2.2 s,
+   a stated shot code and focal length on **every** row. No row may say "somewhere
+   in the middle".
+4. Put the world on screen before 12 s, and give the reel exactly one save frame
+   held for ~2 s.
+5. Use a different outfit from the previous reel, matched to the setting.
+6. Source every factual claim, mark links you did not open as `confirm link`.
+7. Check the two silences, the whip (one only) and that she looks at the lens on
+   every "you".
+8. Follow the checklist at the bottom of `docs/12-reels-format.md`.
+
 ## Writing rules for Nao
 
 - **Short sentences, one idea each.** If a sentence has a comma and a "which",
@@ -94,8 +113,12 @@ never overwrite a rendered project.
 - Her design is fixed by the two sheets in `assets/nao/`: pink bob, black
   headband, gold eyes, choker, pink tee, charcoal shorts. 15 expressions, 18 hand
   poses, 12 visemes. Never invent a pose that is not in the sheets.
-- The `summer` (swimwear) outfit is **never rendered**. This is a hard rule, not a
-  style preference.
+- **Every outfit in the model sheet is in rotation.** No outfit is flagged off. One
+  outfit per reel, rotated so no two consecutive reels repeat it, and matched to
+  the setting (hoodie outside in winter, sporty at home mid-workout, sleepwear at
+  3 a.m.). The four fixed things stay whatever she wears: headband, choker, pink
+  palette, bob silhouette.
+- Body poses are all available; match the pose to the shot, not to a rule.
 - Her mouth is driven by the narration text through `src/stage/rig/visemes.js` and
   `lipsync.js`. Do not add audio analysis, and do not hand-key mouth shapes.
 - She has no biography, no age, no relationships, and no opinions outside the
@@ -153,6 +176,8 @@ never overwrite a rendered project.
 | Change lip-sync timing or blending | `src/stage/rig/lipsync.js`, then `docs/11` |
 | Add a content validation rule | `tools/check_content.py`, then `docs/08` |
 | Change a generated project document | `tools/build-projects.mjs` |
+| Change the reel shot grammar or cut rhythm | `docs/12-reels-format.md` |
+| Write a new reel | `reels/<slug>/script.md` (copy the shape of an existing one) |
 | Change the workbook layout | `tools/build-sheet.py`, then `docs/08` |
 | Change palette, type scale, or the five zones | `src/stage/style.css` (`:root` custom properties) |
 | Change timing maths | `src/stage/timeline.js` |

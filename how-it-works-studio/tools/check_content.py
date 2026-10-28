@@ -26,6 +26,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CSV_DIR = ROOT / "content" / "csv"
+REELS_DIR = ROOT / "reels"
+
+# Shot grammar, mirrored from docs/12-reels-format.md.
+SHOT_CODES = {"ISO-WIDE", "TOP-DOWN", "MCU", "CU", "ECU", "INSERT", "CORNER",
+              "SPLIT", "OTS", "POV", "RECAP"}
+LENSES = {"14mm", "24mm", "35mm", "50mm", "85mm", "100mm"}
+REEL_MIN_FRAMES, REEL_MAX_FRAMES = 1350, 1800   # 45 s .. 60 s at 30 fps
+REEL_MIN_SHOTS, REEL_MAX_SHOTS = 22, 27
+MAX_VO_WORDS = 14
+FPS = 30
 
 # Beats that state a fact and therefore need a Sources row (docs/08).
 FACTUAL_TYPES = {"explain", "diagram", "step-by-step", "compare", "myth-check", "analogy"}
@@ -332,6 +342,132 @@ def check(report):
             report.warn(f"Publish[{eid}]", "episode has no publishing row")
 
 
+# ---------------------------------------------------------------------------
+# reels
+# ---------------------------------------------------------------------------
+
+SHOT_CODE_RE = re.compile(r"^\*\*(.+?)\*\*\s*·\s*(.+?)\s*—\s*(.*)$")
+DUR_RE = re.compile(r"^([\d.]+)s$")
+
+
+def check_reels(report):
+    if not REELS_DIR.exists():
+        report.warn("reels", "no reels/ folder")
+        return
+    seen_outfits = []
+    for folder in sorted(REELS_DIR.glob("r[0-9]*")):
+        script = folder / "script.md"
+        if not script.exists():
+            report.error(f"reels/{folder.name}", "missing script.md")
+            continue
+        text = script.read_text(encoding="utf-8")
+        where = f"reels/{folder.name}"
+
+        length = re.search(r"\| Length \| \*\*([\d.]+) s\*\* · (\d+) frames", text)
+        if not length:
+            report.error(where, "cannot read the Length row")
+            continue
+        seconds, frames = float(length.group(1)), int(length.group(2))
+        if not REEL_MIN_FRAMES <= frames <= REEL_MAX_FRAMES:
+            report.error(where, f"{seconds}s is outside the 45-60s reel range")
+        if abs(frames / FPS - seconds) > 0.05:
+            report.error(where, f"stated {seconds}s does not match {frames} frames at 30 fps")
+
+        outfit = re.search(r"\| Outfit \| `([a-z-]+)`", text)
+        if not outfit:
+            report.error(where, "no Outfit row")
+        else:
+            seen_outfits.append((folder.name, outfit.group(1)))
+
+        rows = []
+        for line in text.splitlines():
+            line = line.strip()
+            if not line.startswith("|"):
+                continue
+            cells = [c.strip() for c in line.strip("|").split("|")]
+            if len(cells) != 9 or not cells[0].isdigit():
+                continue
+            num, tin, tout, dur_cell, shot_cell, nao, bg, graphic, vo = cells
+            m = SHOT_CODE_RE.match(shot_cell)
+            if not m:
+                report.error(f"{where} shot {num}", "shot cell is not `**CODE** · lens — framing`")
+                continue
+            rows.append((num, tin, tout, dur_cell, m.group(1), m.group(2).strip(),
+                         m.group(3), nao, bg, graphic, vo))
+
+        if not rows:
+            report.error(where, "no shot rows matched the fixed column format")
+            continue
+        if not REEL_MIN_SHOTS <= len(rows) <= REEL_MAX_SHOTS:
+            report.error(where, f"{len(rows)} shots, need {REEL_MIN_SHOTS}-{REEL_MAX_SHOTS}")
+
+        numbers = [int(r[0]) for r in rows]
+        if numbers != list(range(1, len(rows) + 1)):
+            report.error(where, f"shot numbers are not contiguous: {numbers[:8]}...")
+
+        total = 0.0
+        prev_out = 0.0
+        for r in rows:
+            n, tin, tout, dur, code, lens, framing, nao, _bg, graphic, vo = r
+            code = code.strip()
+            dm = DUR_RE.match(dur)
+            if not dm:
+                report.error(f"{where} shot {n}", f'bad duration "{dur}"')
+                continue
+            if code not in SHOT_CODES:
+                report.error(f"{where} shot {n}", f'unknown shot code "{code}"')
+            lens = lens.strip().split()[0]  # "100mm macro" -> "100mm"
+            if lens not in LENSES:
+                report.error(f"{where} shot {n}", f'unknown lens "{lens}"')
+            d = float(dm.group(1))
+            total += d
+            start = int(tin.split(":")[0]) * 60 + float(tin.split(":")[1])
+            end = int(tout.split(":")[0]) * 60 + float(tout.split(":")[1])
+            if abs(end - start - d) > 0.05:
+                report.error(f"{where} shot {n}", f"{tin}→{tout} is not {d}s")
+            if abs(start - prev_out) > 0.05:
+                report.error(f"{where} shot {n}", f"starts at {tin}, previous shot ended at {prev_out:.1f}s")
+            prev_out = end
+            if d < 0.9:
+                report.error(f"{where} shot {n}", f"{d}s is shorter than the 1.0s floor")
+            if d > 3.0:
+                report.error(f"{where} shot {n}", f"{d}s is longer than the 3.0s ceiling")
+            words = len(vo.split())
+            if words > MAX_VO_WORDS:
+                report.error(f"{where} shot {n}", f"voice-over is {words} words, limit {MAX_VO_WORDS}")
+            if not vo.strip():
+                report.error(f"{where} shot {n}", "no voice-over line")
+            if len(re.findall(r"[A-Za-z]+", framing)) < 2:
+                report.error(f"{where} shot {n}", "framing is not described (needs real direction)")
+
+        if abs(total - seconds) > 0.15:
+            report.error(where, f"shot durations total {total:.1f}s but the header says {seconds}s")
+
+        # grammar coverage
+        codes = [r[4].strip() for r in rows]
+        corners = codes.count("CORNER")
+        inserts = codes.count("INSERT")
+        if corners < 3:
+            report.warn(where, f"only {corners} CORNER shots; the format asks for 3-5")
+        if inserts < 4:
+            report.warn(where, f"only {inserts} INSERT shots; the mechanism needs 4-7")
+        if codes[0] != "POV" and codes[0] != "INSERT":
+            report.warn(where, f"reel opens on {codes[0]}; opening on POV or INSERT is the strongest hook")
+
+        # rotation
+        if "confirm link" in text:
+            count = text.count("confirm link") - 1  # minus the explanatory paragraph
+            report.warn(where, f"{count} source link(s) still marked confirm link")
+
+    for i in range(1, len(seen_outfits)):
+        if seen_outfits[i][1] == seen_outfits[i - 1][1]:
+            report.warn(
+                "reels",
+                f"{seen_outfits[i][0]} repeats the outfit from {seen_outfits[i-1][0]} "
+                f"({seen_outfits[i][1]}); the rotation asks for a different look each reel",
+            )
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--strict", action="store_true", help="treat warnings as errors")
@@ -339,6 +475,7 @@ def main():
 
     report = Report()
     check(report)
+    check_reels(report)
     errors, warns = report.print()
 
     total_beats = len(read("beats"))

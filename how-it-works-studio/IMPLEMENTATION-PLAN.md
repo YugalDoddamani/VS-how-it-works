@@ -127,9 +127,44 @@ episodes honestly:
 | Content validator | `tools/check_content.py` | The five episodes had to be held to the rules the docs promise. It also defines what `src/lib/plan.js` must agree with. |
 | Workbook builder | `tools/build-sheet.py` | The CSV mirror is canonical; the `.xlsx` is generated so the two cannot disagree. |
 | Project generator + **lip-sync engine** | `tools/build-projects.mjs`, `src/stage/rig/{visemes,lipsync}.js`, `test/lipsync.test.js` | Lip-sync is text-driven and pure, so it could be built and tested before the renderer. 22 tests pass without a browser. |
+| **Five reel scripts** | `reels/r01…r05/script.md`, `reels/index.csv` | The 45–60 s format is what actually gets posted, so it was authored before the long-form renderer. `docs/12-reels-format.md` is the grammar; `tools/check_content.py` already validates the shot tables (length, shot count, lens, shot codes, cut continuity, captions, outfit rotation). |
 
 Phase 1 below therefore starts from a working validator, and Phase 2 gains a
 mouth that already works.
+
+## Where reels fit in the build
+
+Reels are the posting format and the long-form episode is the archive, but they
+share one character, one world and one compiler. They are not a second pipeline —
+they are a **second second-length of the same pipeline**.
+
+What a reel needs that the plan above already delivers:
+
+| Reel requirement | Comes from |
+| --- | --- |
+| Shot codes and lenses (`CU`, `CORNER`, `SPLIT`, `INSERT`, …) | Phase 5 scene types + Phase 2 camera presets |
+| The corner overlay (650 px, 34 % height, 40 px margin) | Phase 3 Nao compositing — it is a layout preset, not new art |
+| Frame-exact timecodes, 22–27 shots | Phase 1 compiler, unchanged; a reel is a short `episode.json` |
+| Fast cut rhythm, whip, silent beats | Phase 5 transitions |
+| Captions under 14 words | Phase 5 captions |
+| Lip-sync on every shot, full 12 visemes in `CU` | Already built |
+
+What it adds, and is **not** built yet:
+
+1. **A `Shots` tab in the workbook.** Today the reel tables live in `script.md`,
+   which is the authored source. Phase 1 should gain a `Reels` + `Shots` pair of
+   tabs so reels compile like episodes do. Until then, `script.md` is the source
+   and `index.csv` the index — do not duplicate the table into a CSV by hand.
+2. **`src/lib/compile.js` support for shot rows** — mapping `script.md` columns to
+   `episode.json` as described in `docs/12-reels-format.md` ("From script to
+   sheet"). One row per shot, no beats indirection.
+3. **A `reel` pacing preset** — 1.2 s hook floor, 1.8–2.2 s average, hard cuts,
+   one whip, and a 2.0 s sign-off that the compiler refuses to stretch.
+
+**Suggested order once Phase 2 lands:** build reels *first*. They are shorter, so
+one render cycle is 48 seconds instead of 76, they exercise the same scene types,
+and the corner overlay is the cheapest possible proof that Nao and the world can
+share a frame. A reel is a better first vertical slice than an episode.
 
 ## Phase 0 — Foundation (half a day)
 
@@ -463,7 +498,7 @@ Written down so they are not re-argued in month two:
 | --- | --- | --- | --- |
 | 0 | Tooling ported, `doctor` and tests green | 0.5 | — |
 | 1 | Sheet validates and compiles to `episode.json` | 2–3 | 0 |
-| 2 | **An ugly but real 60 s MP4** | 2 | 1 |
+| 2 | **An ugly but real 60 s MP4** (render R04 first — a real reel) | 2 | 1 |
 | 3 | Nao rig with poses, expressions, gestures | 4–5 | 2 |
 | 4 | Isometric world, 24 props, camera | 5–6 | 2 |
 | 5 | All 12 beat types, captions, transitions | 4 | 3, 4 |
