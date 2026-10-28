@@ -12,7 +12,7 @@ const W = 1080;
 const H = 1920;
 
 /** Warm paper, a soft light from the top left, and a hairline grid. */
-export function backdrop(ctx, { warm = 1, vignette = 0.9, grid = true } = {}) {
+export function backdrop(ctx, { warm = 1, vignette = 0.9, grid = true, t = 0 } = {}) {
   const g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, mix(P.bg, 0.25 * warm));
   g.addColorStop(0.55, P.bg);
@@ -26,6 +26,17 @@ export function backdrop(ctx, { warm = 1, vignette = 0.9, grid = true } = {}) {
   ctx.fillStyle = light;
   ctx.fillRect(0, 0, W, H);
 
+  // A slow sweep of light across the wall. It is one gradient moving a few
+  // hundred pixels over ten seconds: nothing to look at, and the frame stops
+  // feeling like a still photograph behind the props.
+  const sweep = ctx.createLinearGradient(W * (-0.4 + 0.5 * t), 0, W * (0.2 + 0.5 * t), H * 0.7);
+  sweep.addColorStop(0, alpha('#FFFFFF', 0));
+  sweep.addColorStop(0.45, alpha('#FFFFFF', 0.07 * warm));
+  sweep.addColorStop(0.62, alpha('#FFFFFF', 0));
+  sweep.addColorStop(1, alpha('#FFFFFF', 0));
+  ctx.fillStyle = sweep;
+  ctx.fillRect(0, 0, W, H);
+
   const vg = ctx.createRadialGradient(W / 2, H * 0.46, H * 0.32, W / 2, H * 0.46, H * 0.86);
   vg.addColorStop(0, alpha(P.bgDeep, 0));
   vg.addColorStop(1, alpha(P.bgDeep, 0.55 * vignette));
@@ -33,6 +44,29 @@ export function backdrop(ctx, { warm = 1, vignette = 0.9, grid = true } = {}) {
   ctx.fillRect(0, 0, W, H);
 
   if (grid) dotGrid(ctx, 0.05);
+  motes(ctx, t);
+}
+
+/**
+ * Dust in the light. Twelve specks on coprime periods, so the pattern never
+ * repeats inside a shot and no two frames are identical - which is most of what
+ * "the background feels alive" means at this scale.
+ */
+function motes(ctx, t = 0) {
+  ctx.save();
+  for (let i = 0; i < 12; i++) {
+    const period = 9.3 + (i % 5) * 1.7;
+    const phase = (t * period + i * 0.811) % 1;
+    const x = ((i * 137.5) % 1) * W + Math.sin((t * 6.28 + i) * 1.7) * 26;
+    const y = H * (0.12 + 0.72 * ((phase + i * 0.13) % 1));
+    const drift = Math.sin((t * 6.28 + i * 2.1) * 0.9);
+    const r = 3 + (i % 3) * 2;
+    ctx.fillStyle = alpha('#FFFFFF', 0.16 + 0.1 * (0.5 + 0.5 * drift));
+    ctx.beginPath();
+    ctx.arc(x + drift * 18, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
 export function dotGrid(ctx, alphaOuter = 0.06) {
