@@ -107,6 +107,22 @@ her chest, which reads as a head on a shelf — the floating-head problem with a
 caption in front of it. Head, shoulders and waist now sit above the card at every
 size, and her hands stay in frame because the hands are the animation.
 
+### Her performance changes on the cut
+
+A pose is a whole drawing, so it can only change on a cut — and a beat is two to
+four shots long. One pose per beat meant three cuts landed on the same drawing and
+the only thing moving was the camera. `PERFORMANCE` in `compile-episode.mjs` now
+maps each expression to a short sequence: one pose per insert shot, and one for
+the close-up, which is the shot where her face is the new information. An episode
+can overrule a single beat (`PERFORMANCE_BY_BEAT`) when the expression and the
+performance disagree - 0106's permission gate is a flat "stop" palm, not the
+`focused` pose its row asks for. The orders are per-shot, never random, so a render
+stays frame-for-frame reproducible.
+
+Two names are easy to confuse and worth writing down: `openhands` is the
+clasped-hands pose (low energy, reads as listening) and `openhands2` is the wide
+one. The wide one is the pose that reads as an open question.
+
 ## 4 · Subjects have roles
 
 Every prop in `worlds-episode.js` declares a role: `demonstrate`, `compare`,

@@ -414,7 +414,12 @@ const SUBJECTS = {
 
         items.forEach((item, i) => {
           const c = centres[i];
+          const land = easeOut(prog(o.t, 0.02 + i * 0.07, 0.16 + i * 0.07));
+          if (land <= 0) return;
+          const settle = Math.sin((1 - land) * Math.PI) * -6;
           const baseY = c.y + crateW * 0.42;
+          ctx.save();
+          ctx.translate(0, (1 - land) * -84 + settle);
           shadow(ctx, c.x, baseY + 10, crateW * 0.66, 12, 0.06);
           crate(ctx, c.x, baseY, crateW, crateW * 1.15, P.accent);
           label(ctx, String(i + 1), c.x - crateW * 0.18, baseY - crateW * 0.5, {
@@ -424,12 +429,43 @@ const SUBJECTS = {
           label(ctx, labels[i] || item, c.x + crateW * 0.86, baseY - crateW * 0.36, {
             size: Math.max(26, Math.min(38, crateW * 0.34)), color: P.inkSoft, weight: 600, align: 'left',
           });
+          ctx.restore();
           if (i < n - 1) {
             arrow(ctx, [c.x + crateW * 0.9, baseY + 8], [centres[i + 1].x + crateW * 0.9, centres[i + 1].y - crateW * 0.62], {
               colour: alpha(P.ink, 0.26), width: 4, head: 12, progress: prog(o.t, 0.1 + i * 0.06, 0.3 + i * 0.06),
             });
           }
         });
+
+        // "then continue": the sequence does not stop at check, it goes round
+        // again. Drawn as a return path on the free side of the column.
+        const loopIn = easeOut(prog(o.t, 0.5, 0.78));
+        if (loopIn > 0) {
+          const lx = b.x + b.w * 0.13;
+          const top = centres[0].y;
+          const bottom = centres[n - 1].y;
+          ctx.save();
+          ctx.strokeStyle = alpha(P.accent, 0.5 * loopIn);
+          ctx.lineWidth = 4;
+          ctx.lineCap = 'round';
+          ctx.setLineDash([9, 9]);
+          ctx.lineDashOffset = -o.t * 120;
+          ctx.beginPath();
+          ctx.moveTo(b.x + crateW * 0.02, bottom);
+          ctx.quadraticCurveTo(lx - crateW * 0.5, (top + bottom) / 2, b.x + crateW * 0.02, top);
+          ctx.stroke();
+          ctx.restore();
+          ctx.save();
+          ctx.globalAlpha = loopIn;
+          ctx.fillStyle = alpha(P.accent, 0.75);
+          ctx.beginPath();
+          ctx.moveTo(b.x + crateW * 0.02, top - 6);
+          ctx.lineTo(b.x + crateW * 0.02 - 9, top + 12);
+          ctx.lineTo(b.x + crateW * 0.02 + 9, top + 12);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
 
         const walk = Math.min(0.999, prog(o.t, 0.12, 0.92)) * (n - 1);
         const seg = Math.floor(walk);
@@ -455,14 +491,19 @@ const SUBJECTS = {
       ctx.restore();
 
       items.forEach((item, i) => {
-        shadow(ctx, centres[i], baseY + 14, crateW * 0.7, 14, 0.07);
-        crate(ctx, centres[i], baseY, crateW, crateW * 0.86, P.accent);
-        label(ctx, String(i + 1), centres[i] - crateW * 0.2, baseY - crateW * 0.34, {
+        const land = easeOut(prog(o.t, 0.02 + i * 0.06, 0.16 + i * 0.06));
+        if (land <= 0) return;
+        const drop = (1 - land) * -96;
+        shadow(ctx, centres[i], baseY + 14, crateW * 0.7, 14, 0.07 * land);
+        crate(ctx, centres[i], baseY + drop, crateW, crateW * 0.86, P.accent);
+        ctx.save();
+        label(ctx, String(i + 1), centres[i] - crateW * 0.2, baseY + drop - crateW * 0.34, {
           size: Math.min(40, crateW * 0.36), color: '#FFF7F1', weight: 700,
         });
-        chip(ctx, centres[i] - Math.min(60, crateW * 0.5), Math.max(b.y + 26, baseY - crateW * 1.34), labels[i] || item, {
+        chip(ctx, centres[i] - Math.min(60, crateW * 0.5), Math.max(b.y + 26, baseY + drop - crateW * 1.34), labels[i] || item, {
           size: Math.min(24, crateW * 0.2),
         });
+        ctx.restore();
       });
 
       for (let i = 0; i < n - 1; i++) {
@@ -822,81 +863,107 @@ const SUBJECTS = {
 
   checkpoint: {
     role: 'demonstrate',
-    about: 'the gate the loop passes through, open or closed',
+    about: 'the gate the loop passes through: open, or held shut until a human says go',
     draw(ctx, b, o) {
       const failing = Boolean(o.options.failing);
-      const baseY = b.y + b.h * 0.92;
-      const railY = baseY - b.h * 0.16;
       const w = b.w;
+      const baseY = b.y + b.h * 0.92;
+      const rowY = baseY - b.h * 0.05;
+      const cx = b.x + w * 0.5;
+      const gateW = Math.min(w * 0.58, 560);
+      const postH = Math.min(b.h * 0.58, 380);
+      const postW = Math.max(22, Math.min(44, w * 0.045));
+      const leftX = cx - gateW / 2;
+      const rightX = cx + gateW / 2;
 
-      // rail
+      // ---- the road it stops ---------------------------------------------
       ctx.save();
-      ctx.strokeStyle = alpha(P.ink, 0.2);
-      ctx.lineWidth = 8;
+      ctx.strokeStyle = alpha(P.ink, 0.16);
+      ctx.lineWidth = 10;
       ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.moveTo(b.x, railY);
-      ctx.lineTo(b.x + w, railY - 6);
+      ctx.moveTo(b.x + 6, rowY);
+      ctx.lineTo(b.x + w - 6, rowY);
       ctx.stroke();
-      ctx.strokeStyle = alpha(P.ink, 0.13);
+      ctx.strokeStyle = alpha(P.ink, 0.1);
       ctx.lineWidth = 3;
-      for (let x = b.x + 20; x < b.x + w - 20; x += 46) {
+      for (let x = b.x + 22; x < b.x + w - 22; x += 52) {
         ctx.beginPath();
-        ctx.moveTo(x, railY);
-        ctx.lineTo(x + 4, railY + 26);
+        ctx.moveTo(x, rowY + 2);
+        ctx.lineTo(x + 3, rowY + 22);
         ctx.stroke();
       }
       ctx.restore();
 
-      // booth
-      const bx = b.x + w * 0.62;
-      const bw = Math.min(w * 0.34, 210);
-      shadow(ctx, bx, baseY + 6, bw * 0.9, 20, 0.09);
-      crate(ctx, bx, baseY, bw, b.h * 0.52, P.isoLeft);
-      ctx.save();
-      poly(
-        ctx,
-        [[bx - 6, baseY - b.h * 0.4], [bx + bw * 0.22, baseY - b.h * 0.46], [bx + bw * 0.22, baseY - b.h * 0.16], [bx - 6, baseY - b.h * 0.1]],
-        alpha(failing ? P.stop : P.good, 0.5),
-        null,
-        0
-      );
-      ctx.restore();
-      chip(ctx, bx - 52, baseY - b.h * 0.62, o.options.chip || (failing ? 'CLOSED' : 'CHECK'), { accent: !failing, size: 21 });
+      // ---- two posts ------------------------------------------------------
+      [leftX, rightX].forEach((x, i) => {
+        shadow(ctx, x, rowY + 6, postW * 1.6, 14, 0.08);
+        roundRect(ctx, x - postW / 2, rowY - postH, postW, postH, postW * 0.3);
+        ctx.fillStyle = mix(P.isoLeft, 0.12 + i * 0.06);
+        ctx.fill();
+        ctx.strokeStyle = alpha(P.isoEdge, 0.6);
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      });
 
-      // the arm
-      const angle = failing ? 0 : 1.15 * easeOut(prog(o.t, 0.2, 0.4));
-      const armLen = Math.min(w * 0.34, 260);
+      // ---- the light on the far post --------------------------------------
+      const open = failing ? 0 : easeOut(prog(o.t, 0.2, 0.46));
+      const lightY = rowY - postH - 30;
       ctx.save();
-      ctx.translate(bx - bw * 0.5, railY - b.h * 0.1);
-      ctx.rotate(angle);
-      roundRect(ctx, -armLen, -12, armLen, 24, 12);
-      ctx.fillStyle = failing ? mix(P.stop, -0.02) : mix(P.accent, 0.04);
+      const halo = ctx.createRadialGradient(rightX, lightY, 4, rightX, lightY, 54);
+      halo.addColorStop(0, alpha(open > 0.5 ? P.good : P.stop, 0.4));
+      halo.addColorStop(1, alpha(open > 0.5 ? P.good : P.stop, 0));
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(rightX, lightY, 54, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(rightX, lightY, 17, 0, Math.PI * 2);
+      ctx.fillStyle = mix(open > 0.5 ? P.good : P.stop, 0.1);
       ctx.fill();
       ctx.restore();
 
-      // the parcel on the rail
-      const run = easeOut(prog(o.t, 0.06, failing ? 0.4 : 0.7));
-      const px = b.x + 40 + run * (failing ? w * 0.18 : w * 0.62);
-      const py = railY - b.h * 0.2;
-      parcelShape(ctx, px, py, Math.min(92, b.h * 0.26), {
-        tone: failing ? P.accent : P.good,
-        tickIn: failing ? 0 : prog(o.t, 0.6, 0.8),
+      chip(ctx, cx, lightY - 56, o.options.chip || (failing ? 'CLOSED' : 'CHECK'), {
+        accent: !failing, size: Math.round(Math.max(21, Math.min(26, w * 0.032))),
+      });
+
+      // ---- the arm: shut across the road, lifted when the action is approved
+      const angle = -(failing ? 0 : 1.22 * open);
+      ctx.save();
+      ctx.translate(leftX, rowY - postH * 0.74);
+      ctx.rotate(angle);
+      roundRect(ctx, 0, -12, gateW, 24, 12);
+      ctx.fillStyle = failing ? mix(P.stop, 0.05) : mix(P.accent, 0.05);
+      ctx.fill();
+      // hazard stripes, so it reads as a barrier and not as a shelf
+      ctx.save();
+      ctx.beginPath();
+      roundRect(ctx, 0, -12, gateW, 24, 12);
+      ctx.clip();
+      ctx.strokeStyle = alpha(P.surface, 0.55);
+      ctx.lineWidth = 9;
+      for (let x = 16; x < gateW; x += 44) {
+        ctx.beginPath();
+        ctx.moveTo(x, -14);
+        ctx.lineTo(x + 20, 14);
+        ctx.stroke();
+      }
+      ctx.restore();
+      ctx.restore();
+
+      // ---- the invitation waits, then walks through ------------------------
+      const pass = easeOut(prog(o.t, failing ? 0.06 : 0.48, failing ? 0.3 : 0.86));
+      const startX = leftX - gateW * 0.26;
+      const px = startX + pass * gateW * 0.62;
+      const py = rowY - Math.min(78, b.h * 0.11);
+      parcelShape(ctx, px, py, Math.min(132, b.h * 0.19), {
+        tone: failing ? P.stop : P.accent,
+        tickIn: failing ? 0 : prog(o.t, 0.72, 0.9),
       });
 
       if (failing) {
-        const bad = prog(o.t, 0.4, 0.58);
-        if (bad > 0) cross(ctx, px + 20, py - b.h * 0.24, 46, alpha(P.stop, bad), 8);
-        ctx.save();
-        ctx.font = `700 34px ${FONT_SANS}`;
-        ctx.fillStyle = alpha(P.ink, 0.26);
-        ctx.textAlign = 'center';
-        for (let i = 0; i < 3; i++) {
-          const f = (o.t * 1.6 + i * 0.33) % 1;
-          ctx.globalAlpha = 0.5 * (1 - f);
-          ctx.fillText('?', px - 22 + i * 32, py - 60 - f * 70);
-        }
-        ctx.restore();
+        const bad = prog(o.t, 0.34, 0.5);
+        if (bad > 0) cross(ctx, px + 26, py - 44, 42, alpha(P.stop, bad), 7);
       }
     },
   },
@@ -1295,6 +1362,54 @@ const SUBJECTS = {
     role: 'demonstrate',
     about: 'a question goes in, a plain answer comes back',
     draw(ctx, b, o) {
+      // A wide, short box is a conversation held sideways: the question on the
+      // left, the answer on the right, one arrow between them. Stacking them
+      // vertically in a 900x290 box made both bubbles small and the shot empty.
+      if (b.w > b.h * 1.7) {
+        const gap = Math.min(120, b.w * 0.12);
+        const bw = Math.min((b.w - gap) / 2, 470);
+        const bh = Math.min(b.h * 0.62, 230);
+        const cy = b.y + b.h * 0.52;
+        const qx = b.x + b.w / 2 - bw - gap / 2;
+        const ax = b.x + b.w / 2 + gap / 2;
+        const pop = easeOut(prog(o.t, 0.02, 0.18));
+        const pop2 = easeOut(prog(o.t, 0.12, 0.3));
+        ctx.save();
+        ctx.globalAlpha = 0.5 + 0.5 * pop;
+        roundRect(ctx, qx, cy - bh / 2, bw, bh, 22);
+        ctx.fillStyle = P.surface;
+        ctx.fill();
+        ctx.strokeStyle = alpha(P.ink, 0.12);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        label(ctx, 'YOU ASK', qx + bw / 2, cy - bh / 2 - 18, { size: 22, color: alpha(P.ink, 0.42), weight: 700, spacing: 2 });
+        ctx.restore();
+
+        ctx.save();
+        ctx.globalAlpha = 0.4 + 0.6 * pop2;
+        roundRect(ctx, ax, cy - bh / 2, bw, bh, 22);
+        ctx.fillStyle = mix(P.link, 0.86);
+        ctx.fill();
+        label(ctx, 'IT EXPLAINS', ax + bw / 2, cy - bh / 2 - 18, { size: 22, color: alpha(P.link, 0.95), weight: 700, spacing: 2 });
+        ctx.restore();
+
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, pop2 * 1.4);
+        ctx.font = `600 ${Math.min(34, bw * 0.075)}px ${FONT_SANS}`;
+        ctx.fillStyle = P.ink;
+        ctx.textAlign = 'center';
+        wrapText(ctx, o.options.question || '"how do I get to the station?"', bw - 44, 2)
+          .forEach((line, li, all) => ctx.fillText(line, qx + bw / 2, cy + 4 + (li - (all.length - 1) / 2) * 36));
+        wrapText(ctx, o.options.answer || 'turn left, then follow the river', bw - 44, 2)
+          .forEach((line, li, all) => ctx.fillText(line, ax + bw / 2, cy + 4 + (li - (all.length - 1) / 2) * 34));
+        ctx.restore();
+
+        arrow(ctx, [qx + bw + 10, cy], [ax - 12, cy], {
+          colour: alpha(P.ink, 0.3), width: 4, head: 13, progress: prog(o.t, 0.16, 0.4),
+        });
+        return;
+      }
+
       const w = Math.min(b.w * 0.94, 560);
       const cx = b.x + b.w / 2;
       const qh = Math.min(b.h * 0.3, 190);
@@ -1358,10 +1473,20 @@ const SUBJECTS = {
       ctx.lineTo(x + w * 0.86, y + h * 0.2);
       ctx.stroke();
       ctx.restore();
-      const px = x + w * 0.14 + (x + w * 0.5 - (x + w * 0.14)) * easeOut(prog(o.t, 0.1, 0.9));
+      // The dot walks the route and then walks it again: an answer is something
+      // you read, and reading costs no steps. That is the whole point of the beat.
+      const leg = (t) => {
+        const u = Math.min(1, Math.max(0, t));
+        return u < 0.5
+          ? [x + w * 0.14 + (x + w * 0.5 - (x + w * 0.14)) * (u / 0.5), y + h * 0.82 - (x + w * 0.36) * (u / 0.5) * 0.63]
+          : [x + w * 0.5 + (x + w * 0.36) * ((u - 0.5) / 0.5), y + h * 0.5 - (x + w * 0.36) * ((u - 0.5) / 0.5) * 0.63];
+      };
+      const cycle = 0.55;
+      const travel = Math.min(1, Math.max(0, (o.t - 0.1) / cycle));
+      const [px, py] = leg(travel);
       ctx.save();
       ctx.beginPath();
-      ctx.arc(px, y + h * 0.82 - (px - (x + w * 0.14)) * 0.63, 13, 0, Math.PI * 2);
+      ctx.arc(px, py, 13, 0, Math.PI * 2);
       ctx.fillStyle = P.accent;
       ctx.fill();
       ctx.restore();
@@ -1371,7 +1496,9 @@ const SUBJECTS = {
       ctx.fillStyle = P.good;
       ctx.fill();
       ctx.restore();
-      label(ctx, o.options.caption || 'the route', x + w / 2, y + h - 24, { size: 24, color: alpha(P.ink, 0.5), weight: 700, spacing: 1 });
+      label(ctx, 'you', x + w * 0.14, y + h * 0.9 + 2, { size: 20, color: alpha(P.ink, 0.42), weight: 700 });
+      label(ctx, 'station', x + w * 0.86, y + h * 0.2 - 26, { size: 20, color: alpha(P.good, 0.85), weight: 700 });
+      label(ctx, o.options.caption || 'the route', x + w / 2, y + h - 22, { size: 24, color: alpha(P.ink, 0.5), weight: 700, spacing: 1 });
     },
   },
 
@@ -1389,25 +1516,46 @@ const SUBJECTS = {
       const x0 = b.x + (b.w - (cw * cols + gap * (cols - 1))) / 2;
       const y0 = b.y + b.h * 0.94 - (chh * rows + gap * (rows - 1));
       const free = new Set([4, 6, 11]);
+      const days = ['MON', 'TUE', 'WED', 'THU'];
+      days.forEach((d, c) => {
+        label(ctx, d, x0 + c * (cw + gap) + cw / 2, y0 - 16, {
+          size: Math.min(20, cw * 0.22), color: alpha(P.ink, 0.34), weight: 700, spacing: 2,
+        });
+      });
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const i = r * cols + c;
           const x = x0 + c * (cw + gap);
           const y = y0 + r * (chh + gap);
           const isFree = free.has(i);
-          const lit = prog(o.t, 0.15 + i * 0.02, 0.3 + i * 0.02);
+          const lit = easeOut(prog(o.t, 0.06 + i * 0.03, 0.22 + i * 0.03));
+          const pulse = 0.5 + 0.5 * Math.sin((o.t * 6.28 + i) * 1.6);
+          if (lit <= 0) continue;
+          ctx.save();
+          ctx.globalAlpha = lit;
           roundRect(ctx, x, y, cw, chh, 10);
           ctx.fillStyle = isFree ? mix(P.good, 0.86) : alpha(P.ink, 0.05);
           ctx.fill();
           ctx.strokeStyle = alpha(P.ink, 0.1);
           ctx.lineWidth = 2;
           ctx.stroke();
-          if (isFree && lit > 0) {
-            label(ctx, 'free', x + cw / 2, y + chh / 2 + 8, { size: Math.min(22, cw * 0.26), color: alpha(P.good, 0.9 * lit), weight: 700, spacing: 1 });
+          ctx.restore();
+          if (isFree) {
+            // the free slots breathe, so the eye lands on the three that matter
+            ctx.save();
+            ctx.globalAlpha = lit * (0.28 + 0.22 * pulse);
+            roundRect(ctx, x - 5, y - 5, cw + 10, chh + 10, 14);
+            ctx.strokeStyle = P.good;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.restore();
+            label(ctx, 'free', x + cw / 2, y + chh / 2 + 8, {
+              size: Math.min(22, cw * 0.26), color: alpha(P.good, 0.9 * lit), weight: 700, spacing: 1,
+            });
           }
         }
       }
-      label(ctx, o.options.caption || 'this week', b.x + b.w / 2, y0 - 22, { size: 24, color: alpha(P.ink, 0.5), weight: 700, spacing: 2 });
+      label(ctx, o.options.caption || 'this week', b.x + b.w / 2, y0 - 44, { size: 24, color: alpha(P.ink, 0.5), weight: 700, spacing: 2 });
     },
   },
 
@@ -1415,8 +1563,8 @@ const SUBJECTS = {
     role: 'transform',
     about: 'the draft invitation: the thing the agent made, not sent',
     draw(ctx, b, o) {
-      const w = Math.min(b.w * 0.94, 560);
-      const h = Math.min(b.h * 0.8, 380);
+      const w = Math.min(b.w * 0.94, 700);
+      const h = Math.min(b.h * 0.82, 470);
       const x = b.x + (b.w - w) / 2;
       const y = b.y + b.h * 0.9 - h;
       const tilt = -0.02 + 0.01 * Math.sin(o.t * Math.PI * 2);
@@ -1718,7 +1866,7 @@ function paintScene(ctx, shot, frame, t) {
   ctx.translate(cam.anchorX, cam.anchorY);
   ctx.scale(cam.scale, cam.scale);
   ctx.translate(-cam.anchorX, -cam.anchorY);
-  backdrop(ctx, { warm: shot.warm ?? 0.95 });
+  backdrop(ctx, { warm: shot.warm ?? 0.95, t });
   benchSlab(ctx, { y: benchY, depth: 1980 - benchY });
   kicker(ctx, shot.kicker || scene.kicker);
   ctx.restore();
@@ -1742,6 +1890,9 @@ function paintScene(ctx, shot, frame, t) {
       ctx.strokeStyle = alpha(P.ink, 0.22);
       ctx.lineWidth = 4;
       ctx.setLineDash([10, 10]);
+      // the dashes travel from the input to the object, so the frame says
+      // "this feeds that" instead of showing two things that happen to line up
+      ctx.lineDashOffset = -t * 160;
       ctx.beginPath();
       ctx.moveTo(from[0], from[1]);
       ctx.quadraticCurveTo((from[0] + to[0]) / 2, to[1] - 40, to[0], to[1]);
@@ -1751,12 +1902,19 @@ function paintScene(ctx, shot, frame, t) {
   }
 
   let supportIndex = 0;
-  subjects.forEach((s) => {
+  subjects.forEach((s, subjectIndex) => {
     const def = SUBJECTS[s.id];
     if (!def) return;
     const box = s.role === 'focal' ? layout.focal : layout.support[supportIndex++];
     if (!box || !box.w || !box.h) return;
+    // Every subject arrives: a short rise and fade at the top of the shot, one
+    // beat apart per object. Without it a cut lands on a finished diagram and
+    // the shot looks like a slide; with it the picture is still being built
+    // when the sentence starts.
+    const enter = easeOut(prog(t, 0.01 + subjectIndex * 0.04, 0.14 + subjectIndex * 0.04));
     ctx.save();
+    ctx.translate(0, (1 - enter) * 26);
+    if (enter < 1) ctx.globalAlpha = 0.55 + 0.45 * enter;
     def.draw(ctx, box, {
       shot,
       frame,

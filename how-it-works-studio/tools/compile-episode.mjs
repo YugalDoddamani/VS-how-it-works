@@ -227,6 +227,48 @@ const POSE_BY_EXPRESSION = {
   happy: 'warm',
 };
 
+/**
+ * One pose per beat is why the first half of a film read as a still: three cuts
+ * in a row landed on the same drawing, so the only thing that moved was the
+ * camera. A beat is 2-4 shots long, so every expression names a *performance*
+ * instead - one pose for each insert, and one for the close-up, which is the
+ * shot where her face is the new information. The orders are per-shot, not
+ * random, so a render is still frame-for-frame reproducible.
+ */
+const PERFORMANCE = {
+  // 'openhands' is the clasped-hands pose and 'openhands2' is the wide one, so
+  // the wide version is the one that reads as an open question.
+  curious: { inserts: ['presenting', 'pointing'], close: 'openhands2' },
+  neutral: { inserts: ['presenting', 'pointing'], close: 'explaining' },
+  confident: { inserts: ['explaining', 'pointing'], close: 'presenting' },
+  focused: { inserts: ['thinking', 'pointing'], close: 'explaining' },
+  skeptical: { inserts: ['skeptical', 'nope'], close: 'skeptical' },
+  emphatic: { inserts: ['onefinger', 'pointing'], close: 'onefinger' },
+  confused: { inserts: ['thinking', 'skeptical'], close: 'thinking' },
+  thinking: { inserts: ['thinking', 'skeptical'], close: 'thinking' },
+  relieved: { inserts: ['presenting'], close: 'warm' },
+  wink: { inserts: ['warm'], close: 'fingerheart' },
+  surprised: { inserts: ['openhands2', 'presenting'], close: 'openhands2' },
+  happy: { inserts: ['presenting', 'warm'], close: 'warm' },
+  angry: { inserts: ['nope', 'skeptical'], close: 'nope' },
+};
+
+/** An episode can overrule one beat when the expression is not the performance. */
+const PERFORMANCE_BY_BEAT = {
+  // the gate opens: she does not say "no", she holds an open palm and waits
+  8: { inserts: ['nope', 'pointing'], close: 'nope' },
+};
+
+function performanceFor(beat, shotIndex, isReactionShot) {
+  const beatTable = PERFORMANCE_BY_BEAT[Number(beat.beat_no)];
+  const table = beatTable || PERFORMANCE[beat.expression] || null;
+  const fallback = POSE_BY_EXPRESSION[beat.expression] || 'presenting';
+  if (!table) return fallback;
+  if (isReactionShot) return table.close || fallback;
+  const inserts = table.inserts && table.inserts.length ? table.inserts : [fallback];
+  return inserts[shotIndex % inserts.length];
+}
+
 const TRANSITIONS = { wipe: 'whip', fade: 'cut', none: 'cut', cut: 'cut' };
 
 // ---------------------------------------------------------------------------
@@ -361,7 +403,7 @@ function shotsForBeat(beat, plan) {
         ? ['goal', 'tools', 'check', 'again'][i]
         : (Number(beat.beat_no) === 8 ? 'tools' : undefined),
       world: EWorld(beat),
-      pose: POSE_BY_EXPRESSION[beat.expression] || 'presenting',
+      pose: performanceFor(beat, i, reaction),
       transition: i === 0 ? (TRANSITIONS[beat.transition] || 'cut') : 'cut',
     };
   });
