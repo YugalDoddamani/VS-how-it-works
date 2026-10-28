@@ -13,6 +13,7 @@
 <script type="module">
   import { drawFrame } from '/src/stage/reel/render.js';
   import { setPoses } from '/src/stage/reel/nao.js';
+  import { setWorldAssets } from '/src/stage/reel/worlds.js';
 
   const q = new URLSearchParams(location.search);
   const reelPath = q.get('reel') || '/series/your-data-explained/reels/r03-why-the-ad-follows-you/';
@@ -34,6 +35,10 @@
     const images = {};
     await Promise.all(manifest.poses.map(async (p) => { images[p.name] = await load(`${base}/${p.file}`); }));
     setPoses({ manifest, images });
+    try {
+      const shoe = await load(`${base}/../world/shoe.png`);
+      setWorldAssets({ shoe });
+    } catch { /* vector stand-in */ }
     return Object.keys(images).length;
   }
 

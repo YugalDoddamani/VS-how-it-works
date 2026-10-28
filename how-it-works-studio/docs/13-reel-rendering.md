@@ -67,23 +67,40 @@ head onto a body drawing — two drawings, two canvases, two sets of proportions
 so the shoulders doubled, the neck seam showed, and every mouth change moved her
 eyes four pixels.
 
-**The rig is now whole figures and nothing else.** Six complete drawings, one
+**The rig is now whole figures and nothing else.** Twelve complete drawings, one
 style, one outfit, one set of proportions (`assets/nao/poses/`, built by
 `tools/build-nao-poses.py`):
 
-| Pose | Used for |
-| --- | --- |
-| `neutral` | talking to camera, hands at her sides |
-| `presenting` | open palms, offering the thing on screen |
-| `openhands` | both hands up, walking you through it |
-| `explaining` | one palm raised at chest height — the default close-up |
-| `pointing` | index finger out, for a shelf, a stamp, an icon |
-| `thinking` | hand at chin, for the incognito/`what is it` beats |
+| Pose | Face | Used when the line is |
+| --- | --- | --- |
+| `neutral` | calm, closed mouth | a plain statement |
+| `presenting` | warm, open | offering the thing on screen |
+| `openhands` | reassuring | "this is fine, mostly" |
+| `explaining` | friendly, engaged | the default walk-through |
+| `pointing` | focused | "look at this one" |
+| `thinking` | puzzled, hand at chin | "how does it know?" |
+| `skeptical` | one brow up, half-smile, arms folded | "that is not what you think" |
+| `onefinger` | bright, eyebrows up | "one thing. Just one" |
+| `deadpan` | flat stare | "yes, really" |
+| `warm` | eyes crinkled, generous smile | giving the other side its due |
+| `nope` | flat mouth, palm out | "no, that does not help" |
+| `fingerheart` | eyes shut, delighted | the sign-off |
 
-Each figure is keyed, scaled to one height (1280 px), and placed so her feet are
-on one baseline and the centre of her head is on one column. Alignment happens
-once, in Python, so a cut between two poses does not change her size or make her
-slide sideways.
+**The pose comes from the script, not from the world.** Each shot cell ends with
+a performance note —
+
+> `**CU** · 85mm — Deadpan, flat stare, unimpressed`
+
+— and `compile-reel.mjs` turns that note into `shot.pose` (`poseFor()` in
+`compile-reel.mjs`). The world changes when the diagram changes; her face
+changes when the line does. A shot with no note falls back to the world table in
+`nao.js`, so a reel that never fills the column still renders.
+
+Each figure is keyed, **scaled so her head is the same width in every drawing**
+(212 px), and placed so her feet are on one baseline and the centre of her head
+is on one column. Scaling on the head and not on the figure is the whole trick:
+an arm raised adds 40 px of canvas, and normalising by height would make her
+face breathe in and out from cut to cut.
 
 **A pose changes only on a cut.** Within a shot she is one object, animated as a
 whole: breathing (±0.7 % vertical on a 3.6 s cycle), a weight shift (±0.55° on
@@ -98,10 +115,21 @@ feet on the canvas. The close values stop at the hip and not at the collarbone o
 purpose: a figure cut at the chest is the floating-head problem with extra steps,
 and her hands have to stay in frame, because the hands are the animation.
 
-There is no mouth and no expression swap. That was a deliberate trade: a rig that
-can swap a face needs two drawings to agree, and ours never did. The lipsync
-compiler still emits a schedule per shot (`docs/11`); the rig spends it on the
-body instead of the face.
+There is no *within-shot* expression swap. That was a deliberate trade: a rig
+that swaps a face mid-shot needs two drawings to agree, and ours never did. The
+face now changes the way a shot changes — on the cut — which at one cut every two
+seconds is as alive as a flat drawing gets. The lipsync compiler still emits a
+schedule per shot (`docs/11`); the rig spends it on the body instead of the face.
+
+### Bitmap props
+
+Vector shapes are right for the isometric world and wrong for anything with a
+silhouette an audience already knows. The sneaker in the hook is the example: a
+shoe built from beziers reads as a bread roll no matter how many details are
+piled on it, because the proportions are anatomy and the anatomy was wrong.
+`assets/world/shoe.png` is one illustrated prop, keyed and loaded through
+`setWorldAssets()`; `oneShoe()` stays as the vector fallback so the stage still
+renders with no assets injected (the tests run that way).
 
 ### Sound
 

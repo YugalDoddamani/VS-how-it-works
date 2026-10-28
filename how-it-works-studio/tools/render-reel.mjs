@@ -25,6 +25,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { createCanvas, GlobalFonts, loadImage } = require('@napi-rs/canvas');
 const { drawFrame } = await import(path.join(ROOT, 'src/stage/reel/render.js'));
 const { setPoses } = await import(path.join(ROOT, 'src/stage/reel/nao.js'));
+const { setWorldAssets } = await import(path.join(ROOT, 'src/stage/reel/worlds.js'));
 
 const FPS = 30;
 const W = 1080;
@@ -69,6 +70,11 @@ async function registerPoses() {
     if (fs.existsSync(file)) images[pose.name] = await loadImage(file);
   }
   setPoses({ manifest, images });
+
+  // one bitmap prop: the sneaker in the hook and the feed shot
+  const shoeFile = path.join(ROOT, 'assets/world/shoe.png');
+  if (fs.existsSync(shoeFile)) setWorldAssets({ shoe: await loadImage(shoeFile) });
+
   return Object.keys(images).length;
 }
 

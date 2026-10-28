@@ -30,6 +30,13 @@ Nao is **generated per beat from the sheets**, not drawn by hand and not a
 different image every episode. That is the difference between a character and a
 mascot-of-the-week.
 
+## The pose library
+
+Twelve drawings, listed with their faces in `docs/13`. A pose is not a
+per-episode decision: the shot cell names the performance ("deadpan, flat
+stare") and the compiler picks from the library. Adding a pose means drawing a
+whole figure — never a head — and adding it to `tools/build-nao-poses.py`.
+
 ## Design
 
 ### Silhouette

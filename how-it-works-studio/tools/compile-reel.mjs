@@ -84,6 +84,31 @@ function placementFor(nao) {
   return 'off';
 }
 
+/**
+ * The performance note is the tail of the shot cell - "Half-smile, one brow up",
+ * "Deadpan, flat stare". It is the only place in the sheet that says what her
+ * face is doing, so the pose is read from it rather than guessed from the
+ * world: the world changes when the diagram changes, her expression changes
+ * when the line does.
+ *
+ * Returning null means "nothing was written down"; the renderer then picks a
+ * pose from the world, so a reel that never fills the column still renders.
+ */
+function poseFor(nao) {
+  const v = String(nao || '').toLowerCase();
+  if (/finger heart/.test(v)) return 'fingerheart';
+  if (/one finger/.test(v)) return 'onefinger';
+  if (/half-?smile|brow up/.test(v)) return 'skeptical';
+  if (/deadpan|flat stare/.test(v)) return 'deadpan';
+  if (/shaking her head/.test(v)) return 'nope';
+  if (/nodding|fair-minded/.test(v)) return 'warm';
+  if (/palm out|reassuring/.test(v)) return 'openhands';
+  if (/pointing/.test(v)) return 'pointing';
+  if (/thinking/.test(v)) return 'thinking';
+  if (/holding up|presenting/.test(v)) return 'presenting';
+  return null;
+}
+
 /** Split a shot cell: `**CODE** · lens — framing`. */
 function parseShotCell(cell) {
   const m = cell.match(/^\*\*(.+?)\*\*\s*·\s*(.+?)\s*—\s*(.*)$/);
@@ -170,6 +195,10 @@ function parseScript(text, file) {
       lens: shot.lens,
       framing: shot.framing,
       placement: placementFor(nao),
+      // the performance note lives in the shot cell, after the em dash:
+      //   **CU** · 85mm — Half-smile, one brow up, straight down the lens
+      pose: poseFor(shot.framing),
+      nao: shot.framing,
       world: worldFor(bg),
       bg,
       graphic,

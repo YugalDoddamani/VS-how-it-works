@@ -41,10 +41,14 @@ ROOT = Path(__file__).resolve().parent.parent
 POSES = ROOT / "assets" / "nao" / "poses"
 
 # Reading order matters only for the report; the renderer asks by name.
-POSE_NAMES = ["neutral", "presenting", "pointing", "thinking", "explaining", "openhands"]
+POSE_NAMES = [
+    "neutral", "presenting", "openhands", "explaining", "pointing", "thinking",
+    "skeptical", "onefinger", "deadpan", "warm", "nope", "fingerheart",
+]
 
 WHITE = 246           # a channel at or above this is background
-FIGURE_H = 1280       # every figure is scaled to this height, in px
+TARGET_HEAD = 212     # every figure is scaled so her head is this wide
+FIGURE_H = 1280       # nominal height, used only for the report
 CANVAS = (900, 1500)  # one canvas for all poses
 FEET_Y = 1460         # baseline, in canvas px
 HEAD_CX = 450         # head centre column, in canvas px
@@ -143,9 +147,16 @@ def build(report_only: bool = False) -> dict:
         if not src.exists():
             raise SystemExit(f"missing source art: {src}")
         figure = trim(key_white(Image.open(src)))
-        scale = FIGURE_H / figure.height
+
+        # Scale on the head, not on the figure. Six drawings are never the same
+        # height - one artist's arm up adds 40 px of canvas - but her face has to
+        # stay the same size from cut to cut or the whole reel breathes in and
+        # out. So: normalise the head, then put her feet on the baseline.
+        natural = head_metrics(figure)["headWidth"]
+        scale = TARGET_HEAD / max(1, natural)
         figure = figure.resize(
-            (max(1, round(figure.width * scale)), FIGURE_H), Image.LANCZOS
+            (max(1, round(figure.width * scale)), max(1, round(figure.height * scale))),
+            Image.LANCZOS,
         )
         m = head_metrics(figure)
 
@@ -156,6 +167,7 @@ def build(report_only: bool = False) -> dict:
 
         entry = {
             "name": name,
+            "figureHeight": figure.height,
             "file": f"{name}.png",
             "width": CANVAS[0],
             "height": CANVAS[1],
@@ -172,7 +184,7 @@ def build(report_only: bool = False) -> dict:
     manifest = {
         "builtBy": "tools/build-nao-poses.py",
         "canvas": {"width": CANVAS[0], "height": CANVAS[1]},
-        "figureHeight": FIGURE_H,
+        "figureHeight": int(round(float(np.median([p["figureHeight"] for p in poses])))),
         "feetY": FEET_Y,
         "headCx": HEAD_CX,
         "anchor": {"headWidth": head_width},
@@ -187,7 +199,7 @@ def main() -> int:
     print(f"canvas {manifest['canvas']['width']}x{manifest['canvas']['height']}  "
           f"figure {manifest['figureHeight']}  anchor headWidth {manifest['anchor']['headWidth']}")
     for p in manifest["poses"]:
-        print(f"  {p['name']:<12} head {p['headWidth']:>3} px  offsetX {p['offsetX']:>4}")
+        print(f"  {p['name']:<12} head {p['headWidth']:>3} px  figure {p['figureHeight']:>4} px  offsetX {p['offsetX']:>4}")
     if report_only:
         print("report only — nothing written")
         return 0

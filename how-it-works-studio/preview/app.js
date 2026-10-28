@@ -8,6 +8,7 @@
 
 import { drawFrame, shotAt } from '../src/stage/reel/render.js';
 import { setPoses } from '../src/stage/reel/nao.js';
+import { setWorldAssets } from '../src/stage/reel/worlds.js';
 
 const W = 1080;
 const H = 1920;
@@ -270,7 +271,11 @@ async function loadPoses(base) {
     })
   );
   setPoses({ manifest, images });
-  return Object.keys(images).length;
+  try {
+    images.shoe = await load('/assets/world/shoe.png');
+    setWorldAssets({ shoe: images.shoe });
+  } catch { /* the vector stand-in will do */ }
+  return Object.keys(images).length - 1;
 }
 
 // ---------------------------------------------------------------------------
