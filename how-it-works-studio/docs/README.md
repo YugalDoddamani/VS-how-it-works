@@ -1,6 +1,6 @@
 # The Spec
 
-Fourteen documents, in reading order. Read `01` and `02` before writing anything; read
+Fifteen documents, in reading order. Read `01` and `02` before writing anything; read
 the rest when you touch that part of the system.
 
 | # | Document | Answers |
@@ -19,6 +19,7 @@ the rest when you touch that part of the system.
 | 12 | [Reel Format](12-reels-format.md) | The 45–60 s shot grammar: shot codes, lenses, corner overlay numbers, cut rhythm, interaction devices. |
 | 13 | [Reel Rendering](13-reel-rendering.md) | script.md → reel.json → frames → MP4, the rig, the sound, the captions, and what is still missing. |
 | 14 | [Production Report](14-production-report.md) | What it took to finish R03 end to end: systems, assets, decisions, and the recipes for improvising it. |
+| 15 | [Episode Rendering](15-episode-rendering.md) | The long-form chain: beats → shots → the workshop worlds → voice, effects, captions, delivery. |
 
 Two companion files sit outside `docs/`:
 

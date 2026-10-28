@@ -1,0 +1,66 @@
+{
+  "voice": "voice-01",
+  "note": "spoken VO; one clip per beat, so the prosody matches the paragraph (the reels use one clip per run of shots)",
+  "clips": [
+    {
+      "file": "vo/g1.mp3",
+      "start": 0,
+      "end": 210,
+      "text": "You did not get replaced by AI. You got replaced by a checklist. How AI automation actually works."
+    },
+    {
+      "file": "vo/g2.mp3",
+      "start": 222,
+      "end": 420,
+      "text": "Automation just means steps a machine follows without asking you first."
+    },
+    {
+      "file": "vo/g3.mp3",
+      "start": 420,
+      "end": 630,
+      "text": "For fifty years, those steps were rules. If this, then that."
+    },
+    {
+      "file": "vo/g4.mp3",
+      "start": 630,
+      "end": 840,
+      "text": "Rules break the moment real life looks slightly different from the example."
+    },
+    {
+      "file": "vo/g5.mp3",
+      "start": 840,
+      "end": 1110,
+      "text": "Now add a model. Something that reads a messy pile and guesses the sensible thing."
+    },
+    {
+      "file": "vo/g6.mp3",
+      "start": 1110,
+      "end": 1350,
+      "text": "Set a goal. Give it tools. Check the result. Go again."
+    },
+    {
+      "file": "vo/g7.mp3",
+      "start": 1350,
+      "end": 1590,
+      "text": "That loop is the automation. The model is only one part of it."
+    },
+    {
+      "file": "vo/g8.mp3",
+      "start": 1590,
+      "end": 1830,
+      "text": "It is not one genius robot. It is a loop with a safety check bolted on."
+    },
+    {
+      "file": "vo/g9.mp3",
+      "start": 1830,
+      "end": 2040,
+      "text": "And the check is where it fails. No check means no automation, just vibes."
+    },
+    {
+      "file": "vo/g10.mp3",
+      "start": 2040,
+      "end": 2340,
+      "text": "Goal. Tools. Check. Repeat. So next time someone says the AI does it, ask where the check is."
+    }
+  ]
+}

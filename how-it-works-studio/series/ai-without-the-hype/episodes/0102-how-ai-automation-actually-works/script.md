@@ -11,7 +11,7 @@
 | Beats | 12 |
 | Length | 78.0 s — 2340 frames @ 30 fps |
 | Words spoken | 139 |
-| Status | `scripted` |
+| Status | `rendered` |
 
 ## The question
 

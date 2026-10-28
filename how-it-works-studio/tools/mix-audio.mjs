@@ -155,9 +155,11 @@ if (!has('no-vo') && fs.existsSync(voFile)) {
     const at = clip.start / reel.fps;
     const window = (clip.end - clip.start) / reel.fps;
     const raw = duration(file) || window;
-    // fit the clip to its window without turning her into a chipmunk: at most
-    // 15 % faster, at most 5 % slower. Beyond that the cut is the problem.
-    const tempo = Math.min(1.15, Math.max(0.95, raw / Math.max(0.2, window)));
+    // Fit a clip that overruns its window, and only then: at most 15 % faster.
+    // A clip that already fits is left at its recorded speed, because stretching
+    // every line by 5 % makes the whole read sound sedated.
+    const ratio = raw / Math.max(0.2, window);
+    const tempo = ratio > 1.0 ? Math.min(1.15, ratio) : 1.0;
     const wav = decode(file, tempo, tmpDir);
     addLayer(mix, readWav(wav), at, voGain);
     voCount++;
