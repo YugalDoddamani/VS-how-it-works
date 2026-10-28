@@ -1,0 +1,2 @@
+episode_id,slug,title,question,series,level,target_seconds,answer_oneliner,music,status,author,updated
+'0001,0001-what-happens-when-you-type-a-url,What happens when you type a web address?,What actually happens after you press enter?,Networking,beginner,75,"A name becomes a number, a request travels, and a page comes back.",,scripted,Yugal,2026-10-28

@@ -1,0 +1,3 @@
+episode_id,beat_no,beat_type,duration_s,narration,on_screen_text,board_items,props,camera,gesture,expression,emphasis,transition,sfx,note
+'0001,1,hook,4.0,You type an address and press enter.,,,,point-camera,curious,enter,none,,-,first frame is already composed; no fade in
+'0001,2,title,3.0,Four things happen before the page appears.,What happens when you press enter?,,,wide,present-wide,confident,page,wipe,,world starts empty and fills from here

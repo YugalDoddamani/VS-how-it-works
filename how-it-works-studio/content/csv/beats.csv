@@ -1,0 +1,13 @@
+episode_id,beat_no,beat_type,duration_s,narration,on_screen_text,board_items,props,camera,gesture,expression,emphasis,transition,sfx,note
+'0001,1,hook,4.0,You type an address and press enter.,,,,wide,point-camera,curious,enter,none,pop-soft,First frame is fully composed: the feed shows it before play
+'0001,2,title,3.0,Four things happen before the page appears.,What happens when you press enter?,,desktop@B3,wide,sweep-wide,confident,Four,wipe,pop-soft,World is empty apart from the desktop
+'0001,3,explain,6.0,The address is a name. Computers route by number.,A name not a number,,desktop@B3;signpost@C4,board,point-board,focused,address;number,fade,pop-soft,Term 1 of 3: address
+'0001,4,explain,7.0,So first something has to look the name up.,The lookup,,desktop@B3;server@C3,board,talk-hands,focused,name,fade,pop-soft,
+'0001,5,analogy,8.0,That's DNS: a contacts app for the internet.,DNS is a contacts app,Name goes in;Number comes out,desktop@B3;phone@C3;server@D2,board,present-open,delighted,DNS;contacts,fade,pop-soft,The mapping is stated out loud on purpose
+'0001,6,step-by-step,9.0,You ask a resolver. It asks up the chain. The answer comes back.,The lookup,Ask a resolver;It asks the root;The answer comes back,server@C3;tower@B2;server@E4,board,count-three,focused,resolver;chain,fade,pop-soft,First time three machines are on stage together
+'0001,7,explain,7.0,Now you have a number: the server's address.,An address,,desktop@B3;server@C3;signpost@D4,board,point-board,confident,server,fade,pop-soft,Term 2 of 3: server
+'0001,8,packet-trip,9.0,Your request travels there and a reply travels back.,A round trip,,desktop@B3;server@C3,macro,lean-in,emphatic,reply,fade,whoosh,Needs a Paths row. The shot carries the beat.
+'0001,9,explain,6.0,"The reply is the page: HTML, images, styles.",The page,,desktop@B3;server@C3;parcel@D3,board,talk-hands,neutral,page,fade,pop-soft,Three things arrive in one reply
+'0001,10,myth-check,8.0,It isn't one big computer. It's copies cached close to you.,Not one big computer,,server@C3;cloud@C2;desktop@B3,board,shake-no,skeptical,copies,wipe,pop-soft,Term 3 of 3: cache. Nao changes expression mid-beat.
+'0001,11,recap,5.0,Name. Address. Request. Page.,Name to page,,desktop@B3;server@C3,wide,sweep-wide,relieved,Page,fade,pop-soft,"A list of chips, not sentences: recap is exempt from the sentence limit"
+'0001,12,outro,3.0,That's what the enter key actually does.,Episode 01,NETWORKING,desktop@B3;server@C3,wide,nod,delighted,enter,wipe,pop-soft,Follow prompt lives in the caption only. Never spoken.

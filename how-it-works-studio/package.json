@@ -1,0 +1,41 @@
+{
+  "name": "how-it-works-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Render illustrated isometric technology explainers, authored in a spreadsheet, from a character-led script.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "studio": "src/cli.js"
+  },
+  "scripts": {
+    "doctor": "node src/cli.js doctor",
+    "list": "node src/cli.js list",
+    "new": "node src/cli.js new",
+    "sheet:check": "node src/cli.js sheet-check",
+    "sheet:build": "node src/cli.js sheet-build",
+    "sheet:export": "node src/cli.js sheet-export",
+    "sheet:pull": "node src/cli.js sheet-pull",
+    "gallery": "node src/cli.js gallery",
+    "preview": "node src/cli.js preview",
+    "check": "node src/cli.js check",
+    "render": "node src/cli.js render",
+    "verify": "node src/cli.js verify",
+    "build": "node src/cli.js build",
+    "publish": "node src/cli.js publish",
+    "determinism": "node src/cli.js determinism",
+    "clean": "node src/cli.js clean",
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "dependencies": {
+    "playwright-core": "^1.64.1",
+    "xlsx": "^0.18.5"
+  },
+  "optionalDependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@ffprobe-installer/ffprobe": "^2.1.2",
+    "@sparticuz/chromium": "^153.0.0"
+  }
+}
