@@ -11,6 +11,15 @@ What is in here, and what to do with it.
 | `vo/g1..g10.mp3` | the voice-over, one clip per beat. |
 | `0102-silent.mp4` | the picture without the mix. Intermediate: it is the input to `mix-audio.mjs`, and it is git-ignored because it is only ever rebuilt. |
 
+## Where this film also lives
+
+A copy sits in `final-reels/` at the repository root, with the subtitle track and
+the key-frame sheet, so every finished film can be reviewed in one folder:
+
+```sh
+cd how-it-works-studio && npm run reels:collect
+```
+
 ## Rebuilding
 
 ```sh
@@ -28,5 +37,7 @@ captions, same mix.
 ## Numbers
 
 - 2340 frames, 32 shots, average shot 2.4 s
+- 5 cameras, 8 focal subjects, she is in frame for 63 % of the film (34 % before
+  the composition rebuild — the baseline is in `docs/baseline/0102-p0/`)
 - 145 sound effects, 10 voice clips, peak −1.0 dBFS, mean −20.1 dB
 - 12 caption cues (one per beat — the line is a sentence and it stays whole)

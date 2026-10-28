@@ -2,25 +2,30 @@
 /**
  * compile-episode.mjs - turn an episode's beats into `episode.json`.
  *
- * Reels are authored as a shot table in markdown, one row per shot. Episodes are
- * authored one level up, in the content sheet: a row per *beat*, with the beat
- * type, the narration, the camera note, the expression and the transition. A
- * beat is 3-10 seconds, which is far too long for a cut-driven channel, so this
- * compiler does the editorial work the sheet deliberately leaves out:
+ * A beat is the unit the writer works in (3-10 s, one thought, one line). A shot
+ * is the unit the audience sees (1-3 s, one picture, one claim). This compiler is
+ * where one becomes the other, and it is the only place allowed to decide it.
  *
- *   beat  ->  1-4 shots   (split by beat type, with the frames divided exactly)
- *   line  ->  1-4 captions (split at punctuation, never mid-phrase)
- *   expression -> pose   (the sheet's vocabulary onto the twelve drawings)
+ * Since the composition pass it is also where the *visual plan* is resolved and
+ * checked. A shot is no longer "a world and a pose": it is a claim with a
+ * camera, a focal subject, supporting subjects, a character role, a caption
+ * treatment and a reason to cut. Those fields come from, in order:
  *
- * Its output has the same shape as a compiled reel, so the stage, the renderer,
- * the mixer and the caption exporter do not know the difference.
+ *   1. `content/csv/visual.csv`, the authored plan (one row per beat);
+ *   2. a per-type default, so an unplanned episode still compiles;
+ *   3. the scene catalogue, which says what a world can actually draw.
+ *
+ * Everything is then validated. A shot whose fields disagree with each other -
+ * an "object detail" with no object, a comparison with nothing to compare, a
+ * wipe with no reason - fails here, before a frame exists.
  *
  * Usage:
- *   node tools/compile-episode.mjs            # every episode
- *   node tools/compile-episode.mjs 0102       # one, by id prefix
- *   node tools/compile-episode.mjs --check    # compile, write nothing
+ *   node tools/compile-episode.mjs              # every episode
+ *   node tools/compile-episode.mjs 0102         # one, by id prefix
+ *   node tools/compile-episode.mjs --check      # validate, write nothing
+ *   node tools/compile-episode.mjs --report 0102  # print the plan, shot by shot
+ *   node tools/compile-episode.mjs --json        # the compiled episodes on stdout
  *
- * Input:  content/csv/episodes.csv, content/csv/beats.csv
  * Output: series/<series>/episodes/<slug>/episode.json  (git-ignored)
  */
 
@@ -37,112 +42,86 @@ const FPS = 30;
 const CSV = path.join(ROOT, 'content/csv');
 
 // ---------------------------------------------------------------------------
-// the editorial rules
+// vocabularies
 // ---------------------------------------------------------------------------
 
 /**
- * How a beat type becomes shots. `codes` are the shot grammar from docs/12;
- * `her` says whether she is in the frame; the rest is the world the shot sits in
- * until the beat says otherwise.
- *
- * Long beats get more shots - that is the whole job here. A 10 s step-by-step
- * beat cut as one shot is four seconds of a still image.
+ * The four-stage spine every episode has to walk. `title` is a chapter card: it
+ * is allowed, it is neutral, and it may not stand in for any of the four.
  */
-const BEAT_PLAN = {
-  hook: {
-    // the first frame is the one that has to hold a thumb still: she is a little
-    // tighter here than anywhere else, and the graphic is already finished
-    codes: ['CU', 'INSERT'],
-    placements: ['corner-br', 'off'],
-  },
-  title: {
-    codes: ['TITLE'],
-    placements: ['absent'],
-  },
-  explain: {
-    codes: ['MCU', 'INSERT', 'INSERT'],
-    placements: ['corner-bl', 'off', 'off'],
-  },
-  analogy: {
-    codes: ['MCU', 'INSERT', 'INSERT', 'INSERT'],
-    placements: ['corner-br', 'off', 'off', 'off'],
-  },
-  'step-by-step': {
-    codes: ['INSERT', 'INSERT', 'MCU', 'INSERT'],
-    placements: ['off', 'off', 'corner-bl', 'off'],
-  },
-  'myth-check': {
-    codes: ['MCU', 'INSERT', 'INSERT'],
-    placements: ['corner-br', 'off', 'off'],
-  },
-  recap: {
-    codes: ['INSERT', 'MCU'],
-    placements: ['off', 'corner-bl'],
-  },
-  outro: {
-    codes: ['CU'],
-    placements: ['corner-bl'],
-  },
+const STAGES = ['problem', 'mechanism', 'complication', 'resolution'];
+const STAGE_RANK = { problem: 0, mechanism: 1, complication: 2, resolution: 3, title: null };
+
+const STAGE_BY_BEAT_TYPE = {
+  hook: 'problem',
+  title: 'title',
+  explain: 'mechanism',
+  analogy: 'mechanism',
+  'step-by-step': 'mechanism',
+  'myth-check': 'complication',
+  compare: 'complication',
+  recap: 'resolution',
+  outro: 'resolution',
+};
+
+const INTENTS = new Set([
+  'provoke', 'frame', 'define', 'model-the-rule', 'break', 'introduce',
+  'walk-the-loop', 'reframe', 'debunk', 'show-failure', 'recap', 'land-it',
+]);
+
+const CHARACTER_ROLES = new Set(['lead', 'present', 'react', 'absent']);
+
+const CAPTION_TREATMENTS = new Set(['standard', 'punchline', 'steps', 'takeaway']);
+
+/** How many shots a beat type is cut into, and what those shots are for. */
+const SHOT_COUNTS = {
+  hook: 2,
+  title: 1,
+  explain: 3,
+  analogy: 4,
+  'step-by-step': 4,
+  'myth-check': 3,
+  compare: 3,
+  recap: 2,
+  outro: 1,
 };
 
 /**
- * Which workshop world a beat is drawn in.
+ * The default plan for a beat type, used when `visual.csv` has no row for it.
  *
- * The sheet says what the beat is *about* in prose, and prose is not an id. This
- * table is the one editorial judgement the compiler cannot make on its own, so
- * it is written down, per episode, keyed by beat number.
+ * These are intentionally conservative: no comparison (that needs a second
+ * subject the default cannot promise) and no two consecutive shots with the same
+ * camera.
  */
-const EPISODE_WORLDS = {
+const DEFAULT_PLAN = {
+  hook: { intent: 'provoke', compositions: ['object-detail', 'character-reaction'], caption: 'punchline' },
+  title: { intent: 'frame', compositions: ['wide-establish'], caption: 'standard' },
+  explain: { intent: 'define', compositions: ['object-detail', 'overhead-process', 'character-reaction'], caption: 'standard' },
+  analogy: { intent: 'introduce', compositions: ['object-detail', 'overhead-process', 'object-detail', 'character-reaction'], caption: 'standard' },
+  'step-by-step': { intent: 'walk-the-loop', compositions: ['wide-establish', 'object-detail', 'overhead-process', 'character-reaction'], caption: 'standard' },
+  'myth-check': { intent: 'debunk', compositions: ['object-detail', 'overhead-process', 'character-reaction'], caption: 'standard' },
+  compare: { intent: 'debunk', compositions: ['comparison', 'object-detail', 'character-reaction'], caption: 'standard' },
+  recap: { intent: 'recap', compositions: ['overhead-process', 'character-reaction'], caption: 'steps' },
+  outro: { intent: 'land-it', compositions: ['character-reaction'], caption: 'takeaway' },
+};
+
+/** Which action a composition adds to the beat's action. */
+const ACTION_STAGE = {
+  'wide-establish': 'establish',
+  'object-detail': 'detail',
+  'character-reaction': 'reaction',
+  'overhead-process': 'process',
+  comparison: 'contrast',
+};
+
+/** Subject options a world implies, per beat number. */
+const SUBJECT_OPTIONS = {
   '0102': {
-    1: 'ep_checklist',
-    2: 'ep_title',
-    3: 'ep_steps',
-    4: 'ep_rules',
-    5: 'ep_rules_broken',
-    6: 'ep_pile',
-    7: 'ep_loop',
-    8: 'ep_loop',
-    9: 'ep_gate',
-    10: 'ep_gate',
-    11: 'ep_loop',
-    12: 'ep_outro',
+    5: { 'rule-cards': { broken: true }, 'rule-machine': { broken: true } },
+    10: { checkpoint: { failing: true } },
+    12: { signpost: { kicker: 'ask where', text: 'the check is' } },
   },
 };
-
-/** The sheet's expression vocabulary, onto the twelve drawings. */
-const POSE_BY_EXPRESSION = {
-  surprised: 'openhands',
-  confident: 'presenting',
-  neutral: 'neutral',
-  focused: 'pointing',
-  confused: 'thinking',
-  thinking: 'thinking',
-  emphatic: 'onefinger',
-  skeptical: 'skeptical',
-  angry: 'nope',
-  relieved: 'warm',
-  wink: 'fingerheart',
-  happy: 'warm',
-};
-
-/** Beat type -> pose, for the shots where the sheet has no expression. */
-const POSE_BY_BEAT = {
-  hook: 'skeptical',
-  title: 'presenting',
-  explain: 'explaining',
-  analogy: 'thinking',
-  'step-by-step': 'onefinger',
-  'myth-check': 'deadpan',
-  recap: 'openhands',
-  outro: 'fingerheart',
-};
-
-/** Only one transition per reel is allowed to be anything but a cut; episodes
- *  are calmer, so a wipe is allowed to repeat, and it renders as the whip. */
-const TRANSITIONS = { wipe: 'whip', fade: 'cut', none: 'cut', cut: 'cut' };
-
-/** The sheet's sfx names onto the cue set in assets/sfx. */
-const SFX = { 'pop-soft': 'pop', whoosh: 'whoosh' };
 
 const EMPHASIS_WORDS = new Set([
   'not', 'never', 'one', 'two', 'three', 'four', 'loop', 'check', 'goal',
@@ -176,64 +155,68 @@ function parseCsv(text) {
     .map((r) => Object.fromEntries(header.map((h, i) => [h, r[i].trim()])));
 }
 
-const readCsv = (name) => parseCsv(fs.readFileSync(path.join(CSV, name), 'utf8'));
+const readCsv = (name) => {
+  const file = path.join(CSV, name);
+  return fs.existsSync(file) ? parseCsv(fs.readFileSync(file, 'utf8')) : [];
+};
+const cleanId = (v) => String(v).replace(/^'+/, '').trim();
+const slug = (text) => String(text).toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const listOf = (cell, sep = '|') => String(cell || '').split(sep).map((s) => s.trim()).filter(Boolean);
 
 // ---------------------------------------------------------------------------
-// text -> captions
+// scenes, from the stage
 // ---------------------------------------------------------------------------
 
-/**
- * Split a line into `n` caption chunks at natural boundaries.
- *
- * Preference order: sentence ends, then commas/semicolons, then "and/but/so",
- * and only then a plain word boundary. A caption that breaks mid-phrase reads
- * as a typo, so the splitter spends effort to avoid it.
- */
-function splitCaption(text, n) {
-  const line = String(text || '').trim();
-  if (n <= 1 || !line) return [line];
+const stageModule = await import(path.join('file://', ROOT, 'src/stage/reel/worlds-episode.js'));
+const { SCENES, SUBJECTS, SUBJECT_ROLES, SUBJECT_IDS } = stageModule;
+const { COMPOSITION_IDS, CAMERAS, FRAME_FOR_COMPOSITION } = await import(
+  path.join('file://', ROOT, 'src/stage/reel/composition.js')
+);
 
-  const sentences = line.match(/[^.!?]+[.!?]*/g)?.map((s) => s.trim()).filter(Boolean) || [line];
-  const out = [...sentences];
+/** The world an episode's beats are drawn in. */
+const EPISODE_WORLDS = {
+  '0101': {
+    1: 'ep_cloud_photo', 2: 'ep_cloud_title', 3: 'ep_cloud_photo', 4: 'ep_cloud_racks',
+    5: 'ep_cloud_racks', 6: 'ep_cloud_heat', 7: 'ep_cloud_copies', 8: 'ep_cloud_copies',
+    9: 'ep_cloud_heat', 10: 'ep_cloud_racks', 11: 'ep_cloud_copies', 12: 'ep_cloud_outro',
+  },
+  '0102': {
+    1: 'ep_checklist', 2: 'ep_title', 3: 'ep_steps', 4: 'ep_rules',
+    5: 'ep_rules_broken', 6: 'ep_pile', 7: 'ep_loop', 8: 'ep_loop',
+    9: 'ep_gate', 10: 'ep_gate', 11: 'ep_loop', 12: 'ep_outro',
+  },
+  '0103': {
+    1: 'ep_free_title', 2: 'ep_free_title', 3: 'ep_free_tools', 4: 'ep_free_tools',
+    5: 'ep_free_tools', 6: 'ep_free_tools', 7: 'ep_free_tools', 8: 'ep_free_tools',
+    9: 'ep_free_scale', 10: 'ep_free_scale', 11: 'ep_free_tools', 12: 'ep_free_outro',
+  },
+  '0104': {
+    1: 'ep_wifi_title', 2: 'ep_wifi_title', 3: 'ep_wifi_router', 4: 'ep_wifi_channels',
+    5: 'ep_wifi_channels', 6: 'ep_wifi_crowd', 7: 'ep_wifi_crowd', 8: 'ep_wifi_router',
+    9: 'ep_wifi_channels', 10: 'ep_wifi_channels', 11: 'ep_wifi_crowd', 12: 'ep_wifi_outro',
+  },
+};
 
-  // more pieces than shots: merge the two shortest neighbours until it fits
-  while (out.length > n) {
-    let best = 0;
-    for (let i = 0; i < out.length - 1; i++) {
-      if (out[i].length + out[i + 1].length < out[best].length + out[best + 1].length) best = i;
-    }
-    out.splice(best, 2, `${out[best]} ${out[best + 1]}`);
-  }
+const POSE_BY_EXPRESSION = {
+  surprised: 'openhands2',
+  confident: 'presenting',
+  neutral: 'neutral',
+  focused: 'pointing',
+  confused: 'thinking',
+  thinking: 'thinking',
+  emphatic: 'onefinger',
+  skeptical: 'skeptical',
+  angry: 'nope',
+  relieved: 'warm',
+  wink: 'fingerheart',
+  happy: 'warm',
+};
 
-  // fewer pieces than shots: split the longest at the boundary nearest its middle,
-  // preferring a comma, then a conjunction, and only then plain whitespace
-  while (out.length < n) {
-    let idx = 0;
-    for (let i = 0; i < out.length; i++) if (out[i].length > out[idx].length) idx = i;
-    const piece = out[idx];
-    const mid = piece.length / 2;
-    const marks = [
-      ...[...piece.matchAll(/[,;:]\s/g)].map((m) => m.index + 1),
-      ...[...piece.matchAll(/\s(and|but|so|then|because)\s/gi)].map((m) => m.index),
-    ].filter((i) => i > 8 && i < piece.length - 8);
+const TRANSITIONS = { wipe: 'whip', fade: 'cut', none: 'cut', cut: 'cut' };
 
-    let cutAt;
-    if (marks.length) {
-      cutAt = marks.sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid))[0];
-    } else {
-      const space = piece.indexOf(' ', Math.floor(mid));
-      cutAt = space > 0 ? space : -1;
-    }
-    if (cutAt <= 0) break;
-
-    const head = piece.slice(0, cutAt).trim().replace(/[,;:]$/, '');
-    const tail = piece.slice(cutAt).trim().replace(/^(and|but|so|then|because)\s+/i, '');
-    if (!head || !tail) break;
-    out.splice(idx, 1, head, tail);
-  }
-
-  return out;
-}
+// ---------------------------------------------------------------------------
+// text -> caption
+// ---------------------------------------------------------------------------
 
 function emphasisFor(text) {
   const hits = [];
@@ -245,6 +228,56 @@ function emphasisFor(text) {
   return hits;
 }
 
+/** Rows for a `steps` caption: one row per sentence, in order. */
+function stepRowsFor(text) {
+  return String(text)
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.replace(/[.!?]$/, '').trim())
+    .filter(Boolean);
+}
+
+// ---------------------------------------------------------------------------
+// the plan
+// ---------------------------------------------------------------------------
+
+function planFor(episodeId, beat, world) {
+  const scene = SCENES[world] || { subjects: [], kicker: '' };
+  const type = beat.beat_type;
+  const fallback = DEFAULT_PLAN[type] || DEFAULT_PLAN.explain;
+  const authored = PLANS.get(`${episodeId}:${beat.beat_no}`) || {};
+
+  const compositions = authored.compositions && authored.compositions.length
+    ? authored.compositions
+    : fallback.compositions;
+
+  const focal = authored.focal || scene.subjects[0] || 'loop-row';
+  const supporting = authored.supporting
+    ? authored.supporting
+    : (scene.subjects[1] ? [scene.subjects[1]] : []);
+
+  return {
+    stage: authored.stage || STAGE_BY_BEAT_TYPE[type] || 'mechanism',
+    intent: authored.intent || fallback.intent,
+    compositions,
+    focal,
+    supporting,
+    characterRole: authored.characterRole || (type === 'hook' || type === 'outro' ? 'lead' : 'react'),
+    action: authored.action || `${type}-${slug(beat.on_screen_text || beat.narration).slice(0, 40)}`,
+    captionTreatment: authored.captionTreatment || fallback.caption,
+    // Every shot says why it is joined to the next one. A cut is the default
+    // and it still needs a stated reason, because "cut" is a decision too.
+    transitionReason: authored.transitionReason || (authored.hold
+      ? 'same framing held on purpose'
+      : beat.transition && beat.transition !== 'none' && beat.transition !== 'cut'
+        ? `${type}-changes-what-the-viewer-has-to-hold`
+        : 'new-information-cuts-away'),
+    rationale: authored.rationale || '',
+    authored: Boolean(PLANS.get(`${episodeId}:${beat.beat_no}`)),
+    kicker: authored.kicker || scene.kicker || '',
+    hold: Boolean(authored.hold),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // compile
 // ---------------------------------------------------------------------------
@@ -253,164 +286,360 @@ function framesFor(beat, n) {
   const total = Math.round(Number(beat.duration_s) * FPS);
   const base = Math.floor(total / n);
   const out = new Array(n).fill(base);
-  for (let i = 0; i < total - base * n; i++) out[i] += 1;   // front-load the remainder
+  for (let i = 0; i < total - base * n; i++) out[i] += 1;
   return out;
 }
 
-function shotsForBeat(beat, reel) {
-  const type = beat.beat_type;
-  const plan = BEAT_PLAN[type] || BEAT_PLAN.explain;
-  const n = plan.codes.length;
+/** Turn a beat + its plan into shots. Pure: no I/O, so validation can reuse it. */
+function shotsForBeat(beat, plan) {
+  const n = plan.compositions.length;
   const frames = framesFor(beat, n);
-  const world = (EPISODE_WORLDS[reel.id] || {})[beat.beat_no] || 'ep_title';
-  // one line per *beat*, not per shot.
-  //
-  // Splitting the narration across the cuts of a beat looks like an edit and
-  // reads like a typo: "Automation just means" ... "steps a machine". The line
-  // is a sentence; it stays whole and holds for the beat, which is also what the
-  // reading check in script.md measures.
-  const captions = new Array(n).fill(String(beat.narration || '').trim());
-  const items = String(beat.board_items || '')
-    .split(';')
-    .map((s) => s.trim())
-    .filter(Boolean);
-  const pose = POSE_BY_EXPRESSION[beat.expression] || POSE_BY_BEAT[type] || 'explaining';
+  const rows = stepRowsFor(beat.narration);
+  const emphasis = [
+    ...String(beat.emphasis || '').split(';').map((w) => w.trim().toLowerCase()).filter(Boolean),
+    ...emphasisFor(beat.narration),
+  ].filter((w, i, all) => all.indexOf(w) === i).slice(0, 2);
 
-  return plan.codes.map((code, i) => ({
-    beat: Number(beat.beat_no),
-    beatType: type,
-    code,
-    lens: code === 'CU' ? '85mm' : code === 'INSERT' ? '100mm' : '50mm',
-    // for the step-by-step beat each shot is one station of the loop, and the
-    // painter puts the parcel on that station
-    focus: type === 'step-by-step'
-      ? ['goal', 'tools', 'check', 'again'][i] || undefined
-      : beat.beat_no === '8'
-        ? 'tools'
-        : undefined,
-    framing: beat.camera || beat.beat_type,
-    placement: plan.placements[i],
-    world,
-    // only the shots where she is on screen carry her
-    pose: plan.placements[i] === 'off' || plan.placements[i] === 'absent'
-      ? null
-      : (i === plan.placements.length - 1 ? pose : pose),
-    transition: i === 0 ? (TRANSITIONS[beat.transition] || 'cut') : 'cut',
-    sfx: i === 0 ? (SFX[beat.sfx] || null) : null,
-    frames: frames[i],
-    caption: captions[i] || beat.on_screen_text || '',
-    vo: captions[i] || '',
-    text: beat.on_screen_text || '',
-    items,
-    emphasis: String(beat.emphasis || '')
-      .split(';')
-      .map((w) => w.trim().toLowerCase())
-      .filter(Boolean),
-    expression: beat.expression || '',
-    gesture: beat.gesture || '',
-  }));
+  return plan.compositions.map((composition, i) => {
+    const reaction = composition === 'character-reaction';
+    const frameRule = FRAME_FOR_COMPOSITION[composition];
+    const role = reaction ? 'lead' : plan.characterRole;
+    const placement = (frameRule?.placements || {})[role] || 'off';
+    const code = frameRule?.code || 'INSERT';
+
+    const subjects = reaction
+      ? []
+      : [
+        { id: plan.focal, role: 'focal' },
+        ...plan.supporting.filter((id) => id !== plan.focal).map((id) => ({ id, role: SUBJECTS[id]?.role || 'supporting' })),
+      ];
+
+    return {
+      beat: Number(beat.beat_no),
+      beatType: beat.beat_type,
+      stage: plan.stage,
+      index: i,
+      of: n,
+      composition,
+      visualIntent: plan.intent,
+      focalSubject: reaction ? 'nao' : plan.focal,
+      supportingSubjects: reaction ? [] : plan.supporting,
+      characterRole: role,
+      action: plan.action,
+      actionStage: ACTION_STAGE[composition] || 'beat',
+      transitionReason: plan.transitionReason,
+      rationale: plan.rationale,
+      hold: plan.hold,
+      composition2: undefined,
+      code,
+      placement,
+      frames: frames[i],
+      captionTreatment: plan.captionTreatment,
+      captionText: String(beat.narration || '').trim(),
+      captionSteps: plan.captionTreatment === 'steps' ? rows : undefined,
+      emphasis,
+      kicker: plan.kicker,
+      subjects,
+      focus: beat.beat_type === 'step-by-step'
+        ? ['goal', 'tools', 'check', 'again'][i]
+        : (Number(beat.beat_no) === 8 ? 'tools' : undefined),
+      world: EWorld(beat),
+      pose: POSE_BY_EXPRESSION[beat.expression] || 'presenting',
+      transition: i === 0 ? (TRANSITIONS[beat.transition] || 'cut') : 'cut',
+    };
+  });
 }
 
-const cleanId = (v) => String(v).replace(/^'+/, '').trim();
+let EPISODE_IN_CONTEXT = null;
+function EWorld(beat) {
+  const id = EPISODE_IN_CONTEXT;
+  return (EPISODE_WORLDS[id] && EPISODE_WORLDS[id][beat.beat_no]) || 'ep_title';
+}
+
+// ---------------------------------------------------------------------------
+// validation
+// ---------------------------------------------------------------------------
+
+function validateEpisode(episode, plans, beats) {
+  const errors = [];
+  const warnings = [];
+  const where = `${episode.episode_id}`;
+
+  // The spine is a gate on production, not on drafting. An episode with an
+  // authored visual plan - or one that has already been built - must walk all
+  // four stages in order; an episode still being written is only warned, because
+  // a draft is allowed to be missing its complication.
+  const strict = [...plans.values()].some((p) => p.authored)
+    || ['built', 'rendered', 'published'].includes(String(episode.status || '').toLowerCase());
+  const spine = (msg) => (strict ? errors : warnings).push(msg);
+
+  // ---- the spine ---------------------------------------------------------
+  const stageOrder = [];
+  for (const beat of beats) {
+    const plan = plans.get(beat.beat_no);
+    if (!STAGES.includes(plan.stage) && plan.stage !== 'title') {
+      errors.push(`${where} beat ${beat.beat_no}: unknown stage "${plan.stage}"`);
+      continue;
+    }
+    if (plan.stage !== 'title' && !stageOrder.includes(plan.stage)) stageOrder.push(plan.stage);
+  }
+  const missing = STAGES.filter((s) => !stageOrder.includes(s));
+  if (missing.length) spine(`${where}: story never reaches ${missing.join(', ')}`);
+  for (let i = 1; i < stageOrder.length; i++) {
+    if (STAGE_RANK[stageOrder[i]] < STAGE_RANK[stageOrder[i - 1]]) {
+      spine(`${where}: stage "${stageOrder[i]}" starts after "${stageOrder[i - 1]}" - the spine must open each stage in order`);
+    }
+  }
+  const firstResolution = beats.find((b) => plans.get(b.beat_no).stage === 'resolution');
+  if (firstResolution) {
+    const at = Number(firstResolution.beat_no);
+    if (at < Math.ceil(beats.length * 0.6)) {
+      warnings.push(`${where}: resolution starts at beat ${at} of ${beats.length}, early for an earned ending`);
+    }
+  }
+
+  // ---- each beat ---------------------------------------------------------
+  for (const beat of beats) {
+    const plan = plans.get(beat.beat_no);
+    const tag = `${where} beat ${beat.beat_no}`;
+    const scene = SCENES[plan.world] || { subjects: [] };
+    const catalogue = new Set(SUBJECT_IDS);
+    const inScene = new Set(scene.subjects);
+
+    if (!INTENTS.has(plan.intent)) errors.push(`${tag}: intent "${plan.intent}" is not in the vocabulary`);
+    if (!CHARACTER_ROLES.has(plan.characterRole)) errors.push(`${tag}: character role "${plan.characterRole}" is not one of ${[...CHARACTER_ROLES].join(', ')}`);
+    if (!CAPTION_TREATMENTS.has(plan.captionTreatment)) errors.push(`${tag}: caption treatment "${plan.captionTreatment}" is not one of ${[...CAPTION_TREATMENTS].join(', ')}`);
+    if (plan.captionTreatment === 'takeaway' && plan.stage !== 'resolution') errors.push(`${tag}: a takeaway caption only belongs in the resolution`);
+    if (plan.captionTreatment === 'steps' && stepRowsFor(beat.narration).length < 2) warnings.push(`${tag}: "steps" caption has only one step`);
+
+    // the cut
+    const expected = SHOT_COUNTS[beat.beat_type] || 1;
+    if (plan.compositions.length !== expected) {
+      errors.push(`${tag}: ${beat.beat_type} is cut into ${expected} shot${expected === 1 ? '' : 's'}, the plan lists ${plan.compositions.length}`);
+    }
+    plan.compositions.forEach((composition, i) => {
+      if (!COMPOSITION_IDS.includes(composition)) {
+        errors.push(`${tag}: shot ${i + 1}: unknown composition "${composition}"`);
+        return;
+      }
+      if (composition === 'character-reaction' && plan.characterRole === 'absent') {
+        errors.push(`${tag}: shot ${i + 1}: a reaction shot with the character absent`);
+      }
+      if (composition === 'comparison' && !plan.supporting.length && plan.characterRole === 'absent') {
+        errors.push(`${tag}: shot ${i + 1}: a comparison needs a second thing to compare`);
+      }
+      if (i > 0 && plan.compositions[i - 1] === composition && !plan.hold) {
+        errors.push(`${tag}: shots ${i} and ${i + 1} use the same camera "${composition}" with nothing changing between them (mark the beat as a deliberate hold if that is the intent)`);
+      }
+    });
+
+    // the subjects
+    if (!catalogue.has(plan.focal)) {
+      errors.push(`${tag}: focal subject "${plan.focal}" has no painter in the catalogue`);
+    }
+    // The scene is what the world draws by default; the plan may ask for
+    // anything the catalogue can draw, but a subject the scene never mentions is
+    // worth saying out loud - it is usually a typo or a leftover.
+    if (!inScene.has(plan.focal)) {
+      warnings.push(`${tag}: "${plan.focal}" is not in the ${plan.world} scene, which draws ${[...inScene].join(', ')}`);
+    }
+    for (const id of plan.supporting) {
+      if (!catalogue.has(id)) errors.push(`${tag}: supporting subject "${id}" has no painter in the catalogue`);
+      if (!SUBJECTS[id]) errors.push(`${tag}: supporting subject "${id}" has no definition`);
+      if (id === plan.focal) errors.push(`${tag}: "${id}" cannot be both the focal subject and a supporting one`);
+    }
+    for (const id of [plan.focal, ...plan.supporting]) {
+      if (SUBJECTS[id] && !SUBJECT_ROLES.includes(SUBJECTS[id].role)) {
+        errors.push(`${tag}: subject "${id}" has role "${SUBJECTS[id].role}", which is not a role`);
+      }
+    }
+
+    // the action is a claim about a change, not a label
+    if (!/^[a-z0-9]+(-[a-z0-9]+){1,}$/.test(plan.action)) {
+      errors.push(`${tag}: action "${plan.action}" should be a kebab-case description of what changes (at least two words)`);
+    }
+    if (plan.action === 'undefined' || plan.action.includes('undefined')) errors.push(`${tag}: the action did not resolve`);
+
+    // the cut reason
+    if (beat.transition && beat.transition !== 'none' && beat.transition !== 'cut' && !plan.transitionReason) {
+      errors.push(`${tag}: a ${beat.transition} transition needs a transitionReason`);
+    }
+
+    // the five questions
+    if (!plan.rationale) warnings.push(`${tag}: no rationale written for the visual choice`);
+  }
+
+  // ---- no two beats may make the same claim ------------------------------
+  let prev = null;
+  for (const beat of beats) {
+    const plan = plans.get(beat.beat_no);
+    if (prev && prev.action === plan.action) {
+      errors.push(`${where} beat ${beat.beat_no}: same action as beat ${prev.beatNo} ("${plan.action}") - the viewer learns nothing new`);
+    }
+    prev = { action: plan.action, beatNo: beat.beat_no };
+  }
+
+  // ---- she has to be seen ------------------------------------------------
+  const shots = [];
+  EPISODE_IN_CONTEXT = episode.episode_id;
+  for (const beat of beats) shots.push(...shotsForBeat(beat, plans.get(beat.beat_no)));
+  const onScreen = shots.filter((s) => s.placement !== 'off' && s.placement !== 'absent').length;
+  const share = onScreen / shots.length;
+  if (share < 0.3) warnings.push(`${where}: she is on screen in ${Math.round(share * 100)} % of shots`);
+
+  // ---- reading check -----------------------------------------------------
+  for (const beat of beats) {
+    const words = String(beat.narration || '').split(/\s+/).filter(Boolean).length;
+    const needed = words / 4 + 0.6;
+    if (Number(beat.duration_s) + 1e-6 < needed) {
+      warnings.push(`${where} beat ${beat.beat_no}: caption needs ${needed.toFixed(1)} s, has ${beat.duration_s} s`);
+    }
+  }
+
+  return { errors, warnings, shots, onScreenShare: share };
+}
+
+// ---------------------------------------------------------------------------
+// compile one episode
+// ---------------------------------------------------------------------------
 
 function compileEpisode(rawEpisode, allBeats) {
   const episode = { ...rawEpisode, episode_id: cleanId(rawEpisode.episode_id) };
+  EPISODE_IN_CONTEXT = episode.episode_id;
+
   const beats = allBeats
     .filter((b) => cleanId(b.episode_id) === episode.episode_id)
     .sort((a, b) => Number(a.beat_no) - Number(b.beat_no));
   if (!beats.length) throw new Error(`${episode.episode_id}: no beats`);
 
-  const series = episode.series;
-  const seriesSlug = slugify(series);
+  const seriesSlug = slug(episode.series);
   const dir = path.join(ROOT, 'series', seriesSlug, 'episodes', episode.slug);
   const scriptFile = path.join(dir, 'script.md');
   if (!fs.existsSync(scriptFile)) throw new Error(`${episode.episode_id}: no script.md at ${dir}`);
 
-  const seconds = Number(episode.target_seconds);
-  const frames = Math.round(seconds * FPS);
-  const reel = { id: episode.episode_id, slug: episode.slug };
+  // ---- resolve the plan, beat by beat ------------------------------------
+  const plans = new Map();
+  for (const beat of beats) {
+    const world = (EPISODE_WORLDS[episode.episode_id] || {})[beat.beat_no] || 'ep_title';
+    const plan = planFor(episode.episode_id, beat, world);
+    plan.world = world;
+    plan.beatNo = Number(beat.beat_no);
+    plans.set(beat.beat_no, plan);
+  }
 
+  // A default action is derived from the on-screen text, and two beats can share
+  // that text ("The loop"). Authored plans must be unique and are checked; a
+  // derived one gets its beat number appended so the film can still be compiled.
+  const seenActions = new Map();
+  for (const [no, plan] of plans) {
+    if (plan.authored) continue;
+    if (seenActions.has(plan.action)) plan.action = `${plan.action}-${no}`;
+    seenActions.set(plan.action, no);
+  }
+
+  const check = validateEpisode(episode, plans, beats);
+  if (check.errors.length) {
+    const err = new Error(`${episode.episode_id}: ${check.errors.length} plan error(s)\n  - ${check.errors.join('\n  - ')}`);
+    err.validation = check;
+    throw err;
+  }
+
+  // ---- assemble ----------------------------------------------------------
   const shots = [];
   let cursor = 0;
   let n = 0;
+  let stageSeen = new Set();
+
   for (const beat of beats) {
-    for (const shot of shotsForBeat(beat, reel)) {
+    const plan = plans.get(beat.beat_no);
+    const beatShots = shotsForBeat(beat, plan);
+    const firstOfStage = !stageSeen.has(plan.stage);
+    if (plan.stage !== 'title') stageSeen.add(plan.stage);
+
+    beatShots.forEach((s, i) => {
       n += 1;
       const start = cursor;
-      cursor += shot.frames;
-      const emphasis = [
-        ...shot.emphasis.filter((w) => shot.caption.toLowerCase().includes(w)),
-        ...emphasisFor(shot.caption),
-      ].filter((w, i, all) => all.indexOf(w) === i).slice(0, 2);
-      const mouth = shot.placement === 'off' || shot.placement === 'absent'
-        ? null
-        : {
-          offset: 2,
-          schedule: LipSync.buildSchedule(shot.vo, Math.max(2, shot.frames - 8), {
-            mode: shot.code === 'CU' || shot.code === 'MCU' ? 'talking-head' : 'mid',
-            fps: FPS,
-            emphasis: [
-              ...shot.emphasis.filter((w) => new RegExp(`\\b${w}`, 'i').test(shot.vo)),
-              ...emphasisFor(shot.vo),
-            ].filter((w, i, all) => all.indexOf(w) === i).slice(0, 2),
-          }).frames,
-        };
-      // A mouth schedule from the line the shot is speaking. There is no mouth
-      // to draw - the rig moves her whole body - so this is really a rhythm
-      // track: it is what makes the nods land on the stressed words.
+      cursor += s.frames;
+
       const voice = {
         offset: 3,
-        schedule: LipSync.buildSchedule(shot.caption, Math.max(2, shot.frames - 8), {
+        schedule: LipSync.buildSchedule(s.captionText, Math.max(2, s.frames - 8), {
           mode: 'mid',
           fps: FPS,
-          emphasis: emphasis,
+          emphasis: s.emphasis,
         }).frames,
       };
 
+      const isLastShot = false; // fixed up after the loop
       shots.push({
         n,
-        beat: shot.beat,
-        beatType: shot.beatType,
-        transition: shot.transition,
+        beat: s.beat,
+        beatType: s.beatType,
+        stage: s.stage,
+        visualIntent: s.visualIntent,
+        composition: s.composition,
+        focalSubject: s.focalSubject,
+        supportingSubjects: s.supportingSubjects,
+        characterRole: s.characterRole,
+        action: s.action,
+        actionStage: s.actionStage,
+        transitionReason: s.transitionReason,
         start,
-        frames: shot.frames,
-        end: start + shot.frames,
-        code: shot.code,
-        lens: shot.lens,
-        framing: shot.framing,
-        placement: shot.placement,
-        pose: shot.pose,
-        world: shot.world,
-        text: shot.text,
-        items: shot.items,
-        variant: shot.world === 'ep_gate' && shot.beat === 10 ? 'gate_fail' : undefined,
-        focus: shot.focus,
-        footnote: shot.world === 'ep_loop' && shot.beat === 8 ? 'the model is one part of it' : undefined,
-        vo: shot.vo,
+        frames: s.frames,
+        end: start + s.frames,
+        code: s.code,
+        lens: s.code === 'CU' ? '85mm' : s.code === 'INSERT' ? '100mm' : '50mm',
+        framing: beat.camera || beat.beat_type,
+        placement: s.placement,
+        world: s.world,
+        kicker: s.kicker,
+        subjects: s.subjects,
+        subjectOptions: (SUBJECT_OPTIONS[episode.episode_id] || {})[beat.beat_no] || {},
+        focus: s.focus,
+        pose: s.placement === 'off' || s.placement === 'absent' ? null : s.pose,
+        transition: s.transition,
+        vo: s.captionText,
         mouth: voice,
         caption: {
-          text: shot.caption,
-          emphasis: [
-            ...shot.emphasis.filter((w) => shot.caption.toLowerCase().includes(w)),
-            ...emphasisFor(shot.caption),
-          ].filter((w, i, all) => all.indexOf(w) === i).slice(0, 2),
-          in: 0,
-          out: shot.frames,
+          text: s.captionText,
+          treatment: s.captionTreatment,
+          steps: s.captionSteps,
+          emphasis: s.emphasis,
         },
-        mouth,
-        mood: 'neutral',
+        chrome: {
+          badge: n === 1 || firstOfStage || false,
+          progress: n !== 1,
+        },
+        purpose: {
+          viewerKnows: i === 0 ? (shots.length ? shots[shots.length - 1].action : 'cold open') : `${s.action} (part ${i + 1})`,
+          newInformation: s.action,
+          screenChange: `${s.composition} · ${s.focalSubject}`,
+          whyThisVisual: plan.rationale || CAMERAS[s.composition]?.why || '',
+          nextBeatBuildsOn: '',
+        },
       });
-    }
+    });
   }
 
-  if (cursor !== frames) {
+  if (cursor !== Math.round(Number(episode.target_seconds) * FPS)) {
     throw new Error(
-      `${episode.episode_id}: beats total ${cursor} frames, header says ${frames} (${seconds}s)`
+      `${episode.episode_id}: beats total ${cursor} frames, header says ${Math.round(Number(episode.target_seconds) * FPS)}`
     );
   }
 
+  // ---- fix-ups that need the whole film ---------------------------------
   const last = shots[shots.length - 1];
-  last.mood = 'smile';
+  last.transition = 'cut';           // nothing to cut to
+  last.chrome.badge = true;
+  last.caption.treatment = last.caption.treatment === 'takeaway' ? 'takeaway' : last.caption.treatment;
+  for (let i = 0; i < shots.length; i++) {
+    const next = shots[i + 1];
+    shots[i].purpose.nextBeatBuildsOn = next ? next.action : 'the viewer leaves with the question';
+    shots[i].chrome.progress = !(i === 0 || i === shots.length - 1);
+  }
+
+  // ---- metadata ----------------------------------------------------------
+  const onScreen = shots.filter((s) => s.placement !== 'off' && s.placement !== 'absent').length;
 
   return {
     id: episode.episode_id,
@@ -418,53 +647,132 @@ function compileEpisode(rawEpisode, allBeats) {
     slug: episode.slug,
     title: episode.title,
     question: episode.question,
-    series,
+    series: episode.series,
     seriesSlug,
     level: episode.level,
-    seconds,
-    frames,
+    seconds: Number(episode.target_seconds),
+    frames: cursor,
     fps: FPS,
     shotCount: shots.length,
     beatCount: beats.length,
-    averageShot: Number((seconds / shots.length).toFixed(2)),
+    averageShot: Number((Number(episode.target_seconds) / shots.length).toFixed(2)),
+    onScreenShare: Number((onScreen / shots.length).toFixed(2)),
     walkaway: episode.answer_oneliner,
+    spine: STAGES.map((stage) => ({
+      stage,
+      beats: beats.filter((b) => plans.get(b.beat_no).stage === stage).map((b) => Number(b.beat_no)),
+    })),
     shots,
     source: {
       script: path.relative(ROOT, scriptFile),
       csv: 'content/csv/beats.csv',
+      plan: PLANS.size ? 'content/csv/visual.csv' : '(default plan)',
+      // authored = this episode has rows in visual.csv, so its shots were chosen
+      // by hand rather than split mechanically from the beat sheet. The strict
+      // quality gates apply to authored episodes.
+      authored: beats.some((b) => PLANS.has(`${episode.episode_id}:${Number(b.beat_no)}`)),
     },
     compiledBy: 'tools/compile-episode.mjs',
   };
 }
 
-function slugify(text) {
-  return String(text).toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+// ---------------------------------------------------------------------------
+// the authored plan
+// ---------------------------------------------------------------------------
+
+/**
+ * `content/csv/visual.csv` - one row per beat.
+ *
+ * Columns: episode_id, beat_no, stage, intent, focal, supporting,
+ * character_role, action, caption_treatment, compositions, transition_reason,
+ * kicker, rationale, hold
+ *
+ * `supporting` is `;`-separated, `compositions` is `|`-separated.
+ */
+const PLANS = new Map();
+for (const row of readCsv('visual.csv')) {
+  const episodeId = cleanId(row.episode_id);
+  PLANS.set(`${episodeId}:${Number(row.beat_no)}`, {
+    stage: (row.stage || '').trim(),
+    intent: (row.intent || '').trim(),
+    focal: (row.focal || '').trim(),
+    supporting: listOf(row.supporting, ';'),
+    characterRole: (row.character_role || '').trim(),
+    action: (row.action || '').trim(),
+    captionTreatment: (row.caption_treatment || '').trim(),
+    compositions: listOf(row.compositions, '|'),
+    transitionReason: (row.transition_reason || '').trim(),
+    kicker: (row.kicker || '').trim(),
+    rationale: (row.rationale || '').trim(),
+    hold: /^(true|yes|1)$/i.test(String(row.hold || '').trim()),
+  });
 }
 
 // ---------------------------------------------------------------------------
+// main
+// ---------------------------------------------------------------------------
+
+function report(reel) {
+  console.log(`\n${reel.id}  ${reel.title}  —  ${reel.seconds.toFixed(1)} s, ${reel.shotCount} shots, she is on screen ${Math.round(reel.onScreenShare * 100)} % of the time`);
+  console.log(`spine: ${reel.spine.map((s) => `${s.stage} (${s.beats.join(',')})`).join('  →  ')}`);
+  const pad = (s, n) => String(s).padEnd(n).slice(0, n);
+  console.log(`\n${pad('#', 3)}${pad('stage', 14)}${pad('camera', 20)}${pad('focal', 14)}${pad('role', 8)}${pad('action', 28)}caption`);
+  for (const s of reel.shots) {
+    console.log(
+      `${pad(s.n, 3)}${pad(s.stage, 14)}${pad(s.composition, 20)}${pad(s.focalSubject, 14)}${pad(s.characterRole, 8)}${pad(s.action, 28)}${s.caption.treatment}`
+    );
+  }
+  console.log('');
+}
 
 function main() {
   const args = process.argv.slice(2);
   const check = args.includes('--check');
+  const showReport = args.includes('--report');
+  // The test suite needs the compiled plan without a compiled artefact on disk:
+  // episode.json is a build output, and a test that reads it can pass on a stale
+  // file from a previous branch.
+  const asJson = args.includes('--json');
   const wanted = args.find((a) => !a.startsWith('--'));
 
   const episodes = readCsv('episodes.csv').map((e) => ({ ...e, episode_id: cleanId(e.episode_id) }));
   const beats = readCsv('beats.csv').map((b) => ({ ...b, episode_id: cleanId(b.episode_id) }));
   let compiled = 0;
+  const problems = [];
+  const out = [];
 
   for (const episode of episodes) {
     if (wanted && !episode.episode_id.startsWith(wanted) && !episode.slug.includes(wanted)) continue;
-    const reel = compileEpisode(episode, beats);
-    const dir = path.join(ROOT, 'series', reel.seriesSlug, 'episodes', reel.slug);
-    if (!check) fs.writeFileSync(path.join(dir, 'episode.json'), `${JSON.stringify(reel, null, 2)}\n`);
-    console.log(
-      `  ${check ? 'ok ' : '→  '} ${reel.id}  ${reel.seconds.toFixed(1)}s  ${reel.frames} frames  ` +
-      `${reel.beatCount} beats · ${reel.shotCount} shots  ${reel.series}`
-    );
-    compiled += 1;
+    try {
+      const reel = compileEpisode(episode, beats);
+      out.push(reel);
+      if (check || asJson) {
+        // nothing written
+      } else {
+        const dir = path.join(ROOT, 'series', reel.seriesSlug, 'episodes', reel.slug);
+        fs.writeFileSync(path.join(dir, 'episode.json'), `${JSON.stringify(reel, null, 2)}\n`);
+      }
+      if (!asJson) console.log(
+        `  ${check ? 'ok ' : '→  '} ${reel.id}  ${reel.seconds.toFixed(1)}s  ${reel.frames} frames  ` +
+        `${reel.beatCount} beats · ${reel.shotCount} shots · ${Math.round(reel.onScreenShare * 100)}% with her  ${reel.series}`
+      );
+      if (showReport && !asJson) report(reel);
+      compiled += 1;
+    } catch (err) {
+      problems.push(err.message);
+    }
   }
 
   if (!compiled) throw new Error(`no episode matched ${wanted || '(all)'}`);
+  if (problems.length) {
+    console.error(`\n${problems.length} episode(s) failed the plan check:\n${problems.join('\n')}`);
+    process.exit(1);
+  }
+  if (asJson) {
+    process.stdout.write(`${JSON.stringify({ episodes: out }, null, 2)}\n`);
+    if (problems.length) process.exit(1);
+    return;
+  }
   console.log(`\n${compiled} episode(s) ${check ? 'validated' : 'compiled'}.`);
 }
 

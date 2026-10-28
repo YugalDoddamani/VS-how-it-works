@@ -77,8 +77,16 @@ rows at the bottom and a build should not fail because of one.
 | `Sources` | one factual claim | yes, per claim | fact-check trail |
 | `Publish` | one episode's publishing copy | before publishing | `publishing.md` |
 | `Vocab` | one allowed value | yes | the controlled vocabulary |
+| `Visual` | one beat's picture | to finish an episode | the shot contract: stage, intent, focal, supports, her role, action, caption treatment, cameras |
 
-Six tabs get you a working episode. `Character` and `Paths` are refinements.
+Seven tabs get you a working episode. `Character` and `Paths` are refinements.
+
+`Visual` is the newest and the strictest: it is where a beat stops being a
+sentence and becomes a decision about which camera, which object, and what changes
+on screen. It lives in `content/csv/visual.csv` and is described in full in
+[document 16](16-composition-and-story.md). A beat with no `Visual` row still
+compiles — the compiler splits it mechanically — but it is marked
+`source.authored: false` and the strict quality gates do not apply to it.
 
 ---
 
@@ -149,6 +157,31 @@ Example:
 episode_id,beat_no,beat_type,duration_s,narration,on_screen_text,board_items,props,camera,gesture,expression,emphasis,transition,sfx,note
 0001,6,step-by-step,10.0,"You ask a resolver. It asks up the chain. The answer comes back.",The lookup,Resolver; Root; Authoritative,server@C3;tower@B2;server@E4,board,count-three,focused,resolver;chain,fade,pop-soft,first time we show three machines
 ```
+
+## `Visual`
+
+One row per beat, keyed on `episode_id` + `beat_no`. It is *not* required to draft
+an episode; it is required to call one finished.
+
+| Column | Meaning |
+| --- | --- |
+| `stage` | `problem` / `mechanism` / `complication` / `resolution` (`title` allowed, never a substitute) |
+| `intent` | `provoke, frame, define, model-the-rule, break, introduce, walk-the-loop, reframe, debunk, show-failure, recap, land-it` |
+| `focal` | the one subject the sentence is about |
+| `supporting` | `;`-separated subjects that make the focal one mean something |
+| `character_role` | `lead` / `present` / `react` / `absent` |
+| `action` | a slug for the state change; two beats in a row may not repeat it |
+| `caption_treatment` | `standard` / `punchline` / `steps` / `takeaway` (takeaway is resolution-only) |
+| `compositions` | `\|`-separated cameras, one per shot of the beat |
+| `transition_reason` | why the frame moves; required whenever the transition is not a cut |
+| `kicker` | the small line above the stage, if the world has one |
+| `rationale` | why this is the right picture — read by a human, not by the compiler |
+| `hold` | `TRUE` allows two consecutive shots on the same camera, on purpose |
+
+The compiler validates every value against the same vocabularies the rest of the
+project uses, checks that the spine opens each stage in order, that no two
+consecutive shots sit on the same camera, and that a subject exists as a painter
+with a role.
 
 ## `Props`
 

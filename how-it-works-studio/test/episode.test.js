@@ -119,10 +119,15 @@ test('every world the episode compiler asks for is a painter', async () => {
   const { worldExists } = await import(
     path.join('file://', ROOT, 'src/stage/reel/worlds.js')
   );
-  const source = fs.readFileSync(path.join(ROOT, 'tools/compile-episode.mjs'), 'utf8');
-  const ids = [...source.matchAll(/^\s*\d+:\s*'([a-z0-9_]+)',$/gm)].map((m) => m[1]);
-  assert.ok(ids.length >= 9, 'the episode world table looks empty');
-  for (const id of ids) assert.ok(worldExists(id), `no painter for "${id}"`);
+  // Ask the compiler what it actually emits rather than scraping its tables:
+  // the plan can change shape, the assignment of a shot to a world cannot.
+  const out = execFileSync(process.execPath, [path.join(ROOT, 'tools/compile-episode.mjs'), '--json'], {
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  const worlds = new Set(JSON.parse(out).episodes.flatMap((e) => e.shots.map((s) => s.world)));
+  assert.ok(worlds.size >= 9, `only ${worlds.size} worlds in the whole sheet`);
+  for (const id of worlds) assert.ok(worldExists(id), `no painter for "${id}"`);
 });
 
 test('a title card is drawn with a painter and a world is never left empty', async () => {

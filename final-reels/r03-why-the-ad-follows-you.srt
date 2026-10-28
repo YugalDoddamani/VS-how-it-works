@@ -1,0 +1,91 @@
+1
+00:00:00,000 --> 00:00:01,400
+You looked at shoes. Once.
+
+2
+00:00:01,400 --> 00:00:02,600
+Now they are everywhere.
+
+3
+00:00:02,600 --> 00:00:04,200
+That is NOT the app reading your mind.
+
+4
+00:00:04,200 --> 00:00:06,000
+It is ONE small file. A COOKIE.
+
+5
+00:00:06,000 --> 00:00:08,200
+A COOKIE is a NOTE a site leaves in your browser.
+
+6
+00:00:08,200 --> 00:00:10,400
+It says: this is the SAME person as before.
+
+7
+00:00:10,400 --> 00:00:12,000
+That is useful. It is how a login stays logged in.
+
+8
+00:00:12,000 --> 00:00:14,200
+Now imagine the SAME NOTE on a second site.
+
+9
+00:00:14,200 --> 00:00:16,200
+SAME company on both sites.
+
+10
+00:00:16,200 --> 00:00:18,400
+TWO visits. ONE identity. That is the trick.
+
+11
+00:00:18,400 --> 00:00:20,000
+That is what a THIRD-PARTY COOKIE is.
+
+12
+00:00:20,000 --> 00:00:22,400
+The NOTE carries a NUMBER. Not your name.
+
+13
+00:00:22,400 --> 00:00:24,600
+INCOGNITO does NOT stop this. It forgets on your device, NOT theirs.
+
+14
+00:00:24,600 --> 00:00:26,600
+Which is why you see the shoes, NOT the exact pair you picked.
+
+15
+00:00:26,600 --> 00:00:29,000
+The standard says it plainly, and calls it worrisome.
+
+16
+00:00:29,000 --> 00:00:31,000
+Safari, Firefox and Brave block these by default.
+
+17
+00:00:31,000 --> 00:00:33,000
+Apps run their own version. The SWITCH is in your phone settings.
+
+18
+00:00:33,000 --> 00:00:35,000
+If you are NOT on ONE of those, this is the switch.
+
+19
+00:00:35,000 --> 00:00:36,800
+Blocking them rarely breaks anything. A few logins get grumpier.
+
+20
+00:00:36,800 --> 00:00:38,800
+You do NOT need to understand all of it to turn it off.
+
+21
+00:00:38,800 --> 00:00:41,200
+ONE NOTE. Every site. ONE switch.
+
+22
+00:00:41,200 --> 00:00:43,000
+NOTE. Shared. Blocked.
+
+23
+00:00:43,000 --> 00:00:45,000
+The shoes cannot follow you if the NOTE cannot travel.
