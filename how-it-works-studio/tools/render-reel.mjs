@@ -24,7 +24,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const { createCanvas, GlobalFonts, loadImage } = require('@napi-rs/canvas');
 const { drawFrame } = await import(path.join(ROOT, 'src/stage/reel/render.js'));
-const { setSprites, setLayerFactory, VISEME_NAMES } = await import(path.join(ROOT, 'src/stage/reel/nao.js'));
+const { setRig } = await import(path.join(ROOT, 'src/stage/reel/nao.js'));
 
 const FPS = 30;
 const W = 1080;
@@ -56,15 +56,21 @@ function registerFonts() {
   }
 }
 
-async function registerSprites() {
-  const dir = path.join(ROOT, 'assets/nao/heads');
-  const map = {};
-  for (const name of VISEME_NAMES) {
-    const file = path.join(dir, `${name}.png`);
-    if (fs.existsSync(file)) map[name] = await loadImage(file);
+async function registerRig() {
+  const dir = path.join(ROOT, 'assets/nao/rig');
+  const manifestFile = path.join(dir, 'manifest.json');
+  if (!fs.existsSync(manifestFile)) {
+    throw new Error('no rig — run: python3 tools/build-nao-rig.py');
   }
-  setSprites(map);
-  return Object.keys(map).length;
+  const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+  const body = await loadImage(path.join(dir, manifest.body.file));
+  const heads = {};
+  for (const head of manifest.heads) {
+    const file = path.join(dir, '..', 'rig', head.file);
+    if (fs.existsSync(file)) heads[head.name] = await loadImage(file);
+  }
+  setRig({ manifest, body, heads });
+  return Object.keys(heads).length;
 }
 
 // ---------------------------------------------------------------------------
@@ -111,9 +117,8 @@ async function main() {
   const reel = JSON.parse(fs.readFileSync(found.json, 'utf8'));
 
   registerFonts();
-  setLayerFactory((w, h) => createCanvas(w, h));
-  const spriteCount = await registerSprites();
-  if (spriteCount < 12) console.warn(`  ! only ${spriteCount}/12 sprites — run python3 tools/build-nao-sprites.py`);
+  const headCount = await registerRig();
+  if (headCount < 9) console.warn(`  ! only ${headCount}/9 expression heads — run python3 tools/build-nao-rig.py`);
 
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext('2d');

@@ -61,18 +61,44 @@ is not a re-design.
 
 ### The character
 
-Twelve sprites cut from `assets/nao/talking-head-sheet-1k.webp` by
-`tools/build-nao-sprites.py`, background flood-filled to transparency, trimmed and
-normalised to 420 px.
+The first rig was cut from the 1024 px talking-head sheet: a floating head, no
+body, and a face that read as mush once it was scaled to a 1080 px canvas. It was
+rebuilt at working resolution (`assets/nao/rig/`, built by
+`tools/build-nao-rig.py`):
 
-The sheet is cropped at the chest, so the sprite is masked with a vertical fade
-from just under the choker (`nao.js: maskedSprite`). Without it the crop edge
-reads as a hard cut across her collarbones — with it, she dissolves into the
-paper and the caption card never has to hide a seam.
+| Asset | What it is |
+| --- | --- |
+| `nao_body_neutral.png` | source drawing: full body, arms down, front, ~1300 px |
+| `nao_expr_sheet.png` | source drawing: 3×3 of expression heads, same character |
+| `rig/body.png` | the body with the head removed, background keyed out |
+| `rig/heads/*.png` | nine heads, **pre-aligned** onto the body's neck |
+| `rig/manifest.json` | anchors, and which head is which mouth/eye state |
 
-Mouth: the compiled schedule is a list of *changes*; `visemeAt(shot, frame)` binary
-searches it and blends over two frames. Full 12 visemes in `CU`/`MCU`/`ECU`, reduced
-in the wide shots.
+Alignment is a one-off geometry problem, so it happens in Python once and every
+frame is cheap: the head is scaled until its hair width matches the body's, then
+translated so its hair-top and centre land on the body's anchor. The heads carry
+their own neck, choker and collar, so they are simply placed — the first version
+faded the neck, which erased the collar and left a visible gap.
+
+**Framing is upper body, not face.** `framingFor(placement, code)` picks from
+three sizes per placement: `CU`/`ECU` draw the head at 620 px (head to upper
+thigh), `MCU` at 470 px (head to mid-calf), wide shots at 380 px (the whole
+figure). Legs running off the bottom of the canvas is the point.
+
+**What moves, per frame:**
+
+| Motion | How |
+| --- | --- |
+| Breathing | vertical scale ±0.8 % on a 3.6 s cycle |
+| Weight shift | ±0.5° body rotation on an 8.3 s cycle |
+| Head | ±1.1° rotation and a small offset, **lagged 5 frames** behind the body |
+| Hair | the head sprite is drawn in 7 horizontal bands, sheared increasingly towards the chin — the bob swings, the skull does not |
+| Mouth | one of five drawn shapes, chosen from the lip-sync schedule's openness |
+| Blink | 5-frame cycle every 3.2–4.1 s, seeded per shot so cuts never sync |
+| Smile | only on the sign-off, and only in bursts — a two-second closed-eye smile reads as a mannequin |
+
+Everything is a pure function of `(reel, frame)`: no clock, no random, so frame N
+is always the same pixels.
 
 ### The world
 
@@ -148,6 +174,9 @@ verb; nothing uses them today.
   the interface for now.
 - **Batch.** One reel at a time. `--all` renders every frame of one reel, not every
   reel.
-- **Full-body poses.** Only talking heads are cut. A `CORNER` shot with the
-  pointing or presenting pose needs sprites from `04-full-body-poses.webp`, which
-  is a different crop job.
+- **Poses.** The rig has one body: standing, arms down. A `CORNER` shot that
+  should be pointing or presenting needs a second body drawing. The nine heads
+  swap freely because they all share one neck anchor; bodies will not, so each
+  new pose needs its own keyed drawing and its own anchor check.
+- **Hands.** No hand sprites are cut. "Hand in frame" shots are still drawn as
+  props only.
