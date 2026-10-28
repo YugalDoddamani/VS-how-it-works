@@ -4,7 +4,7 @@
  *
  * It serves the repository root, because the player needs three things that
  * live in three places: preview/ (the page), src/stage/reel/ (the renderer) and
- * series/<series>/reels/<slug>/reel.json + assets/nao/heads (the content).
+ * series/<series>/reels/<slug>/reel.json + assets/nao/rig (the content).
  *
  * No build step, no dependencies, no framework. If a reel.json is missing it
  * says so in the page rather than 404ing silently.

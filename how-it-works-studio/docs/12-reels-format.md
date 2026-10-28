@@ -104,6 +104,17 @@ The most-used composition in the channel, so it gets exact numbers.
 - A 1 px ink outline or a soft contact shadow is the only separation allowed. No
   drop shadow blur, no rounded card behind her.
 
+### The character in frame
+
+She is drawn from a full-body rig, so a close shot is **upper body**: head, shoulders,
+chest, midriff and the top of her shorts, with the legs running off the bottom of
+the canvas. A `CU` at 620 px of head is not a face fill — the face fill is `ECU`, and
+it is used once or twice a reel, never as a talking shot.
+
+That matters for the shot table: when a row says `CU · 85mm`, the framing it
+expects is "head to upper thigh", not "eyebrows to chin". Wide shots show the whole
+figure because the figure exists.
+
 ### The split
 
 - Hard edge at **62 % / 38 %**. No gradient, no feather.

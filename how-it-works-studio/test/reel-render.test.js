@@ -61,14 +61,27 @@ function fakeContext() {
   return { ctx, log };
 }
 
-function spriteStub() {
-  return { width: 416, height: 420 };
+/** A stand-in for a loaded image: only width/height are used by the stage. */
+function imgStub(w = 370, h = 1202) {
+  return { width: w, height: h };
 }
 
-/** Minimal offscreen canvas for the sprite mask. */
-function fakeCanvas(w, h) {
-  const { ctx } = fakeContext();
-  return { width: w, height: h, getContext: () => ctx };
+/** A minimal rig: one body and the nine expression heads from the manifest. */
+function rigStub() {
+  const names = ['rest', 'small', 'open', 'closed', 'mid', 'smile', 'blink', 'half', 'oh'];
+  const heads = {};
+  for (const n of names) heads[n] = imgStub();
+  return {
+    manifest: {
+      body: { file: 'body.png', width: 370, height: 1202 },
+      anchor: { x: 176, y: 3, headWidth: 309 },
+      heads: names.map((n) => ({ name: n, file: `heads/${n}.png`, eyes: 'open', mouth: 'closed' })),
+      byEyes: { open: 'rest', closed: 'blink', half: 'half', 'closed-smile': 'smile', wide: 'oh' },
+      byMouth: { closed: 'rest', small: 'small', mid: 'mid', open: 'open', oh: 'oh' },
+    },
+    body: imgStub(),
+    heads,
+  };
 }
 
 test('the compiled reel exists and is internally consistent', () => {
@@ -95,15 +108,10 @@ test('the compiled reel exists and is internally consistent', () => {
 
 test('every frame of the reel renders without throwing', async () => {
   const { drawFrame } = await loadStage();
-  const { setSprites, setLayerFactory } = await loadNao();
+  const { setRig } = await loadNao();
   const reel = JSON.parse(fs.readFileSync(REEL, 'utf8'));
 
-  setLayerFactory((w, h) => fakeCanvas(w, h));
-  setSprites({
-    rest: spriteStub(), A: spriteStub(), E: spriteStub(), I: spriteStub(),
-    O: spriteStub(), U: spriteStub(), W: spriteStub(), MBP: spriteStub(),
-    FV: spriteStub(), L: spriteStub(), SZTD: spriteStub(), CGK: spriteStub(),
-  });
+  setRig(rigStub());
 
   const { ctx } = fakeContext();
   for (let f = 0; f < reel.frames; f++) {
@@ -113,10 +121,9 @@ test('every frame of the reel renders without throwing', async () => {
 
 test('a frame is deterministic', async () => {
   const { drawFrame } = await loadStage();
-  const { setSprites, setLayerFactory } = await loadNao();
+  const { setRig } = await loadNao();
   const reel = JSON.parse(fs.readFileSync(REEL, 'utf8'));
-  setLayerFactory((w, h) => fakeCanvas(w, h));
-  setSprites({ rest: spriteStub(), A: spriteStub(), CGK: spriteStub(), SZTD: spriteStub() });
+  setRig(rigStub());
 
   const a = fakeContext();
   const b = fakeContext();
@@ -130,10 +137,9 @@ test('a frame is deterministic', async () => {
 
 test('every shot draws its caption text', async () => {
   const { drawFrame } = await loadStage();
-  const { setSprites, setLayerFactory } = await loadNao();
+  const { setRig } = await loadNao();
   const reel = JSON.parse(fs.readFileSync(REEL, 'utf8'));
-  setLayerFactory((w, h) => fakeCanvas(w, h));
-  setSprites({ rest: spriteStub() });
+  setRig(rigStub());
 
   for (const shot of reel.shots) {
     const { ctx, log } = fakeContext();
@@ -151,10 +157,9 @@ test('every shot draws its caption text', async () => {
 
 test('the character is inside the frame on every shot that has her', async () => {
   const { drawFrame } = await loadStage();
-  const { setSprites, setLayerFactory } = await loadNao();
+  const { setRig } = await loadNao();
   const reel = JSON.parse(fs.readFileSync(REEL, 'utf8'));
-  setLayerFactory((w, h) => fakeCanvas(w, h));
-  setSprites({ rest: spriteStub() });
+  setRig(rigStub());
 
   for (const shot of reel.shots) {
     const { ctx, log } = fakeContext();
@@ -163,13 +168,58 @@ test('the character is inside the frame on every shot that has her', async () =>
     const expected = !['hands', 'off', 'absent'].includes(shot.placement);
     if (expected) {
       assert.ok(images.length > 0, `shot ${shot.n} (${shot.placement}) drew no character`);
-      const [, , x, y, w, h] = images[0];
-      assert.ok(x + w > 0 && x < 1080, `shot ${shot.n}: character is off-frame horizontally`);
-      assert.ok(y + h > 0 && y < 1920, `shot ${shot.n}: character is off-frame vertically`);
+      // index 0 is the body; the head is drawn afterwards, in bands
+      const body = images[0];
+      const x = body[2];
+      const y = body[3];
+      if (body.length >= 11) {
+        // 9-arg drawImage: (img, sx, sy, sw, sh, dx, dy, dw, dh)
+        const dx = body[7];
+        const dy = body[8];
+        const dw = body[9];
+        const dh = body[10];
+        assert.ok(dx < 1080 && dx + dw > 0, `shot ${shot.n}: body is off-frame horizontally`);
+        assert.ok(dy < 1920, `shot ${shot.n}: body starts below the canvas`);
+        assert.ok(dh > 300, `shot ${shot.n}: body is only ${Math.round(dh)} px tall`);
+      } else {
+        assert.ok(x < 1080, `shot ${shot.n}: body is off-frame`);
+        assert.ok(y < 1920, `shot ${shot.n}: body starts below the canvas`);
+      }
+      const heads = images.length - 1;
+      assert.ok(heads >= 1, `shot ${shot.n}: head was never drawn`);
     } else {
       assert.strictEqual(images.length, 0, `shot ${shot.n} should not draw a character`);
     }
   }
+});
+
+test('the head swaps with the mouth shape and blinks on its own clock', async () => {
+  const { headState, blinkAt } = await loadNao();
+  const { setRig } = await loadNao();
+  setRig(rigStub());
+  const reel = JSON.parse(fs.readFileSync(REEL, 'utf8'));
+
+  // the mouth actually changes across a shot that has a sentence in it
+  const shot = reel.shots[3];
+  const seen = new Set();
+  for (let f = shot.start; f < shot.end; f++) seen.add(headState(shot, f).mouth);
+  assert.ok(seen.size >= 2, `mouth never changed across shot ${shot.n}: ${[...seen]}`);
+
+  // and it blinks: within any 4-second window there is a closed frame
+  const closed = [];
+  for (let f = 0; f < 120; f++) if (blinkAt(shot, f) !== 'open') closed.push(f);
+  assert.ok(closed.length > 0, 'no blink in 4 seconds');
+  assert.ok(closed.length < 40, 'blinking too often to read as blinking');
+
+  // eyes are closed at most briefly - never for a whole shot
+  let run = 0;
+  let maxRun = 0;
+  for (let f = shot.start; f < shot.end; f++) {
+    const eyes = headState(shot, f).eyes;
+    run = eyes === 'closed' || eyes === 'half' ? run + 1 : 0;
+    maxRun = Math.max(maxRun, run);
+  }
+  assert.ok(maxRun <= 5, `eyes stayed shut for ${maxRun} frames in one shot`);
 });
 
 test('the reel keeps its grammar: corners, inserts, one whip', async () => {

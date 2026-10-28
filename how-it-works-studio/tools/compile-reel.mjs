@@ -194,6 +194,12 @@ function parseScript(text, file) {
     throw new Error(`${file}: shots total ${cursor} frames, header says ${totalFrames}`);
   }
 
+  // The sign-off is the only shot that is allowed a smile by default: it is the
+  // frame the viewer leaves on, and a flat stare there reads as cold.
+  shots.forEach((shot, i) => {
+    shot.mood = i === shots.length - 1 ? 'smile' : 'neutral';
+  });
+
   return {
     title,
     question,

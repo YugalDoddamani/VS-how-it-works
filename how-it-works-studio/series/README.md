@@ -93,7 +93,7 @@ node tools/compile-reel.mjs             # script.md → reel.json, for every ree
 node tools/preview-server.mjs           # play and scrub a reel in a browser
 node tools/render-reel.mjs --reel r03 --all --mp4 <path>   # frames → MP4
 node tools/build-projects.mjs           # regenerate episode documents
-python3 tools/build-nao-sprites.py      # re-cut the 12 viseme sprites
+python3 tools/build-nao-rig.py          # rebuild the body + 9 expression heads
 ```
 
 ## Honest status

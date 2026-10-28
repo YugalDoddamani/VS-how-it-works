@@ -7,7 +7,7 @@
  */
 
 import { drawFrame, shotAt } from '../src/stage/reel/render.js';
-import { loadSprites, setLayerFactory } from '../src/stage/reel/nao.js';
+import { setRig } from '../src/stage/reel/nao.js';
 
 const W = 1080;
 const H = 1920;
@@ -253,17 +253,32 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+/** Load the drawn rig: manifest, body and the nine expression heads. */
+async function loadRig(base) {
+  const manifest = await (await fetch(`${base}/manifest.json`, { cache: 'no-store' })).json();
+  const load = (src) =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error(`missing ${src}`));
+      img.src = src;
+    });
+  const body = await load(`${base}/${manifest.body.file}`);
+  const heads = {};
+  await Promise.all(
+    manifest.heads.map(async (h) => {
+      heads[h.name] = await load(`${base}/${h.file}`);
+    })
+  );
+  setRig({ manifest, body, heads });
+  return Object.keys(heads).length;
+}
+
 // ---------------------------------------------------------------------------
 // boot
 // ---------------------------------------------------------------------------
 
 (async function boot() {
-  setLayerFactory((w, h) => {
-    const c = document.createElement('canvas');
-    c.width = w;
-    c.height = h;
-    return c;
-  });
   const reels = await listReels();
   reelSelect.innerHTML = reels
     .map((r) => `<option value="${r.path}">${r.id} · ${r.title} (${r.seconds}s)</option>`)
@@ -273,9 +288,9 @@ document.addEventListener('keydown', (e) => {
   reelSelect.value = initial.path;
 
   try {
-    const n = await loadSprites('/assets/nao/heads');
-    spritesReady = n === 12;
-    if (!spritesReady) console.warn(`only ${n}/12 sprites loaded`);
+    const n = await loadRig('/assets/nao/rig');
+    spritesReady = n === 9;
+    if (!spritesReady) console.warn(`only ${n}/9 expression heads loaded`);
   } catch (err) {
     console.error(err);
   }

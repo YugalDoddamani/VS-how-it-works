@@ -802,13 +802,13 @@ function appIconWorld(ctx, shot, frame, t) {
 /** The settings panel; the switch is the payoff. */
 function settingsWorld(ctx, shot, frame, t) {
   backdrop(ctx);
-  const x = 110;
-  const y = 360;
-  const w = W - 220;
-  const h = 900;
+  const x = 70;
+  const y = 330;
+  const w = 620;
+  const h = 880;
   paperCard(ctx, x, y, w, h, { r: 26 });
 
-  label(ctx, 'privacy', x + 56, y + 92, { size: 40, color: P.ink, align: 'left', weight: 700 });
+  label(ctx, 'privacy', x + 48, y + 88, { size: 38, color: P.ink, align: 'left', weight: 700 });
 
   const rows = [
     ['Block pop-ups', 0],
@@ -817,27 +817,38 @@ function settingsWorld(ctx, shot, frame, t) {
     ['Clear on close', 0],
   ];
   rows.forEach(([text, hot], i) => {
-    const ry = y + 190 + i * 150;
+    const ry = y + 186 + i * 148;
     if (hot) {
-      roundRect(ctx, x + 30, ry - 58, w - 60, 124, 18);
+      roundRect(ctx, x + 26, ry - 54, w - 52, 116, 18);
       ctx.fillStyle = alpha(P.accentSoft, 0.55);
       ctx.fill();
       ctx.strokeStyle = alpha(P.accent, 0.65);
       ctx.lineWidth = 3;
       ctx.stroke();
     }
-    label(ctx, text, x + 60, ry, { size: hot ? 34 : 30, color: hot ? P.ink : P.inkSoft, align: 'left', weight: hot ? 700 : 500 });
+    label(ctx, text, x + 52, ry, { size: hot ? 31 : 27, color: hot ? P.ink : P.inkSoft, align: 'left', weight: hot ? 700 : 500 });
     const on = prog(t, 0.3, 0.55);
     if (hot) {
-      toggleAnimated(ctx, x + w - 190, ry - 40, 140, on);
+      toggleAnimated(ctx, x + w - 168, ry - 38, 128, on);
     } else {
       ctx.save();
-      roundRect(ctx, x + w - 190, ry - 40, 140, 62, 31);
+      roundRect(ctx, x + w - 168, ry - 38, 128, 58, 29);
       ctx.fillStyle = alpha(P.ink, 0.10);
       ctx.fill();
       ctx.restore();
     }
   });
+
+  // a hairline from her to the switch: she is pointing at it, not standing next to it
+  ctx.save();
+  ctx.strokeStyle = alpha(P.accent, 0.55);
+  ctx.lineWidth = 3;
+  ctx.setLineDash([10, 10]);
+  ctx.beginPath();
+  ctx.moveTo(x + w - 40, y + 186 + 148 * 2 - 8);
+  ctx.quadraticCurveTo(x + w + 90, y + 300, x + w + 40, y + 420);
+  ctx.stroke();
+  ctx.restore();
 }
 
 /** Extreme close-up of the switch, held. */
@@ -901,7 +912,7 @@ function flatGrid(ctx, shot, frame, t) {
   ctx.ellipse(W / 2, 1000, 520, 440, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  const proj = projector(W * 0.40, 1120, 1.65);
+  const proj = projector(W * 0.40, 1300, 1.42);
   isoGround(ctx, proj, { x0: -150, y0: -110, x1: 200, y1: 110, step: 52 });
 
   // the note on its shelf
@@ -909,7 +920,7 @@ function flatGrid(ctx, shot, frame, t) {
   shelf(ctx, proj, { x: -190, y: -40, w: 150, d: 92, h: 220, tone: { top: tone.top, left: tone.left, right: tone.right } });
   const a = proj(-160, -8, 232);
   taggedBox(ctx, proj, { x: -160, y: -6, z: 228, s: 60, glow: 0.7 });
-  chip(ctx, a[0] - 120, 1340, 'one note', { size: 27 });
+  chip(ctx, a[0] - 66, a[1] + 150, 'one note', { size: 27 });
 
   // two site markers, drawn as small buildings rather than pins
   [
@@ -937,14 +948,14 @@ function flatGrid(ctx, shot, frame, t) {
   });
 
   // the switch
-  chip(ctx, 700, 1210, 'one switch', { size: 26 });
-  toggleAnimated(ctx, 700, 1245, 210, 1);
+  chip(ctx, 700, 1290, 'one switch', { size: 26 });
+  toggleAnimated(ctx, 700, 1325, 210, 1);
 
   // the one line, big, at the top edge
   const line = prog(t, 0.2, 0.6);
   ctx.save();
   ctx.globalAlpha = line;
-  label(ctx, 'one note · every site · one switch', W / 2, 512, { size: 52, color: P.ink, weight: 700 });
+  label(ctx, 'one note · every site · one switch', W / 2, 452, { size: 50, color: P.ink, weight: 700 });
   ctx.restore();
 
   ctx.save();
@@ -953,8 +964,8 @@ function flatGrid(ctx, shot, frame, t) {
   ctx.lineWidth = 6;
   const tw = 720 * line;
   ctx.beginPath();
-  ctx.moveTo(W / 2 - tw / 2, 552);
-  ctx.lineTo(W / 2 + tw / 2, 552);
+  ctx.moveTo(W / 2 - tw / 2, 492);
+  ctx.lineTo(W / 2 + tw / 2, 492);
   ctx.stroke();
   ctx.restore();
 }
@@ -962,7 +973,7 @@ function flatGrid(ctx, shot, frame, t) {
 /** Recap: the dimmed world and three chips. */
 function recapWorld(ctx, shot, frame, t) {
   backdrop(ctx, { warm: 0.5, vignette: 1 });
-  const proj = projector(W * 0.5, 1010, 1.2);
+  const proj = projector(W * 0.5, 1010, 1.35);
   ctx.save();
   ctx.globalAlpha = 0.55;
   shelf(ctx, proj, { x: -150, y: -40, w: 150, d: 92, h: 210, tone: FAMILY.storage });
@@ -971,7 +982,7 @@ function recapWorld(ctx, shot, frame, t) {
 
   const chips = ['note', 'shared', 'blocked'];
   chips.forEach((c, i) => {
-    const a = prog(t, 0.12 + i * 0.2, 0.32 + i * 0.2);
+    const a = prog(t, 0.04 + i * 0.16, 0.2 + i * 0.16);
     if (a <= 0) return;
     ctx.save();
     ctx.globalAlpha = a;
