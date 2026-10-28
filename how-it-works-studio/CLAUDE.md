@@ -187,6 +187,8 @@ The current format. When the user says "make a reel" / "make a video":
 | Change a generated project document | `tools/build-projects.mjs` |
 | Change the reel shot grammar or cut rhythm | `docs/12-reels-format.md` |
 | Change how a reel is drawn or encoded | `docs/13-reel-rendering.md` |
+| Change anything about the finished R03 pipeline | `docs/14-production-report.md` (systems, decisions, recipes) |
+| Add or re-cut an asset | `assets/README.md` |
 | Add a world/painter for a new background | `src/stage/reel/worlds.js` |
 | Find which series an item belongs to | `series/index.csv` |
 | Write a new reel | `series/<series>/reels/<slug>/script.md` (copy the shape of an existing one) |

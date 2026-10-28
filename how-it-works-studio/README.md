@@ -286,6 +286,7 @@ how-it-works-studio/
 ├── tools/                  content checker, workbook builder, project generator
 ├── templates/              script, config, publishing, and sheet-tab starting points
 ├── docs/                   the design spec, kept in sync with the code
+│                           (`14-production-report.md` is the build report for R03)
 └── test/                   unit tests
 ```
 

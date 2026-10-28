@@ -77,7 +77,7 @@ function fam(base) {
   };
 }
 
-// The three families the stage ships (preview/fonts/, registered in Node by
+// The three families the stage ships (assets/fonts/, registered in Node by
 // tools/render-reel.mjs). Fallbacks are deliberately generic: the layout must
 // survive a missing font without breaking the caption.
 export const FONT_SANS = '"Inter", "DejaVu Sans", Helvetica, Arial, sans-serif';
