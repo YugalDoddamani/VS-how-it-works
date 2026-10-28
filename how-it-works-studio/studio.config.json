@@ -1,0 +1,29 @@
+{
+  "$comment": "Local machine and workbook settings. No secrets: a published Google Sheet needs no credentials.",
+  "workbook": "content/how-it-works.xlsx",
+  "csvMirror": "content/csv",
+  "sheet": {
+    "mode": "file",
+    "id": "",
+    "gid": "",
+    "$comment": "mode is 'file' (read the xlsx in the repo) or 'google' (sheet:pull downloads tabs as CSV). A published sheet URL needs no auth."
+  },
+  "render": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "crf": 18,
+    "ffmpegThreads": 4
+  },
+  "limits": {
+    "minBeatSeconds": 3,
+    "maxBeatSeconds": 12,
+    "maxNarrationWords": 22,
+    "maxBoardItemsWords": 4,
+    "maxOnScreenWords": 6,
+    "maxEmphasisTokens": 2,
+    "maxTermsPerEpisode": 3,
+    "durationTolerancePercent": 15,
+    "minFreeDiskGb": 4
+  }
+}

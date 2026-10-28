@@ -1,0 +1,15 @@
+node_modules/
+package-lock.json.bak
+
+# Rendered frames are regenerable; the episode and the film are not.
+projects/*/frames/
+
+# Scratch output
+projects/*/preview/tmp/
+*.log
+.DS_Store
+.env
+
+# Workbook lock files created by Excel while open
+~$*.xlsx
+content/.~lock.*

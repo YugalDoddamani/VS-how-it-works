@@ -1,0 +1,114 @@
+{
+  "$comment": "Generated shape, shown here so the renderer's contract is readable. The compiler writes the real file; nobody edits this by hand.",
+  "title": "What happens when you type a web address?",
+  "slug": "0001-what-happens-when-you-type-a-url",
+  "episodeId": "0001",
+  "series": "Networking",
+  "level": "beginner",
+  "question": "What actually happens after you press enter?",
+  "answer": "A name becomes a number, a request travels, and a page comes back.",
+  "fictional": false,
+  "disclosure": "Illustrated explainer · not a real person",
+  "format": { "width": 1080, "height": 1920, "fps": 30 },
+  "audio": { "mode": "silent", "tracks": [] },
+  "source": {
+    "workbook": "content/how-it-works.xlsx",
+    "hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "builtAt": "2026-10-28"
+  },
+  "scenes": [
+    {
+      "id": "beat-01-hook",
+      "type": "hook",
+      "startFrame": 0,
+      "durationFrames": 120,
+      "transition": null,
+      "data": {
+        "chapter": "NETWORKING · 01",
+        "question": "What actually happens after you press enter?",
+        "nao": { "pose": "lean-in", "expression": "curious", "gesture": "point-camera" },
+        "world": { "props": [], "camera": "wide" },
+        "disclosure": true
+      },
+      "events": [
+        { "type": "nao-enter", "atFrame": 18, "durationFrames": 14 },
+        { "type": "question-underline", "atFrame": 52, "durationFrames": 8 }
+      ]
+    },
+    {
+      "id": "beat-02-title",
+      "type": "title",
+      "startFrame": 120,
+      "durationFrames": 90,
+      "transition": { "type": "wipe", "durationFrames": 12 },
+      "data": {
+        "title": "What happens when you press enter?",
+        "badge": "NETWORKING · 01",
+        "nao": { "pose": "present-wide", "expression": "confident", "gesture": "sweep-wide" },
+        "world": {
+          "props": [{ "propId": "desktop", "slot": "B3", "state": "idle" }],
+          "camera": "wide"
+        }
+      },
+      "events": [
+        { "type": "prop-assemble", "atFrame": 20, "durationFrames": 12 },
+        { "type": "title-land", "atFrame": 34, "durationFrames": 10 }
+      ]
+    },
+    {
+      "id": "beat-06-step-by-step",
+      "type": "step-by-step",
+      "startFrame": 330,
+      "durationFrames": 300,
+      "transition": { "type": "fade", "durationFrames": 10 },
+      "data": {
+        "board": {
+          "title": "The lookup",
+          "items": [
+            { "index": 1, "text": "Ask a resolver", "atFrame": 24 },
+            { "index": 2, "text": "It asks the root", "atFrame": 108 },
+            { "index": 3, "text": "The answer comes back", "atFrame": 192 }
+          ]
+        },
+        "nao": { "pose": "point-board", "expression": "focused", "gesture": "count-three" },
+        "world": {
+          "props": [
+            { "propId": "server", "slot": "C3", "state": "busy", "atFrame": 12 },
+            { "propId": "tower", "slot": "B2", "state": "focus", "atFrame": 96 },
+            { "propId": "server", "slot": "E4", "state": "busy", "atFrame": 180 }
+          ],
+          "camera": "board"
+        }
+      },
+      "events": [
+        { "type": "step-activate", "atFrame": 24, "durationFrames": 12 },
+        { "type": "step-activate", "atFrame": 108, "durationFrames": 12 },
+        { "type": "step-activate", "atFrame": 192, "durationFrames": 12 }
+      ]
+    },
+    {
+      "id": "beat-11-recap",
+      "type": "recap",
+      "startFrame": 1560,
+      "durationFrames": 150,
+      "transition": { "type": "fade", "durationFrames": 10 },
+      "data": {
+        "chips": [
+          { "text": "NAME", "atFrame": 12 },
+          { "text": "ADDRESS", "atFrame": 20 },
+          { "text": "REQUEST", "atFrame": 28 },
+          { "text": "PAGE", "atFrame": 36 }
+        ],
+        "nao": { "pose": "present-open", "expression": "relieved", "gesture": "sweep-wide" },
+        "world": { "dimmed": 0.35, "camera": "wide" }
+      },
+      "events": []
+    }
+  ],
+  "captions": [
+    { "text": "You type an address and press enter.", "atFrame": 12, "durationFrames": 96, "emphasis": ["enter"], "fadeFrames": 5 },
+    { "text": "Four things happen before the page appears.", "atFrame": 120, "durationFrames": 84, "emphasis": ["Four"], "fadeFrames": 5 },
+    { "text": "You ask a resolver. It asks up the chain.", "atFrame": 342, "durationFrames": 120, "emphasis": ["resolver"], "fadeFrames": 5 },
+    { "text": "Name. Address. Request. Page.", "atFrame": 1568, "durationFrames": 126, "emphasis": ["Page"], "fadeFrames": 5 }
+  ]
+}
