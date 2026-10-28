@@ -3,95 +3,135 @@ beat_type,hook,Hook,Cold open on the question. First frame fully composed.,FALSE
 beat_type,title,Title,Episode title over the first assembled slice of the world.,FALSE
 beat_type,explain,Explain,The workhorse. Nao talks to camera; the board holds a card or live props.,FALSE
 beat_type,analogy,Analogy,Physical metaphor. Needs 2+ props and 2+ board items naming the mapping.,FALSE
-beat_type,diagram,Diagram,"Near-full-frame isometric diagram. Board widens to 940px, presenter narrows.",FALSE
-beat_type,zoom-in,Zoom in,Camera pushes to a named prop and pins a label. Use camera close.,FALSE
+beat_type,diagram,Diagram,"Near-full-frame isometric diagram. Board widens, presenter narrows.",FALSE
+beat_type,zoom-in,Zoom in,Camera pushes to a named prop and pins a label.,FALSE
 beat_type,step-by-step,Step by step,Numbered steps appear one at a time. 2 to 4 board items.,FALSE
 beat_type,compare,Compare,Two vignettes split by a divider. The left one is the misconception.,FALSE
 beat_type,packet-trip,Packet trip,The camera follows one token along a Paths row. Max one per episode.,FALSE
 beat_type,myth-check,Myth check,"A crossed-out claim, then the correct world rebuilds.",FALSE
 beat_type,recap,Recap,Three or four chips summarise the answer. The world dims behind.,FALSE
 beat_type,outro,Outro,"One-line takeaway, episode badge, follow prompt.",FALSE
-camera,wide,Wide,0.80 zoom on the grid centre. Title and recap.,FALSE
+camera,wide,Wide,"0.80 zoom on the grid centre. Hook, title, recap.",FALSE
 camera,board,Board,"1.00 zoom, board centre. The default.",FALSE
-camera,close,Close,1.30 zoom on the focused prop. Zoom-in beats.,FALSE
+camera,close,Close,1.30 zoom on the focused prop.,FALSE
 camera,macro,Macro,"1.60 zoom, offset up. Packet trip nodes.",FALSE
 camera,tilt-up,Tilt up,"1.00 zoom, panned up 120px. Tall props.",FALSE
 camera,split,Split,0.90 zoom framed for two vignettes. Compare.,FALSE
 camera,pull-back,Pull back,0.80 to 1.00 animated across the beat. Outro.,FALSE
-gesture,talk-hands,Talk hands,Small circular hand movement for the whole beat.,FALSE
-gesture,point-board,Point board,Arm extends toward the board and holds 20 frames.,FALSE
-gesture,point-camera,Point camera,One hand toward the viewer. Hook and myth-check.,FALSE
-gesture,tap-step,Tap step,A downward tap on the active step chip.,FALSE
+gesture,talk-hands,Talk hands,Small circular hand movement for the beat.,FALSE
+gesture,point-board,Point board,Arm extends toward the board and holds.,FALSE
+gesture,point-camera,Point camera,One hand toward the viewer. Hook.,FALSE
 gesture,sweep-wide,Sweep wide,One arm sweeps across the whole board.,FALSE
-gesture,count-one,Count one,Raises one finger. Matches step 1.,FALSE
-gesture,count-two,Count two,Raises two fingers. Matches step 2.,FALSE
-gesture,count-three,Count three,Raises three fingers. Matches step 3.,FALSE
-gesture,shrug,Shrug,"Shoulders and palms up, then down.",FALSE
+gesture,present-open,Present open,"Both palms up, offering the board.",FALSE
+gesture,holding-phone,Holding phone,Holds the phone prop at chest height.,FALSE
+gesture,holding-tablet,Holding tablet,Holds the tablet prop at chest height.,FALSE
+gesture,count-one,Count one,One finger. Matches step 1.,FALSE
+gesture,count-two,Count two,Two fingers. Matches step 2.,FALSE
+gesture,count-three,Count three,Three fingers. Matches step 3.,FALSE
+gesture,tap-step,Tap step,Taps the active step chip.,FALSE
+gesture,arms-crossed,Arms crossed,"Arms folded. Mild refusal, deadpan.",FALSE
+gesture,hands-on-hips,Hands on hips,Squared up. Compare and myth-check.,FALSE
+gesture,shake-no,Shake no,"Head shake, two cycles.",FALSE
 gesture,nod,Nod,"Head nod, two cycles.",FALSE
-gesture,shake-no,Shake no,"Head shake, two cycles. Myth check.",FALSE
-gesture,lean-back,Lean back,Torso leans away from a bad idea.,FALSE
-gesture,settle,Settle,Returns to neutral after a gesture.,FALSE
-pose,neutral-open,Neutral open,Hands at rest with a slight open. The default.,FALSE
-pose,present-open,Present open,"Both palms up, presenting the board.",FALSE
-pose,point-board,Point board,"One arm to the board, head turned.",FALSE
-pose,point-camera,Point camera,One hand toward the viewer.,FALSE
-pose,think-chin,Think chin,"Hand at chin, head tilted.",FALSE
-pose,shrug-open,Shrug open,"Shoulders up, palms up.",FALSE
-pose,thumbs-up,Thumbs up,"One hand up, confident.",FALSE
-pose,hands-on-hips,Hands on hips,Squared up and emphatic. Compare.,FALSE
-pose,count-two,Count two,Fingers counting a step.,FALSE
-pose,lean-in,Lean in,"Torso forward, conspiratorial. Hook and packet trip.",FALSE
-pose,present-wide,Present wide,"Both arms wide, framing the world. Title and diagram.",FALSE
-pose,tired-drop,Tired drop,Shoulders down. A comic beat. Use sparingly.,FALSE
-expression,neutral,Neutral,Default resting face.,FALSE
-expression,curious,Curious,"One brow up, mouth mid. For a question.",FALSE
-expression,delighted,Delighted,"Squint, blush, smile. A satisfying fact.",FALSE
-expression,surprised,Surprised,"Wide eyes, open mouth. A reveal.",FALSE
-expression,focused,Focused,"Half eyes, furrowed brows. A mechanism.",FALSE
-expression,skeptical,Skeptical,"Half eyes, one brow up, flat mouth. A myth.",FALSE
-expression,confused,Confused,"Squint, tilted brows. A genuinely hard step.",FALSE
-expression,confident,Confident,"Open eyes, smile. A conclusion.",FALSE
-expression,sheepish,Sheepish,"Looking away, blush. An honest caveat.",FALSE
-expression,emphatic,Emphatic,"Open eyes, leaning, open mouth. The key sentence.",FALSE
-expression,relieved,Relieved,"Half eyes, soft smile. After a metaphor lands.",FALSE
-expression,blank,Blank,"Open eyes, no brows. A deadpan beat.",FALSE
+gesture,finger-heart,Finger heart,The channel sign-off. Outro only.,FALSE
+gesture,peace-sign,Peace sign,Light sign-off alternative.,FALSE
+gesture,shrug,Shrug,"Shoulders and palms up, then down.",FALSE
+gesture,settle,Settle,Return to neutral after a gesture.,FALSE
+gesture,present-wide,Present wide,"Both arms open, framing the whole world. Title beats.",FALSE
+pose,standing-neutral,Standing neutral,"Feet together, arms low. Default.",FALSE
+pose,pointing-explaining,Pointing / explaining,"One arm to the board, weight on one leg.",FALSE
+pose,presenting-palm-up,Presenting palm up,"Both palms up, open posture.",FALSE
+pose,holding-tablet-working,Holding tablet,"Tablet held, looking at the viewer.",FALSE
+pose,thinking,Thinking,"Finger to chin, hip out.",FALSE
+pose,cheerful-jump,Cheerful jump,"Mid-air, arms up. Recap only, once per episode.",FALSE
+pose,sitting-cross-legged,Sitting cross-legged,"RESTRICTED. Lifestyle read, not used in explainers.",FALSE
+pose,lying-down-relaxed,Lying down,"RESTRICTED. Lifestyle read, not used in explainers.",FALSE
+hand,open-palm,Open palm,Neutral open hand.,FALSE
+hand,point-up,Point up,Index up. Counting.,FALSE
+hand,point-right,Point right,Index to the right. Points at a prop.,FALSE
+hand,point-left,Point left,Index to the left. Mirrored for the prop's side.,FALSE
+hand,thumbs-up,Thumbs up,"Agreement, encouragement.",FALSE
+hand,ok-sign,OK sign,That's right.,FALSE
+hand,peace-sign,Peace sign,"Light, friendly.",FALSE
+hand,stop-palm,Stop palm,Do not do this.,FALSE
+hand,fist,Fist,Emphasis.,FALSE
+hand,palm-up-present,Palm up present,Offering the board.,FALSE
+hand,palm-out-welcome,Palm out welcome,"Welcome, here we go.",FALSE
+hand,index-touch,Index touch,Thinking.,FALSE
+hand,finger-heart,Finger heart,Sign-off.,FALSE
+hand,holding-pen,Holding pen,Holds a pen prop.,FALSE
+hand,holding-phone,Holding phone,Holds the phone prop.,FALSE
+hand,holding-tablet,Holding tablet,Holds the tablet prop.,FALSE
+hand,holding-cup,Holding cup,Holds the cup prop.,FALSE
+hand,arms-crossed,Arms crossed,Folded arms.,FALSE
+expression,neutral,Neutral,"Resting, half-lidded calm.",FALSE
+expression,happy,Happy,"Closed smile, soft brows.",FALSE
+expression,smiling-eyes-closed,Smiling (eyes closed),"Full smile, eyes shut.",FALSE
+expression,excited,Excited,"Open mouth, bright eyes.",FALSE
+expression,surprised,Surprised,"Wide eyes, small open mouth. Hooks and reveals.",FALSE
+expression,confused,Confused,"Tilted brows, flat mouth.",FALSE
+expression,angry,Angry,"Low brows, frown. Bad practices only.",FALSE
+expression,sad,Sad,Downcast brows. Consequences.,FALSE
+expression,pout,Pout,"Small mouth, one brow. Deadpan joke.",FALSE
+expression,wink,Wink,One eye shut. Playful sign-off.,FALSE
+expression,flirty,Flirty,"Half-lidded, smirk. Max once per episode; never on money, health, privacy or security topics.",FALSE
+expression,blushing,Blushing,Blush plus soft mouth. An honest admission.,FALSE
+expression,thinking,Thinking,"Eyes up, finger to chin.",FALSE
+expression,shocked,Shocked,"Wide eyes, open mouth. A number that surprises.",FALSE
+expression,laughing,Laughing,"Eyes closed, wide mouth. An absurd truth.",FALSE
+expression,curious,Curious (composite),COMPOSITE: neutral eyes + one brow raised + mouth mid. Used for questions.,FALSE
+expression,focused,Focused (composite),COMPOSITE: half-lidded eyes + furrowed brows + mouth closed. Used for mechanisms.,FALSE
+expression,skeptical,Skeptical (composite),COMPOSITE: half-lidded eyes + one brow raised + flat mouth. Used for myths.,FALSE
+expression,confident,Confident (composite),COMPOSITE: neutral eyes + soft brows + smile curve. Used for conclusions.,FALSE
+expression,emphatic,Emphatic (composite),COMPOSITE: neutral eyes + furrowed brows + mouth open. The key sentence.,FALSE
+expression,relieved,Relieved (composite),COMPOSITE: half-lidded eyes + soft smile. After a metaphor lands.,FALSE
+expression,sheepish,Sheepish (composite),COMPOSITE: eyes looking away + blush + flat mouth. An honest caveat.,FALSE
+expression,blank,Blank (composite),"COMPOSITE: neutral eyes, no brow accent, mouth closed. A deadpan beat.",FALSE
+expression,delighted,Delighted (composite),COMPOSITE: smiling-eyes-closed + blush. A satisfying fact.,FALSE
+outfit,casual,Casual (default),"Pink tee, charcoal shorts. Every episode.",FALSE
+outfit,hoodie,Hoodie,Black oversized hoodie. Cosy or evening topics.,FALSE
+outfit,sporty,Sporty,Black crop and shorts.,FALSE
+outfit,casual-dress,Casual dress,"Off-shoulder top, pink plaid skirt.",FALSE
+outfit,office-casual,Office casual,"White shirt, pencil skirt. Work topics.",FALSE
+outfit,sleepwear,Sleepwear,Character pyjamas. Late-night topics.,FALSE
+outfit,summer,Summer,"RESTRICTED. Present in the model sheet, never rendered on the channel.",FALSE
 prop_family,compute,Compute,"Blues. Servers, laptops, phones, chips.",FALSE
 prop_family,network,Network,"Greens. Routers, switches, cables, antennas.",FALSE
 prop_family,storage,Storage,"Tans. Disks, databases, warehouses, shelves.",FALSE
 prop_family,people,People,"Reds. Hands, envelopes, parcels, figures.",FALSE
 prop_family,abstract,Abstract,"Violets. Clouds, locks, keys, clocks, tokens.",FALSE
-prop_id,desktop,Desktop,A monitor on a plinth with a keyboard. compute.,FALSE
-prop_id,phone,Phone,"A slab at an angle, screen face up. compute.",FALSE
-prop_id,laptop,Laptop,Open clamshell. compute.,FALSE
-prop_id,server,Server,A tall rack with three slots. compute.,FALSE
-prop_id,router,Router,A flat box with two antennae. network.,FALSE
-prop_id,switch,Switch,Wide flat box with port notches. network.,FALSE
-prop_id,cable,Cable,A curved tube between two slots. network.,FALSE
-prop_id,tower,Tower,A lattice mast with a dish. network.,FALSE
-prop_id,cloud,Cloud,Three overlapping puffs on a plinth. abstract.,FALSE
-prop_id,disk,Disk,A stack of three platters. storage.,FALSE
-prop_id,database,Database,A cylinder with banding. storage.,FALSE
-prop_id,warehouse,Warehouse,A long shed with a roller door. storage.,FALSE
-prop_id,shelf,Shelf,Open frame with four rows of boxes. storage.,FALSE
-prop_id,envelope,Envelope,A paper slip with a fold. people. Floats.,FALSE
-prop_id,parcel,Parcel,A taped box. people.,FALSE
-prop_id,hand,Hand,A stylised flat hand that points. people.,FALSE
-prop_id,figure,Figure,A blocky 2-unit person with no face. people.,FALSE
-prop_id,queue,Queue,Four figures on a rail. people.,FALSE
-prop_id,lock,Lock,A padlock. Shackle open or shut. abstract.,FALSE
-prop_id,key,Key,A key that floats and rotates. abstract.,FALSE
-prop_id,clock,Clock,A dial with one hand that ticks. abstract.,FALSE
-prop_id,token,Token,A faceted capsule. This is the travelling packet. abstract.,FALSE
-prop_id,signpost,Signpost,A post with one or two arrow signs. abstract.,FALSE
-prop_id,board,Board,A leaning diagram panel for formulas. abstract.,FALSE
+prop_id,desktop,Desktop,A monitor on a plinth with a keyboard.,FALSE
+prop_id,phone,Phone,"A slab at an angle, screen face up.",FALSE
+prop_id,laptop,Laptop,Open clamshell.,FALSE
+prop_id,server,Server,A tall rack with three slots.,FALSE
+prop_id,router,Router,A flat box with two antennae.,FALSE
+prop_id,switch,Switch,Wide flat box with port notches.,FALSE
+prop_id,cable,Cable,A curved tube between two slots.,FALSE
+prop_id,tower,Tower,A lattice mast with a dish.,FALSE
+prop_id,cloud,Cloud,Three overlapping puffs on a plinth.,FALSE
+prop_id,disk,Disk,A stack of three platters.,FALSE
+prop_id,database,Database,A cylinder with banding.,FALSE
+prop_id,warehouse,Warehouse,A long shed with a roller door.,FALSE
+prop_id,shelf,Shelf,Open frame with four rows of boxes.,FALSE
+prop_id,envelope,Envelope,A paper slip with a fold. Floats.,FALSE
+prop_id,parcel,Parcel,A taped box.,FALSE
+prop_id,hand,Hand,A stylised flat hand that points.,FALSE
+prop_id,figure,Figure,A blocky 2-unit person with no face.,FALSE
+prop_id,queue,Queue,Four figures on a rail.,FALSE
+prop_id,lock,Lock,"A padlock, shackle open or shut.",FALSE
+prop_id,key,Key,A key that floats and rotates.,FALSE
+prop_id,clock,Clock,A dial with one hand that ticks.,FALSE
+prop_id,token,Token,A faceted capsule. The travelling packet.,FALSE
+prop_id,signpost,Signpost,A post with one or two arrow signs.,FALSE
+prop_id,board,Board,A leaning diagram panel.,FALSE
 level,beginner,Beginner,"6 to 9s beats, 10 to 14 word captions, 1 to 3 props. Assume zero background.",FALSE
-level,intermediate,Intermediate,"5 to 7s beats, 12 to 16 word captions, 2 to 4 props. Assume the viewer uses the web daily.",FALSE
-level,advanced,Advanced,"4 to 6s beats, 14 to 18 word captions, 3 to 5 props. Assume some technical vocabulary.",FALSE
-series,Networking,Networking,"DNS, IP, TCP, routing, latency.",FALSE
-series,Security,Security,"TLS, passwords, keys, phishing, permissions.",FALSE
-series,Web,Web,"Browsers, HTTP, HTML, cookies, rendering.",FALSE
-series,Systems,Systems,"Operating systems, files, processes, memory.",FALSE
-series,Data,Data,"Databases, indexes, caching, compression.",FALSE
+level,intermediate,Intermediate,"5 to 7s beats, 2 to 4 props. Assume daily use of the web.",FALSE
+level,advanced,Advanced,"4 to 6s beats, 3 to 5 props. Assume some technical vocabulary.",FALSE
+series,The Cloud,The Cloud,"Where data physically lives: centres, cables, cooling.",FALSE
+series,AI Without the Hype,AI Without the Hype,"What AI systems do, minus the marketing.",FALSE
+series,Free and Actually Good,Free and Actually Good,"Tools, business models, and who really pays.",FALSE
+series,Small Tech Mysteries,Small Tech Mysteries,"Everyday annoyances explained: wifi, batteries, slow phones.",FALSE
+series,"Your Data, Explained","Your Data, Explained","Privacy and data, calmly, without fear-mongering.",FALSE
 status,draft,Draft,Being written.,FALSE
 status,scripted,Scripted,Beats complete and sheet:check passes.,FALSE
 status,built,Built,episode.json compiled and reviewed.,FALSE
@@ -101,6 +141,9 @@ transition,fade,Fade,10 frame cross-fade. The default.,FALSE
 transition,wipe,Wipe,12 frame vertical card wipe aligned to the iso grid.,FALSE
 transition,none,Cut,Hard cut. Use inside step-by-step and compare.,FALSE
 source_kind,primary,Primary,"Spec, RFC, or official documentation. Preferred.",FALSE
-source_kind,secondary,Secondary,"Explainer, blog, or news. Needs a quote.",FALSE
-source_kind,definition,Definition,A dictionary or standards glossary entry.,FALSE
+source_kind,secondary,Secondary,"Explainer, blog, or university IT page. Needs a quote.",FALSE
+source_kind,definition,Definition,A standard or glossary entry.,FALSE
 source_kind,measured,Measured,Measured by the author. Say how in the quote.,FALSE
+lip_sync_mode,talking-head,Talking head,Head and shoulders. Full 12 visemes.,FALSE
+lip_sync_mode,mid,Mid shot,"Full viseme set, mouth region only.",FALSE
+lip_sync_mode,full-body,Full body,"Three states: closed, mid, open.",FALSE

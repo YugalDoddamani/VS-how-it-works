@@ -1,9 +1,43 @@
 episode_id,prop_id,slot,label,family,state,first_beat,note
-'0001,desktop,B3,browser,compute,idle,1,The viewer's machine. On stage for the whole episode.
-'0001,signpost,C4,address,abstract,idle,3,Points at the name side of the mapping
-'0001,server,C3,resolver,compute,idle,4,Appears before it is named in beat 7
-'0001,phone,C3,contacts,abstract,idle,5,Stands in for the contacts app in the DNS analogy
-'0001,tower,B2,root,network,idle,6,Back row so it does not occlude the middle
-'0001,server,E4,authority,compute,idle,6,Second server instance: the one holding the answer
-'0001,parcel,D3,page,people,idle,9,The reply as a physical object
-'0001,cloud,C2,cloud,abstract,idle,10,Proves the one-big-computer myth wrong
+'0101,cloud,C3,cloud,abstract,idle,1,
+'0101,desktop,B3,desktop,compute,idle,2,
+'0101,phone,C3,phone,compute,idle,3,
+'0101,warehouse,C3,warehouse,storage,idle,4,
+'0101,server,B2,server,compute,idle,5,
+'0101,signpost,D3,signpost,abstract,idle,6,
+'0101,clock,B2,clock,abstract,idle,6,
+'0101,disk,D2,disk,storage,idle,7,
+'0101,lock,D2,lock,abstract,idle,10,
+'0102,board,C3,board,abstract,idle,1,
+'0102,server,B2,server,compute,idle,2,
+'0102,figure,D2,figure,people,idle,3,
+'0102,signpost,D2,signpost,abstract,idle,4,
+'0102,parcel,E3,parcel,people,idle,5,
+'0102,envelope,E3,envelope,people,idle,6,
+'0102,lock,E3,lock,abstract,idle,7,
+'0102,clock,C2,clock,abstract,idle,7,
+'0103,signpost,C3,signpost,abstract,idle,1,
+'0103,board,D2,board,abstract,idle,2,
+'0103,token,D2,token,abstract,idle,3,
+'0103,phone,E3,phone,compute,idle,4,
+'0103,disk,D2,disk,storage,idle,6,
+'0103,figure,E3,figure,people,idle,6,
+'0103,clock,D2,clock,abstract,idle,7,
+'0103,lock,E3,lock,abstract,idle,7,
+'0103,queue,E3,queue,people,idle,8,
+'0104,router,C3,router,network,idle,1,
+'0104,clock,D2,clock,abstract,idle,1,
+'0104,tower,B2,tower,network,idle,3,
+'0104,queue,D2,queue,people,idle,5,
+'0104,figure,D2,figure,people,idle,6,
+'0104,phone,E3,phone,compute,idle,6,
+'0104,server,E3,server,compute,idle,7,
+'0104,cable,E3,cable,network,idle,9,
+'0105,phone,C3,phone,compute,idle,1,
+'0105,cloud,D2,cloud,abstract,idle,2,
+'0105,server,D2,server,compute,idle,3,
+'0105,disk,D2,disk,storage,idle,5,
+'0105,parcel,D2,parcel,people,idle,6,
+'0105,lock,D2,lock,abstract,idle,7,
+'0105,signpost,E3,signpost,abstract,idle,8,
+'0105,clock,E3,clock,abstract,idle,9,

@@ -1,8 +1,0 @@
-episode_id,claim_id,beat_no,claim,source_title,source_url,checked,kind,quote
-'0001,0001-c1,4,DNS turns a domain name into an IP address.,RFC 1034: Domain names - concepts and facilities,https://www.rfc-editor.org/rfc/rfc1034,2026-10-20,primary,"The domain name space is a tree structure. Each node and leaf on the tree corresponds to a resource set."
-'0001,0001-c2,5,DNS works like a distributed lookup rather than a single directory.,RFC 1034 section 4.2,https://www.rfc-editor.org/rfc/rfc1034,2026-10-20,primary,"The resolution mechanism is distributed across many name servers."
-'0001,0001-c3,6,Resolvers query the hierarchy on the client's behalf.,RFC 1035: Domain names - implementation and specification,https://www.rfc-editor.org/rfc/rfc1035,2026-10-20,primary,
-'0001,0001-c4,8,A request and its reply each cross the network so latency is at least one round trip.,RFC 9293: Transmission Control Protocol (TCP),https://www.rfc-editor.org/rfc/rfc9293,2026-10-20,primary,
-'0001,0001-c5,9,An HTTP response body carries the page markup which references further resources.,RFC 9110: HTTP Semantics,https://www.rfc-editor.org/rfc/rfc9110,2026-10-20,primary,
-'0001,0001-c6,10,A page is usually served from caches or CDN copies rather than one origin machine.,RFC 9111: HTTP Caching,https://www.rfc-editor.org/rfc/rfc9111,2026-10-20,primary,
-'0001,0001-c7,6,There are 13 root server identities operated as many anycast instances.,Root Servers,https://www.iana.org/domains/root/servers,2026-10-20,primary,"There are 13 root server identities, operated by 12 organisations."

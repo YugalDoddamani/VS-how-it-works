@@ -17,21 +17,24 @@ Read the relevant files in `docs/` before changing behaviour, and read
 
 ## Current state
 
-- **Specification only.** `docs/` and `templates/` are written. `src/` does not
-  exist yet.
-- `IMPLEMENTATION-PLAN.md` is the build order. Work through it in order; do not
-  start the renderer before the workbook compiler exists, because the compiler
-  defines the contract the renderer consumes.
+- **Five episodes written, none rendered.** `docs/`, `templates/`, `content/` and
+  `projects/0101…0105/` are written; the lip-sync engine exists and is tested.
+  The rest of `src/` (renderer, CLI) does not exist yet.
+- `IMPLEMENTATION-PLAN.md` is the build order. Do not start the renderer before
+  the workbook compiler exists, because the compiler defines the contract the
+  renderer consumes.
 - No episode has been rendered. Do not claim one has.
+- What works today: `npm test` (22 tests), `npm run sheet:check`,
+  `npm run sheet:build`, `npm run projects:build`.
 
 Verify before you claim anything works:
 
 ```bash
-npm run doctor
-npm test
-npm run sheet:check
-npm run check -- <slug>
-npm run render -- <slug>
+npm test                       # works today
+npm run sheet:check            # works today
+node tools/build-projects.mjs  # works today
+npm run doctor                 # needs src/cli.js
+npm run render -- <slug>       # needs src/cli.js
 ```
 
 ## Creating an episode
@@ -88,6 +91,13 @@ never overwrite a rendered project.
   `docs/02-character-and-voice.md` and must not drift episode to episode.
 - She is drawn, and the video says so. The first and last beats carry the
   "Illustrated explainer · not a real person" footer.
+- Her design is fixed by the two sheets in `assets/nao/`: pink bob, black
+  headband, gold eyes, choker, pink tee, charcoal shorts. 15 expressions, 18 hand
+  poses, 12 visemes. Never invent a pose that is not in the sheets.
+- The `summer` (swimwear) outfit is **never rendered**. This is a hard rule, not a
+  style preference.
+- Her mouth is driven by the narration text through `src/stage/rig/visemes.js` and
+  `lipsync.js`. Do not add audio analysis, and do not hand-key mouth shapes.
 - She has no biography, no age, no relationships, and no opinions outside the
   topic. Keep her blank enough that she can explain anything.
 - She gestures; she does not walk through a doorway into a new scene, she does
@@ -139,6 +149,11 @@ never overwrite a rendered project.
 | Add a beat type | `src/stage/scenes.js`, register in `SCENES`, add to `gallery.js` |
 | Add a prop | `src/stage/iso/props.js`, add mesh style to `style.css`, add to gallery |
 | Add a Nao pose or expression | `src/stage/rig/nao.js`, then `Vocab` |
+| Change the viseme set or mapping | `src/stage/rig/visemes.js`, then `docs/11` and `test/lipsync.test.js` |
+| Change lip-sync timing or blending | `src/stage/rig/lipsync.js`, then `docs/11` |
+| Add a content validation rule | `tools/check_content.py`, then `docs/08` |
+| Change a generated project document | `tools/build-projects.mjs` |
+| Change the workbook layout | `tools/build-sheet.py`, then `docs/08` |
 | Change palette, type scale, or the five zones | `src/stage/style.css` (`:root` custom properties) |
 | Change timing maths | `src/stage/timeline.js` |
 | Add an easing curve | `src/stage/motion.js` |
@@ -154,11 +169,16 @@ episode to confirm frames still look right.
 
 ## Expected project output
 
+Five folders already exist with the hand-written `README.md` and three generated
+documents. A build adds the rest.
+
 ```
 projects/<slug>/
+├── README.md             # hand-authored: idea, audience, hook variants, notes
 ├── episode.json          # compiled from the sheet, never edited by hand
-├── script.md             # narration and sources, generated for review
-├── publishing.md         # copied from the Publish tab
+├── script.md             # GENERATED: narration, claims, reading-speed check
+├── storyboard.md         # GENERATED: per-beat visuals + real mouth schedule
+├── publishing.md         # GENERATED: caption, tags, cover, sources
 ├── render-report.json
 ├── preview/
 │   ├── contact-sheet.png
@@ -168,5 +188,22 @@ projects/<slug>/
     └── final.mp4
 ```
 
-`content/how-it-works.xlsx` and `content/csv/*.csv` are the source of truth and
-are always committed. `projects/*/frames/` is not.
+`content/csv/*.csv` is the source of truth: the workbook is generated from it by
+`tools/build-sheet.py`, and the project documents by `tools/build-projects.mjs`.
+Commit the CSVs and the workbook; never hand-edit a generated document.
+`projects/*/frames/` is git-ignored.
+
+## Audience and tone (non-negotiable)
+
+The audience is a woman who is curious about tech but is **not searching for it**
+— she is scrolling. Secondary audience: anime/waifu fans who stay for the
+character.
+
+- Never make the viewer feel late: no "simply", "just", "obviously", "as you
+  probably know".
+- One question per episode. Three new terms maximum.
+- The answer is stated in the first 10 seconds.
+- Every episode has a caveat beat saying where the analogy breaks.
+- No hype words. No listicles that expire. No predictions about markets or jobs.
+- Nao is never sexualised and never flirts about money, health, privacy or
+  security.

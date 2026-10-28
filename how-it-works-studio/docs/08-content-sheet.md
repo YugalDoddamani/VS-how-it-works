@@ -204,6 +204,11 @@ Optional. Fine control over Nao within a beat, when the beat's own `gesture` and
 | `expression` | enum | no | From `Vocab.expression`. |
 | `blend_s` | decimal | no | Default 0.4. |
 
+In the current slate this tab is used exactly where a single expression cannot
+describe a beat: on every `myth-check` and `compare`, Nao changes from
+`skeptical`/`focused` to `happy`/`confident` halfway through, because the beat's
+job is to change its mind. Notes are free text and are rendered nowhere.
+
 If this tab has rows for a beat, they *replace* that beat's single
 `gesture`/`expression` with a timeline. Keep it to 1–2 rows per beat; more means
 the performance is being over-directed.
@@ -257,11 +262,26 @@ so adding a value is a data edit, not a code edit.
 
 | Column | Type | Notes |
 | --- | --- | --- |
-| `kind` | enum | `beat_type` / `beat_type_target` / `camera` / `gesture` / `expression` / `pose` / `prop_id` / `prop_family` / `level` / `series` / `status` / `transition` / `source_kind` / `sfx` |
+| `kind` | enum | `beat_type` / `camera` / `gesture` / `expression` / `pose` / `hand` / `outfit` / `prop_id` / `prop_family` / `level` / `series` / `status` / `transition` / `source_kind` / `lip_sync_mode` |
 | `value` | text | The exact string used in the sheet. |
 | `label` | text | Human-readable name for reports. |
 | `notes` | text | When to use it. |
 | `deprecated` | bool | `TRUE` means "reject new uses, warn on existing". |
+
+### Expressions: sheet expressions vs composites
+
+The `expression` kind holds two kinds of value, and the `notes` column says which:
+
+- **Sheet expressions** — the 15 drawn on the model sheet (`neutral`, `happy`,
+  `smiling-eyes-closed`, `excited`, `surprised`, `confused`, `angry`, `sad`,
+  `pout`, `wink`, `flirty`, `blushing`, `thinking`, `shocked`, `laughing`).
+- **Composites** — assembled by the rig from those parts (`curious`, `focused`,
+  `skeptical`, `confident`, `emphatic`, `relieved`, `sheepish`, `blank`). Their
+  notes give the derivation, e.g. *half-lidded eyes + one brow raised + flat
+  mouth*.
+
+A composite is not a new drawing, so it costs nothing to add — but if a writer
+needs a ninth, that is a signal the 15 are not covering the writing.
 
 Because the vocabulary is data, the validator's error message can be genuinely
 useful:
@@ -278,6 +298,18 @@ and it is the difference between a writer fixing a cell and a writer asking for
 help.
 
 ---
+
+## Implementation status
+
+`tools/check_content.py` implements the rules above today, over the CSV mirror,
+and is the reference behaviour that `src/lib/plan.js` must reproduce. It is not a
+proof that the rules are right — only that the sheet obeys them.
+
+```bash
+npm run sheet:check          # validate all episodes
+npm run content:strict       # warnings become errors, for a release check
+npm run sheet:build          # regenerate the .xlsx from the CSVs
+```
 
 ## Compiler behaviour
 

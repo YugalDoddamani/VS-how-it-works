@@ -1,3 +1,15 @@
 episode_id,beat_no,at_s,pose,gesture,expression,blend_s
-'0001,10,0.0,shrug-open,shake-no,skeptical,0.4
-'0001,10,3.6,present-open,nod,delighted,0.4
+'0101,4,0.0,pointing-explaining,shake-no,skeptical,0.4
+'0101,4,4.0,presenting-palm-up,sweep-wide,happy,0.4
+'0101,10,0.0,pointing-explaining,arms-crossed,pout,0.4
+'0101,10,4.0,presenting-palm-up,sweep-wide,confident,0.4
+'0102,9,0.0,pointing-explaining,shake-no,skeptical,0.4
+'0102,9,4.0,presenting-palm-up,sweep-wide,happy,0.4
+'0103,10,0.0,pointing-explaining,hands-on-hips,focused,0.4
+'0103,10,4.0,presenting-palm-up,sweep-wide,confident,0.4
+'0104,7,0.0,pointing-explaining,hands-on-hips,focused,0.4
+'0104,7,4.0,presenting-palm-up,sweep-wide,confident,0.4
+'0104,10,0.0,pointing-explaining,shake-no,skeptical,0.4
+'0104,10,3.5,presenting-palm-up,sweep-wide,happy,0.4
+'0105,7,0.0,pointing-explaining,shake-no,pout,0.4
+'0105,7,4.0,presenting-palm-up,sweep-wide,confident,0.4

@@ -117,6 +117,20 @@ sheet is written by humans, and humans think in seconds.
 
 ---
 
+## Already delivered (was not in the original plan)
+
+Three things exist ahead of schedule because they were needed to write the
+episodes honestly:
+
+| Delivered | Path | Why now |
+| --- | --- | --- |
+| Content validator | `tools/check_content.py` | The five episodes had to be held to the rules the docs promise. It also defines what `src/lib/plan.js` must agree with. |
+| Workbook builder | `tools/build-sheet.py` | The CSV mirror is canonical; the `.xlsx` is generated so the two cannot disagree. |
+| Project generator + **lip-sync engine** | `tools/build-projects.mjs`, `src/stage/rig/{visemes,lipsync}.js`, `test/lipsync.test.js` | Lip-sync is text-driven and pure, so it could be built and tested before the renderer. 22 tests pass without a browser. |
+
+Phase 1 below therefore starts from a working validator, and Phase 2 gains a
+mouth that already works.
+
 ## Phase 0 — Foundation (half a day)
 
 Port the parts of the reference studio that are already correct. They contain no
@@ -185,10 +199,11 @@ is the piece that can fail quietly for months if it is wrong.
 - A beat row that fails validation is quoted back with its `beat_no`, not its
   array index, because index means nothing to the person holding the sheet.
 
-**Exit criteria:** `npm run sheet:check` on `examples/0001-…/beats.csv` prints a
-clean bill of health. Breaking one cell produces the right message. `npm run
-sheet:build -- 0001-what-happens-when-you-type-a-url` writes a valid `episode.json`
-whose scene durations sum to the target. **No pixels yet — that is correct.**
+**Exit criteria:** `npm run sheet:check` prints a clean bill of health across all
+five episodes (it does today, via `tools/check_content.py`). Breaking one cell
+produces the right message. `npm run sheet:build -- <slug>` writes a valid
+`episode.json` whose scene durations sum to the target. **No pixels yet — that is
+correct.**
 
 ---
 
@@ -251,6 +266,10 @@ See `docs/02-character-and-voice.md` for the design; this is the build order.
 
 ### Build order
 
+0. **Load the reference set.** `assets/nao/` already holds the model sheet, the
+   talking-head sheet, 12 cropped visemes and 5 section crops. The rig must match
+   those sheets, not a new design: pink bob, black headband, gold eyes, choker,
+   pink tee, charcoal shorts.
 1. **Static neutral pose, front-facing.** Head, torso, arms, hands as layered
    SVG paths. Get the silhouette right at 380 × 1120 before anything moves.
 2. **Three poses**: `neutral-open`, `point-board`, `present-open`. Poses are
@@ -265,8 +284,11 @@ See `docs/02-character-and-voice.md` for the design; this is the build order.
    Breathing is a 4 s sine on the torso, ±1.5 px.
 7. **Secondary motion.** Hair strands and the scarf lag the head by 4 frames with
    a clamped spring. This sells "anime" more than line quality does.
-8. **Lip flap** — 3 mouth shapes (`closed`, `mid`, `open`) driven by
-   `lipsync.js` from the caption's word schedule. Do not attempt phonemes.
+8. **Mouth** — already solved: `src/stage/rig/lipsync.js` emits a per-frame
+   schedule from the narration text (12 visemes, or 3 states in full body). The
+   remaining work is drawing the 12 viseme overlays from
+   `assets/nao/visemes/*.webp` into the face, and swapping to 3-state below 200 px
+   of head height. Do not attempt phonemes, and do not add audio analysis.
 
 ### Constraints
 

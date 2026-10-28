@@ -180,26 +180,28 @@ in the script.
 
 ## Example, in full
 
-Question: *What happens when you type a web address?*
+Question: *Why does the wifi get bad at the same time every night?*
+(Episode 0104, the most shareable of the five in the slate.)
 
-| # | Type | s | Narration / caption |
+| # | Type | s | Narration |
 | --- | --- | --- | --- |
-| 1 | hook | 4.0 | You type an address and press enter. |
-| 2 | title | 3.0 | Four things happen before the page appears. |
-| 3 | explain | 6.0 | The address is a name. Computers route by number. |
-| 4 | explain | 7.0 | So first something has to look the name up. |
-| 5 | analogy | 8.0 | That's DNS: a contacts app for the internet. |
-| 6 | step-by-step | 9.0 | You ask a resolver. It asks up the chain. The answer comes back. |
-| 7 | explain | 7.0 | Now you have a number: the server's address. |
-| 8 | packet-trip | 9.0 | Your request travels there and a reply travels back. |
-| 9 | explain | 6.0 | The reply is the page: HTML, images, styles. |
-| 10 | myth-check | 8.0 | It isn't one big computer. It's copies cached close to you. |
-| 11 | recap | 5.0 | Name. Address. Request. Page. |
-| 12 | outro | 3.0 | That's what the enter key actually does. |
+| 1 | hook | 4.0 | Your wifi does not hate you. It has rush hour. |
+| 2 | title | 3.0 | Why your wifi dies at nine pm. |
+| 3 | explain | 7.0 | Wifi is radio. It travels through the same air as everyone else's. |
+| 4 | explain | 8.0 | On the crowded band there are only three channels that do not overlap. |
+| 5 | explain | 7.0 | So your neighbours' routers are already talking over yours. |
+| 6 | explain | 8.0 | At nine, everyone in the building starts streaming at the same time. |
+| 7 | compare | 8.0 | And the internet coming into your home is shared with your street. |
+| 8 | explain | 7.0 | Wifi is the last few metres. The internet is the long part. |
+| 9 | step-by-step | 9.0 | Three fixes that work: move closer, use 5GHz, plug in a cable. |
+| 10 | myth-check | 7.0 | It is not your provider being evil. It is a queue. |
+| 11 | recap | 5.0 | Shared air. Shared pipe. Everyone at once. |
+| 12 | outro | 3.0 | Try the cable tonight. You will hear the difference in one video. |
 
-75.0 seconds, 12 beats, 100 spoken words, 3 terms introduced (address, server,
-cache). Every claim has a source. This is written out in full at
-`examples/0001-what-happens-when-you-type-a-url/`..
+76 seconds, 12 beats, 146 spoken words, three new terms (radio, channel,
+oversubscription), four sourced claims. Every claim has a source. This is written
+out in full at `projects/0104-why-your-wifi-dies-at-nine-pm/` — read its
+`script.md` and `storyboard.md` together before writing your first episode..
 
 ## Common failure modes
 
