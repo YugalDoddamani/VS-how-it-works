@@ -12,7 +12,7 @@
 
 import { drawWorld } from './worlds.js';
 import { drawNao } from './nao.js';
-import { drawCaption, drawBadge, drawProgress, drawGuides, captionTop } from './chrome.js';
+import { drawCaption, drawBadge, drawProgress, drawGuides, drawDisclosure, captionTop } from './chrome.js';
 import { P, alpha } from './palette.js';
 
 const W = 1080;
@@ -94,6 +94,7 @@ export function drawFrame(ctx, reel, frame, opts = {}) {
   // 4: chrome - only what this shot asked for
   drawBadge(ctx, reel, shot);
   drawCaption(ctx, shot, f);
+  drawDisclosure(ctx, shot);
   drawProgress(ctx, reel, f, shot);
 
   // 5: transition

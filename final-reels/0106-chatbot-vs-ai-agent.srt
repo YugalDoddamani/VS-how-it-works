@@ -1,0 +1,43 @@
+1
+00:00:00,000 --> 00:00:06,000
+An AI that ANSWERS your question and an AI that actually does the TASK? They are not quite the same thing.
+
+2
+00:00:06,000 --> 00:00:11,000
+Think of a chatbot as someone you can ask for DIRECTIONS. You ask, it explains the ROUTE.
+
+3
+00:00:11,000 --> 00:00:15,000
+An AI AGENT is closer to an
+assistant that can use TOOLS.
+
+4
+00:00:15,000 --> 00:00:22,000
+You might ask it to find a MEETING time. It could check an available calendar, compare slots, and prepare an INVITATION.
+
+5
+00:00:22,000 --> 00:00:27,500
+The difference is not that one is MAGICALLY intelligent. It is what the SYSTEM is set up to do.
+
+6
+00:00:27,500 --> 00:00:36,000
+A chatbot usually gives you a response. An agent can work through STEPS: plan, use a tool, CHECK the result, then continue.
+
+7
+00:00:36,000 --> 00:00:43,500
+But here is the catch: agents can make MISTAKES, misunderstand a GOAL, or take an action you did not intend.
+
+8
+00:00:43,500 --> 00:00:48,500
+Important actions should have clear
+PERMISSIONS and human APPROVAL.
+
+9
+00:00:48,500 --> 00:00:51,500
+A CHATBOT responds. An
+agent can take STEPS.
+
+10
+00:00:51,500 --> 00:00:55,000
+So remember: ANSWERS are one
+thing; taking STEPS are another.

@@ -850,7 +850,7 @@ const SUBJECTS = {
 
       // booth
       const bx = b.x + w * 0.62;
-      const bw = Math.min(w * 0.3, 150);
+      const bw = Math.min(w * 0.34, 210);
       shadow(ctx, bx, baseY + 6, bw * 0.9, 20, 0.09);
       crate(ctx, bx, baseY, bw, b.h * 0.52, P.isoLeft);
       ctx.save();
@@ -862,11 +862,11 @@ const SUBJECTS = {
         0
       );
       ctx.restore();
-      chip(ctx, bx - 52, baseY - b.h * 0.62, failing ? 'CLOSED' : 'CHECK', { accent: !failing, size: 21 });
+      chip(ctx, bx - 52, baseY - b.h * 0.62, o.options.chip || (failing ? 'CLOSED' : 'CHECK'), { accent: !failing, size: 21 });
 
       // the arm
       const angle = failing ? 0 : 1.15 * easeOut(prog(o.t, 0.2, 0.4));
-      const armLen = Math.min(w * 0.3, 210);
+      const armLen = Math.min(w * 0.34, 260);
       ctx.save();
       ctx.translate(bx - bw * 0.5, railY - b.h * 0.1);
       ctx.rotate(angle);
@@ -879,7 +879,7 @@ const SUBJECTS = {
       const run = easeOut(prog(o.t, 0.06, failing ? 0.4 : 0.7));
       const px = b.x + 40 + run * (failing ? w * 0.18 : w * 0.62);
       const py = railY - b.h * 0.2;
-      parcelShape(ctx, px, py, Math.min(70, b.h * 0.22), {
+      parcelShape(ctx, px, py, Math.min(92, b.h * 0.26), {
         tone: failing ? P.accent : P.good,
         tickIn: failing ? 0 : prog(o.t, 0.6, 0.8),
       });
@@ -1234,6 +1234,379 @@ const SUBJECTS = {
     },
   },
 
+  // -------------------------------------------------------------------------
+  // 0106 - chatbot vs agent
+  // -------------------------------------------------------------------------
+
+  'chat-panels': {
+    role: 'compare',
+    about: 'two things that look alike: a chat bubble and a task list',
+    draw(ctx, b, o) {
+      const vertical = b.h > b.w * 0.8;
+      const gap = Math.min(b.w, b.h) * 0.07;
+      const cw = vertical ? b.w * 0.94 : (b.w - gap) / 2;
+      const ch = vertical ? (b.h - gap) / 2 : b.h * 0.94;
+      const panels = [
+        { x: vertical ? b.x + (b.w - cw) / 2 : b.x + (b.w - (cw * 2 + gap)) / 2, y: b.y + (vertical ? 0 : b.h * 0.03), tag: 'CHATBOT', tone: P.link },
+        { x: b.x + (b.w - (cw * 2 + gap)) / 2 + cw + gap, y: vertical ? b.y + ch + gap : b.y + b.h * 0.03, tag: 'AGENT', tone: P.good },
+      ];
+      panels.forEach((pn, i) => {
+        const w = Math.min(cw, b.w), h = Math.min(ch, b.h - (pn.y - b.y));
+        shadow(ctx, pn.x + w / 2, pn.y + h + 8, w * 0.42, 16, 0.08);
+        paperCard(ctx, pn.x, pn.y, w, h, { r: 22 });
+        label(ctx, pn.tag, pn.x + 26, pn.y + 40, { size: 24, color: alpha(pn.tone, 0.9), weight: 700, align: 'left', spacing: 2 });
+        if (i === 0) {
+          // a speech bubble with a question mark in it
+          const bw = w * 0.5;
+          const bh = h * 0.34;
+          roundRect(ctx, pn.x + w * 0.5 - bw / 2, pn.y + h * 0.42, bw, bh, Math.min(18, bh * 0.3));
+          ctx.fillStyle = mix(P.link, 0.82);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(pn.x + w * 0.5 - bw * 0.2, pn.y + h * 0.42 + bh);
+          ctx.lineTo(pn.x + w * 0.5 - bw * 0.34, pn.y + h * 0.42 + bh + 22);
+          ctx.lineTo(pn.x + w * 0.5 + bw * 0.04, pn.y + h * 0.42 + bh);
+          ctx.closePath();
+          ctx.fill();
+          label(ctx, '?', pn.x + w * 0.5, pn.y + h * 0.42 + bh * 0.68, { size: bh * 0.9, color: alpha(P.surface, 0.95), weight: 700 });
+        } else {
+          // a short task list, ticking itself off
+          const rows = (o.options.rows || ['find a time', 'check the calendar', 'draft the invite']).slice(0, 3);
+          const startY = pn.y + h * 0.36;
+          const rowH = Math.min(46, (h * 0.5) / rows.length);
+          rows.forEach((row, ri) => {
+            const ry = startY + ri * rowH;
+            const done = prog(o.t, 0.2 + ri * 0.12, 0.42 + ri * 0.12);
+            ctx.save();
+            roundRect(ctx, pn.x + w * 0.12, ry - 12, 22, 22, 6);
+            ctx.strokeStyle = alpha(P.ink, 0.35);
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.restore();
+            if (done > 0) tick(ctx, pn.x + w * 0.12 + 11, ry - 1, 20, alpha(P.good, done), 4);
+            label(ctx, row, pn.x + w * 0.12 + 40, ry + 4, { size: Math.min(24, w * 0.075), color: P.inkSoft, weight: 500, align: 'left' });
+          });
+        }
+      });
+    },
+  },
+
+  'chat-bubble': {
+    role: 'demonstrate',
+    about: 'a question goes in, a plain answer comes back',
+    draw(ctx, b, o) {
+      const w = Math.min(b.w * 0.94, 560);
+      const cx = b.x + b.w / 2;
+      const qh = Math.min(b.h * 0.3, 190);
+      const ah = Math.min(b.h * 0.36, 230);
+      const qy = b.y + b.h * 0.1;
+      const ay = qy + qh + b.h * 0.14;
+
+      // the question
+      ctx.save();
+      roundRect(ctx, cx - w / 2, qy, w, qh, 20);
+      ctx.fillStyle = mix(P.surface, 0.0);
+      ctx.fill();
+      ctx.strokeStyle = alpha(P.ink, 0.12);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+      label(ctx, 'YOU ASK', cx, qy - 14, { size: 22, color: alpha(P.ink, 0.42), weight: 700, spacing: 2 });
+      ctx.save();
+      ctx.font = `600 ${Math.min(34, w * 0.07)}px ${FONT_SANS}`;
+      ctx.fillStyle = P.ink;
+      ctx.textAlign = 'center';
+      wrapText(ctx, o.options.question || '"how do I get to the station?"', w - 48, 2)
+        .forEach((line, li, all) => ctx.fillText(line, cx, qy + qh * 0.6 + (li - (all.length - 1) / 2) * 36));
+      ctx.restore();
+
+      // the answer
+      ctx.save();
+      roundRect(ctx, cx - w * 0.44, ay, w * 0.88, ah, 22);
+      ctx.fillStyle = mix(P.link, 0.86);
+      ctx.fill();
+      ctx.restore();
+      arrow(ctx, [cx, qy + qh + 12], [cx, ay - 16], { colour: alpha(P.ink, 0.28), width: 4, head: 13, progress: prog(o.t, 0.1, 0.35) });
+      label(ctx, 'IT EXPLAINS', cx, ay - 14, { size: 22, color: alpha(P.link, 0.95), weight: 700, spacing: 2 });
+      ctx.save();
+      ctx.font = `600 ${Math.min(32, w * 0.065)}px ${FONT_SANS}`;
+      ctx.fillStyle = P.ink;
+      ctx.textAlign = 'center';
+      wrapText(ctx, o.options.answer || 'turn left, then follow the river', w * 0.76, 2)
+        .forEach((line, li, all) => ctx.fillText(line, cx, ay + ah * 0.62 + (li - (all.length - 1) / 2) * 34));
+      ctx.restore();
+    },
+  },
+
+  'route-card': {
+    role: 'label',
+    about: 'the route itself: an answer you can read, not an action taken',
+    draw(ctx, b, o) {
+      const w = Math.min(b.w, 460);
+      const h = Math.min(b.h * 0.78, 340);
+      const x = b.x + (b.w - w) / 2;
+      const y = b.y + b.h * 0.9 - h;
+      paperCard(ctx, x, y, w, h, { r: 18 });
+      // two roads that meet
+      ctx.save();
+      ctx.strokeStyle = alpha(P.ink, 0.16);
+      ctx.lineWidth = 26;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.14, y + h * 0.82);
+      ctx.lineTo(x + w * 0.5, y + h * 0.5);
+      ctx.lineTo(x + w * 0.86, y + h * 0.2);
+      ctx.stroke();
+      ctx.restore();
+      const px = x + w * 0.14 + (x + w * 0.5 - (x + w * 0.14)) * easeOut(prog(o.t, 0.1, 0.9));
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(px, y + h * 0.82 - (px - (x + w * 0.14)) * 0.63, 13, 0, Math.PI * 2);
+      ctx.fillStyle = P.accent;
+      ctx.fill();
+      ctx.restore();
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x + w * 0.86, y + h * 0.2, 15, 0, Math.PI * 2);
+      ctx.fillStyle = P.good;
+      ctx.fill();
+      ctx.restore();
+      label(ctx, o.options.caption || 'the route', x + w / 2, y + h - 24, { size: 24, color: alpha(P.ink, 0.5), weight: 700, spacing: 1 });
+    },
+  },
+
+  calendar: {
+    role: 'demonstrate',
+    about: 'a week of slots, some free, that the agent can read',
+    draw(ctx, b, o) {
+      const cols = 4;
+      const rows = 3;
+      const gap = Math.min(b.w, b.h) * 0.035;
+      // The grid is the picture, so it is measured from the box rather than
+      // given a remembered cell size: full width, and as tall as three rows fit.
+      const cw = (b.w * 0.98 - gap * (cols - 1)) / cols;
+      const chh = Math.min((b.h * 0.86 - gap * (rows - 1)) / rows, cw * 1.35);
+      const x0 = b.x + (b.w - (cw * cols + gap * (cols - 1))) / 2;
+      const y0 = b.y + b.h * 0.94 - (chh * rows + gap * (rows - 1));
+      const free = new Set([4, 6, 11]);
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const i = r * cols + c;
+          const x = x0 + c * (cw + gap);
+          const y = y0 + r * (chh + gap);
+          const isFree = free.has(i);
+          const lit = prog(o.t, 0.15 + i * 0.02, 0.3 + i * 0.02);
+          roundRect(ctx, x, y, cw, chh, 10);
+          ctx.fillStyle = isFree ? mix(P.good, 0.86) : alpha(P.ink, 0.05);
+          ctx.fill();
+          ctx.strokeStyle = alpha(P.ink, 0.1);
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          if (isFree && lit > 0) {
+            label(ctx, 'free', x + cw / 2, y + chh / 2 + 8, { size: Math.min(22, cw * 0.26), color: alpha(P.good, 0.9 * lit), weight: 700, spacing: 1 });
+          }
+        }
+      }
+      label(ctx, o.options.caption || 'this week', b.x + b.w / 2, y0 - 22, { size: 24, color: alpha(P.ink, 0.5), weight: 700, spacing: 2 });
+    },
+  },
+
+  invite: {
+    role: 'transform',
+    about: 'the draft invitation: the thing the agent made, not sent',
+    draw(ctx, b, o) {
+      const w = Math.min(b.w * 0.94, 560);
+      const h = Math.min(b.h * 0.8, 380);
+      const x = b.x + (b.w - w) / 2;
+      const y = b.y + b.h * 0.9 - h;
+      const tilt = -0.02 + 0.01 * Math.sin(o.t * Math.PI * 2);
+      ctx.save();
+      ctx.translate(x + w / 2, y + h / 2);
+      ctx.rotate(tilt);
+      shadow(ctx, 0, h / 2 + 6, w * 0.4, 16, 0.08);
+      paperCard(ctx, -w / 2, -h / 2, w, h, { r: 16 });
+      const wrong = Boolean(o.options.wrong);
+      label(ctx, wrong ? 'DRAFT · WRONG' : 'DRAFT', -w / 2 + 24, -h / 2 + 34, {
+        size: 20, color: wrong ? alpha(P.stop, 0.95) : alpha(P.accent, 0.9), weight: 700, align: 'left', spacing: 2,
+      });
+      ctx.save();
+      ctx.font = `600 ${Math.min(32, w * 0.075)}px ${FONT_SERIF}`;
+      ctx.fillStyle = wrong ? alpha(P.stop, 0.9) : P.ink;
+      ctx.textAlign = 'left';
+      const titleLines = wrapText(ctx, o.options.title || 'Meeting, Thursday 3 pm', w - 48, 2);
+      titleLines.forEach((line, li) => ctx.fillText(line, -w / 2 + 24, -h / 2 + h * 0.42 + li * 36));
+      if (wrong) {
+        // the mistake is visible, not narrated: the line the agent got wrong is
+        // struck through and the real instruction is written under it
+        ctx.strokeStyle = alpha(P.stop, 0.85);
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        titleLines.forEach((line, li) => {
+          const y = -h / 2 + h * 0.42 + li * 36 - 10;
+          ctx.beginPath();
+          ctx.moveTo(-w / 2 + 20, y);
+          ctx.lineTo(-w / 2 + 24 + ctx.measureText(line).width, y);
+          ctx.stroke();
+        });
+      }
+      ctx.restore();
+      label(ctx, o.options.sub || 'two slots compared · one chosen', -w / 2 + 24, h / 2 - 40, {
+        size: 21, color: wrong ? alpha(P.stop, 0.8) : alpha(P.ink, 0.45), weight: wrong ? 600 : 500, align: 'left',
+      });
+      ctx.restore();
+    },
+  },
+
+  'setup-pair': {
+    role: 'compare',
+    about: 'same model inside, different wiring: answer only, or answer plus steps',
+    draw(ctx, b, o) {
+      const rows = 2;
+      const rowH = (b.h * 0.94) / rows;
+      const w = b.w * 0.9;
+      const x = b.x + b.w * 0.05;
+      const items = [
+        { tag: 'CHATBOT', out: 'one reply', tone: P.link, steps: false },
+        { tag: 'AGENT', out: 'reply + steps', tone: P.good, steps: true },
+      ];
+      items.forEach((it, i) => {
+        const cy = b.y + b.h * 0.07 + rowH * (i + 0.5);
+        roundRect(ctx, x, cy - rowH * 0.34, w, rowH * 0.68, 18);
+        ctx.fillStyle = mix(it.tone, 0.9);
+        ctx.fill();
+        label(ctx, it.tag, x + 26, cy - 4, { size: 27, color: alpha(it.tone, 0.95), weight: 700, align: 'left', spacing: 2 });
+        // the same model box in both rows; what changes is what is wired to it
+        const bx = x + w * 0.62;
+        crate(ctx, bx, cy + rowH * 0.24, Math.min(130, w * 0.18), Math.min(96, rowH * 0.5), P.isoLeft);
+        label(ctx, 'model', bx, cy - 2, { size: 20, color: alpha(P.ink, 0.55), weight: 600 });
+        if (it.steps) {
+          const n = 3;
+          const sx = x + w * 0.18;
+          for (let k = 0; k < n; k++) {
+            const kx = sx + k * (w * 0.13);
+            const lit = prog(o.t, 0.2 + k * 0.14, 0.4 + k * 0.14);
+            roundRect(ctx, kx - 26, cy + rowH * 0.06, 52, 34, 8);
+            ctx.fillStyle = alpha(P.accent, 0.2 * lit + 0.1);
+            ctx.fill();
+          }
+          arrow(ctx, [x + w * 0.18 + 3 * (w * 0.13) - 26, cy + rowH * 0.24], [bx - 60, cy + rowH * 0.24], {
+            colour: alpha(P.accent, 0.6), width: 4, head: 12, progress: prog(o.t, 0.3, 0.6),
+          });
+        } else {
+          arrow(ctx, [x + w * 0.3, cy + rowH * 0.24], [bx - 60, cy + rowH * 0.24], {
+            colour: alpha(P.ink, 0.22), width: 4, head: 12, progress: prog(o.t, 0.2, 0.5),
+          });
+        }
+      });
+      label(ctx, 'same model · different wiring', b.x + b.w / 2, b.y + 24, { size: 25, color: alpha(P.ink, 0.5), weight: 700, spacing: 1 });
+    },
+  },
+
+  versus: {
+    role: 'compare',
+    about: 'the takeaway, held as two columns',
+    draw(ctx, b, o) {
+      const vertical = b.h > b.w * 0.9;
+      const gap = Math.min(b.w, b.h) * 0.07;
+      const cw = vertical ? b.w * 0.92 : (b.w - gap) / 2;
+      const chh = vertical ? (b.h - gap) / 2 : b.h * 0.92;
+      const cols = [
+        { tag: 'CHATBOT', sub: 'responds', tone: P.link, tick: false },
+        { tag: 'AGENT', sub: 'can take steps', tone: P.good, tick: true },
+      ];
+      cols.forEach((col, i) => {
+        const x = vertical ? b.x + (b.w - cw) / 2 : b.x + i * (cw + gap);
+        const y = vertical ? b.y + i * (chh + gap) : b.y + b.h * 0.04;
+        shadow(ctx, x + cw / 2, y + chh + 6, cw * 0.4, 16, 0.08);
+        paperCard(ctx, x, y, cw, chh, { r: 22 });
+        label(ctx, col.tag, x + cw / 2, y + chh * 0.22, { size: Math.min(28, cw * 0.13), color: alpha(col.tone, 0.95), weight: 700, spacing: 3 });
+        ctx.save();
+        ctx.font = `600 ${Math.min(52, cw * 0.13)}px ${FONT_SERIF}`;
+        ctx.fillStyle = P.ink;
+        ctx.textAlign = 'center';
+        wrapText(ctx, col.sub, cw - 44, 2).forEach((line, li, all) => {
+          ctx.fillText(line, x + cw / 2, y + chh * 0.55 + (li - (all.length - 1) / 2) * 50);
+        });
+        ctx.restore();
+        if (col.tick) tick(ctx, x + cw - 44, y + chh - 44, 34, P.good, 6);
+      });
+    },
+  },
+
+  'cat-pillow': {
+    role: 'label',
+    about: 'the channel joke: a small cat cushion holding something up',
+    draw(ctx, b, o) {
+      const w = Math.min(b.w * 0.86, 300);
+      const h = w * 0.62;
+      const cx = b.x + b.w / 2;
+      const baseY = b.y + b.h * 0.94;
+      const breathe = Math.sin(o.t * Math.PI * 2) * 3;
+      // the cushion's whole job is to hold something up: a small card tilted
+      // against its head, so the joke reads as "even the cat checked this"
+      if (o.options.card) {
+        const cw = Math.min(w * 1.12, b.w * 0.94);
+        const chh = cw * 0.46;
+        const cardY = baseY - h - chh * 0.72;
+        ctx.save();
+        ctx.translate(cx, cardY + chh / 2);
+        ctx.rotate(-0.06 + 0.01 * Math.sin(o.t * Math.PI * 2));
+        shadow(ctx, 0, chh / 2 + 4, cw * 0.4, 14, 0.08);
+        paperCard(ctx, -cw / 2, -chh / 2, cw, chh, { r: 16 });
+        ctx.font = `700 ${Math.min(26, cw * 0.13)}px ${FONT_SANS}`;
+        ctx.fillStyle = alpha(P.ink, 0.82);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        wrapText(ctx, o.options.card, cw - 26, 2).forEach((line, li, all) => {
+          ctx.fillText(line, 0, (li - (all.length - 1) / 2) * 28);
+        });
+        ctx.restore();
+        shadow(ctx, cx, cardY + chh + 8, cw * 0.3, 10, 0.06);
+      }
+      shadow(ctx, cx, baseY + 6, w * 0.5, 16, 0.09);
+      ctx.save();
+      ctx.translate(cx, baseY - h / 2 + breathe);
+      // ears
+      [-1, 1].forEach((s) => {
+        ctx.beginPath();
+        ctx.moveTo(s * w * 0.3, -h * 0.34);
+        ctx.lineTo(s * w * 0.42, -h * 0.62);
+        ctx.lineTo(s * w * 0.1, -h * 0.46);
+        ctx.closePath();
+        ctx.fillStyle = mix(P.accent, 0.55);
+        ctx.fill();
+      });
+      roundRect(ctx, -w / 2, -h / 2, w, h, h * 0.42);
+      ctx.fillStyle = mix(P.accent, 0.55);
+      ctx.fill();
+      ctx.strokeStyle = alpha(P.ink, 0.12);
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      // face
+      ctx.save();
+      ctx.fillStyle = alpha(P.ink, 0.55);
+      [-0.16, 0.16].forEach((f) => {
+        ctx.beginPath();
+        ctx.arc(w * f, -h * 0.06, Math.max(4, w * 0.022), 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+      ctx.save();
+      ctx.strokeStyle = alpha(P.ink, 0.4);
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, h * 0.06, w * 0.09, 0.15 * Math.PI, 0.85 * Math.PI);
+      ctx.stroke();
+      ctx.restore();
+      ctx.restore();
+      if (!o.options.card) {
+        label(ctx, o.options.caption || 'even the cat checked this', cx, Math.min(b.y + b.h - 2, baseY + 34), {
+          size: 21, color: alpha(P.ink, 0.45), weight: 600, spacing: 1,
+        });
+      }
+    },
+  },
+
   crowd: {
     role: 'label',
     about: 'the building at nine pm, all streaming at once',
@@ -1301,6 +1674,18 @@ export const SCENES = {
   ep_wifi_channels: { subjects: ['channels'], kicker: 'the band' },
   ep_wifi_crowd: { subjects: ['crowd'], kicker: 'nine pm' },
   ep_wifi_outro: { subjects: ['channels'], kicker: 'next time' },
+
+  // 0106 - chatbot vs agent
+  ep_ai_panels: { subjects: ['chat-panels'], kicker: 'chatbot or agent' },
+  ep_ai_chatbot: { subjects: ['chat-bubble', 'route-card'], kicker: 'chatbot' },
+  ep_ai_agent: { subjects: ['calendar', 'chat-bubble'], kicker: 'agent' },
+  ep_ai_invite: { subjects: ['invite', 'calendar'], kicker: 'it can make things' },
+  ep_ai_setup: { subjects: ['setup-pair'], kicker: 'not magic' },
+  ep_ai_steps: { subjects: ['steps-row'], kicker: 'the steps' },
+  ep_ai_mistake: { subjects: ['invite'], kicker: 'the catch' },
+  ep_ai_permissions: { subjects: ['checkpoint'], kicker: 'permissions' },
+  ep_ai_recap: { subjects: ['versus', 'cat-pillow'], kicker: 'the difference' },
+  ep_ai_outro: { subjects: ['versus'], kicker: 'next time' },
 };
 
 // ---------------------------------------------------------------------------

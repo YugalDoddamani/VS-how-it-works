@@ -116,6 +116,16 @@ const ACTION_STAGE = {
 
 /** Subject options a world implies, per beat number. */
 const SUBJECT_OPTIONS = {
+  '0106': {
+    2: { 'chat-bubble': { question: '"how do I get to the station?"', answer: 'turn left, then follow the river' } },
+    3: { calendar: { caption: 'this week' } },
+    4: { invite: { title: 'Meeting, Thursday 3 pm', sub: 'two slots compared · one chosen' } },
+    6: { 'steps-row': { items: ['PLAN', 'USE A TOOL', 'CHECK'] } },
+    8: { checkpoint: { chip: 'APPROVE' } },
+    7: { invite: { wrong: true, title: 'Meeting, Thursday 3 pm', sub: 'you asked for Friday' } },
+    9: { versus: {}, 'cat-pillow': { card: 'CHECK RESULT' } },
+    10: { versus: {} },
+  },
   '0102': {
     5: { 'rule-cards': { broken: true }, 'rule-machine': { broken: true } },
     10: { checkpoint: { failing: true } },
@@ -189,6 +199,11 @@ const EPISODE_WORLDS = {
     1: 'ep_free_title', 2: 'ep_free_title', 3: 'ep_free_tools', 4: 'ep_free_tools',
     5: 'ep_free_tools', 6: 'ep_free_tools', 7: 'ep_free_tools', 8: 'ep_free_tools',
     9: 'ep_free_scale', 10: 'ep_free_scale', 11: 'ep_free_tools', 12: 'ep_free_outro',
+  },
+  '0106': {
+    1: 'ep_ai_panels', 2: 'ep_ai_chatbot', 3: 'ep_ai_agent', 4: 'ep_ai_invite',
+    5: 'ep_ai_setup', 6: 'ep_ai_steps', 7: 'ep_ai_mistake', 8: 'ep_ai_permissions',
+    9: 'ep_ai_recap', 10: 'ep_ai_outro',
   },
   '0104': {
     1: 'ep_wifi_title', 2: 'ep_wifi_title', 3: 'ep_wifi_router', 4: 'ep_wifi_channels',
@@ -335,7 +350,9 @@ function shotsForBeat(beat, plan) {
       placement,
       frames: frames[i],
       captionTreatment: plan.captionTreatment,
-      captionText: String(beat.narration || '').trim(),
+      // A beat with no narration (a silent outro card) still needs words on
+      // screen; the board text is what the sheet intended the viewer to read.
+      captionText: String(beat.narration || beat.on_screen_text || '').trim(),
       captionSteps: plan.captionTreatment === 'steps' ? rows : undefined,
       emphasis,
       kicker: plan.kicker,
@@ -570,7 +587,8 @@ function compileEpisode(rawEpisode, allBeats) {
         }).frames,
       };
 
-      const isLastShot = false; // fixed up after the loop
+      // the last shot of the film carries the disclosure; filled in below
+      const isLastShot = shots.length === 0 ? false : false;
       shots.push({
         n,
         beat: s.beat,
@@ -609,6 +627,9 @@ function compileEpisode(rawEpisode, allBeats) {
         chrome: {
           badge: n === 1 || firstOfStage || false,
           progress: n !== 1,
+          // the presenter is illustrated and has to say so; the line rides on
+          // the last shot of the film, where the sign-off already is
+          disclosure: isLastShot,
         },
         purpose: {
           viewerKnows: i === 0 ? (shots.length ? shots[shots.length - 1].action : 'cold open') : `${s.action} (part ${i + 1})`,
@@ -631,6 +652,8 @@ function compileEpisode(rawEpisode, allBeats) {
   const last = shots[shots.length - 1];
   last.transition = 'cut';           // nothing to cut to
   last.chrome.badge = true;
+  // the disclosure rides the last shot, where the sign-off already is
+  last.chrome.disclosure = true;
   last.caption.treatment = last.caption.treatment === 'takeaway' ? 'takeaway' : last.caption.treatment;
   for (let i = 0; i < shots.length; i++) {
     const next = shots[i + 1];

@@ -1,0 +1,54 @@
+{
+ "voice": "voice-02",
+ "note": "spoken VO; one clip per beat, so the prosody matches the paragraph. The last two beats carry their line as a caption only - the recap and the sign-off are read, not spoken.",
+ "clips": [
+  {
+   "file": "vo/g1.mp3",
+   "start": 0,
+   "end": 180,
+   "text": "An AI that answers your question and an AI that actually does the task? They are not quite the same thing."
+  },
+  {
+   "file": "vo/g2.mp3",
+   "start": 180,
+   "end": 330,
+   "text": "Think of a chatbot as someone you can ask for directions. You ask, it explains the route."
+  },
+  {
+   "file": "vo/g3.mp3",
+   "start": 330,
+   "end": 450,
+   "text": "An AI agent is closer to an assistant that can use tools."
+  },
+  {
+   "file": "vo/g4.mp3",
+   "start": 450,
+   "end": 660,
+   "text": "You might ask it to find a meeting time. It could check an available calendar, compare slots, and prepare an invitation."
+  },
+  {
+   "file": "vo/g5.mp3",
+   "start": 660,
+   "end": 825,
+   "text": "The difference is not that one is magically intelligent. It is what the system is set up to do."
+  },
+  {
+   "file": "vo/g6.mp3",
+   "start": 825,
+   "end": 1065,
+   "text": "A chatbot usually gives you a response. An agent can work through steps: plan, use a tool, check the result, then continue."
+  },
+  {
+   "file": "vo/g7.mp3",
+   "start": 1065,
+   "end": 1290,
+   "text": "But here is the catch: agents can make mistakes, misunderstand a goal, or take an action you did not intend."
+  },
+  {
+   "file": "vo/g8.mp3",
+   "start": 1290,
+   "end": 1440,
+   "text": "Important actions should have clear permissions and human approval."
+  }
+ ]
+}

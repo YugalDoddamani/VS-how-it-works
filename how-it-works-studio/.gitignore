@@ -32,3 +32,4 @@ series/*/reels/*/output/*.mp4
 # artefact, the delivered film is not.
 series/*/episodes/*/output/*.mp4
 !series/ai-without-the-hype/episodes/0102-how-ai-automation-actually-works/output/0102-how-ai-automation-actually-works.mp4
+!series/ai-without-the-hype/episodes/0106-chatbot-vs-ai-agent/output/0106-chatbot-vs-ai-agent.mp4
