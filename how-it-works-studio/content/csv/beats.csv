@@ -17,12 +17,12 @@ episode_id,beat_no,beat_type,duration_s,narration,on_screen_text,board_items,pro
 '0102,4,explain,7.0,"For fifty years those steps were rules. If this, then that.","If this, then that",,board@C3;signpost@D2,board,point-board,focused,rules,fade,pop-soft,"Rules only. No thinking. Short sentence, big point."
 '0102,5,explain,7.0,Rules break the moment real life looks slightly different from the example.,Rules break easily,,board@C3;signpost@D2;parcel@E3,board,talk-hands,confused,break,fade,pop-soft,
 '0102,6,analogy,9.0,Now add a model. Something that reads a messy pile and guesses the sensible thing.,"Messy in, sensible out",Messy in;Sensible out,board@C3;parcel@D2;envelope@E3,board,present-open,thinking,model,fade,pop-soft,Analogy: a very well-read assistant who never says I do not know unless you make them
-'0102,7,step-by-step,10.0,Set a goal. Give it tools. Check the result. Go again.,The loop,Set a goal;Give it tools;Check the result;Go again,board@C3;signpost@D2;lock@E3;clock@C2,board,count-three,focused,goal;check,fade,pop-soft,Four steps is the payload of the whole episode
+'0102,7,step-by-step,8.0,Set a goal. Give it tools. Check the result. Go again.,The loop,Set a goal;Give it tools;Check the result;Go again,board@C3;signpost@D2;lock@E3;clock@C2,board,count-three,focused,goal;check,fade,pop-soft,Four steps is the payload of the whole episode
 '0102,8,explain,8.0,That loop is the automation. The model is only one part of it.,The loop is the automation,,board@C3;figure@D2;server@E3,board,sweep-wide,emphatic,loop,fade,pop-soft,
 '0102,9,myth-check,8.0,It is not one genius robot. It is a loop with a safety check bolted on.,Not a genius robot,,board@C3;figure@D2;lock@D3,board,shake-no,skeptical,safety check,wipe,pop-soft,
 '0102,10,explain,7.0,"And the check is where it fails. No check means no automation, just vibes.",Where it fails,,board@C3;lock@D2;signpost@E3,board,point-board,angry,vibes,fade,pop-soft,
 '0102,11,recap,5.0,Goal. Tools. Check. Repeat.,The loop,Goal;Tools;Check;Repeat,board@C3,wide,sweep-wide,relieved,,fade,pop-soft,
-'0102,12,outro,3.0,"So next time someone says the AI does it, ask where the check is.",Episode 02,,board@C3;lock@D2,wide,finger-heart,wink,check,wipe,pop-soft,
+'0102,12,outro,5.0,"So next time someone says the AI does it, ask where the check is.",Episode 02,,board@C3;lock@D2,wide,finger-heart,wink,check,wipe,pop-soft,
 '0103,1,hook,4.0,Nothing on the internet is free. But some free things are genuinely worth it.,Genuinely free?,,signpost@C3,wide,point-camera,curious,free,none,whoosh,
 '0103,2,title,3.0,How to tell if a free tool is actually free.,Is it actually free?,,signpost@C3;board@D2,wide,present-wide,confident,,wipe,pop-soft,
 '0103,3,explain,7.0,Every free thing is paid for somehow. There are only four ways.,Four ways to pay,,board@C3;token@D2,board,point-board,focused,four,fade,pop-soft,

@@ -21,6 +21,7 @@
  */
 
 import { P, alpha } from './palette.js';
+import { captionTop } from './chrome.js';
 
 const poses = {
   manifest: null,
@@ -57,24 +58,35 @@ export function poseInfo() {
  * way it changes when the shot changes, so the drawing never flickers.
  */
 const POSE_BY_WORLD = {
-  //                 close-up (hands read above her waist)   everywhere else
+  //                 close (CU/ECU)      everywhere else
   pov_phone: ['thinking', 'thinking'],
   feed_ad: ['pointing', 'pointing'],
-  bokeh: ['explaining', 'neutral'],
-  shelf_one: ['explaining', 'presenting'],
-  shelf_two: ['warm', 'warm'],
-  note_open: ['explaining', 'presenting'],
+  bokeh: ['gesture', 'neutral'],
+  shelf_one: ['gesture', 'presenting'],
+  shelf_two: ['openhands2', 'warm'],
+  note_open: ['pointing', 'presenting'],
   stamp: ['skeptical', 'skeptical'],
   link: ['openhands', 'openhands'],
   note_number: ['deadpan', 'deadpan'],
   incognito: ['skeptical', 'skeptical'],
   spec_card: ['warm', 'warm'],
-  browsers: ['warm', 'warm'],
+  browsers: ['openhands2', 'warm'],
   app_icon: ['pointing', 'pointing'],
   settings: ['pointing', 'pointing'],
   toggle: ['pointing', 'pointing'],
   flat_grid: ['presenting', 'presenting'],
   recap: ['warm', 'warm'],
+
+  // the long-form workshop worlds
+  ep_checklist: ['skeptical', 'presenting'],
+  ep_title: ['presenting', 'presenting'],
+  ep_steps: ['onefinger', 'presenting'],
+  ep_rules: ['pointing', 'pointing'],
+  ep_rules_broken: ['nope', 'skeptical'],
+  ep_pile: ['thinking', 'gesture'],
+  ep_loop: ['onefinger', 'gesture'],
+  ep_gate: ['skeptical', 'deadpan'],
+  ep_outro: ['fingerheart', 'warm'],
 };
 
 /** CU/ECU -> close, MCU/SPLIT/CORNER/OTS -> medium, everything else -> wide. */
@@ -119,7 +131,7 @@ const FRAMING = {
   left: { close: [345, 320, 452], medium: [290, 530, 430], wide: [258, 250, 380] },
   'split-right': { close: [345, 320, 800], medium: [290, 530, 800], wide: [258, 250, 790] },
   'corner-br': { close: [268, 940, 812], medium: [225, 1010, 818], wide: [196, 1065, 822] },
-  'corner-bl': { close: [268, 940, 268], medium: [225, 1010, 262], wide: [196, 1065, 258] },
+  'corner-bl': { close: [268, 940, 306], medium: [225, 1010, 300], wide: [196, 1065, 296] },
 };
 
 /** The framing preset for a compiled shot, or null when she is not in frame. */
@@ -228,7 +240,13 @@ export function drawNao(ctx, shot, frame, t) {
   }
 
   // ---- the figure --------------------------------------------------------
+  // She is drawn behind the caption card, and the card is not the bottom of
+  // the frame: past it there is still a strip of bench. Clip her at the card so
+  // the part of her the card hides stays hidden.
   ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, 1080, Math.max(0, captionTop(ctx, shot) - 2));
+  ctx.clip();
   ctx.translate(px, py);
   ctx.rotate(lean + turn);
   ctx.scale(push, push * breathe);
@@ -239,6 +257,7 @@ export function drawNao(ctx, shot, frame, t) {
     ctx.translate(-px, 0);
   }
   ctx.drawImage(img, x, y, w, h);
+  ctx.restore();
   ctx.restore();
 
   return { x, y, w, h, pose, mirror, open };

@@ -79,8 +79,19 @@ export function drawFrame(ctx, reel, frame, opts = {}) {
   ctx.save();
   ctx.clearRect(0, 0, W, 1920);
 
-  // 1 + 2: paper and world
+  // 1 + 2: paper and world, through the shot's own lens.
+  //
+  // Every shot gets its own slight scale and a slow push, so a cut between two
+  // shots of the same world is still a cut: the eye sees the camera move, not a
+  // duplicated frame. The offsets are small on purpose - 3 % reads as a lens,
+  // 10 % reads as a mistake.
+  const lens = 1 + 0.028 * ((shot.n % 3) - 1) + 0.02 * t;
+  ctx.save();
+  ctx.translate(W / 2, 880);
+  ctx.scale(lens, lens);
+  ctx.translate(-W / 2, -880);
   drawWorld(ctx, shot, f, t);
+  ctx.restore();
 
   // 3: her
   drawNao(ctx, shot, f, t);

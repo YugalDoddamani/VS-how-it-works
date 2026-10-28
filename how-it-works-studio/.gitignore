@@ -5,6 +5,9 @@ package-lock.json.bak
 series/*/episodes/*/frames/
 series/*/reels/*/frames/
 series/*/reels/*/reel.json
+# An episode's compiled scene, and the frame stills of a cut-down.
+series/*/episodes/*/frames/
+series/*/episodes/*/episode.json
 
 # Scratch output
 projects/*/preview/tmp/
@@ -24,3 +27,8 @@ series/*/reels/*/output/*.mp4
 # not survive a fresh checkout, and "where is the video" is not a question the
 # repo should be able to lose the answer to.
 !series/your-data-explained/reels/r03-why-the-ad-follows-you/output/r03-why-the-ad-follows-you.mp4
+
+# Long-form episodes follow the same rule: the intermediate render is a build
+# artefact, the delivered film is not.
+series/*/episodes/*/output/*.mp4
+!series/ai-without-the-hype/episodes/0102-how-ai-automation-actually-works/output/0102-how-ai-automation-actually-works.mp4
