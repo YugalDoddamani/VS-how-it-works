@@ -91,9 +91,12 @@ A render adds `episode.json`, `frames/` and `output/final.mp4`. None exist yet.
 python3 tools/check_content.py          # validates every reel and every episode
 node tools/compile-reel.mjs             # script.md → reel.json, for every reel
 node tools/preview-server.mjs           # play and scrub a reel in a browser
-node tools/render-reel.mjs --reel r03 --all --mp4 <path>   # frames → MP4
+node tools/render-reel.mjs --reel r03 --all --mp4 <path>   # frames → MP4 (silent)
+node tools/mix-audio.mjs --reel r03 --video <in> --out <out>  # voice + effects
+node tools/export-captions.mjs --reel r03  # sidecar .srt for the platform
 node tools/build-projects.mjs           # regenerate episode documents
-python3 tools/build-nao-rig.py          # rebuild the body + 9 expression heads
+python3 tools/build-nao-poses.py        # rebuild the six whole-figure poses
+python3 tools/make-sfx.py               # rebuild the ten synthesised sound cues
 ```
 
 ## Honest status

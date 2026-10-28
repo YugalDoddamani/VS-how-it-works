@@ -61,44 +61,71 @@ is not a re-design.
 
 ### The character
 
-The first rig was cut from the 1024 px talking-head sheet: a floating head, no
-body, and a face that read as mush once it was scaled to a 1080 px canvas. It was
-rebuilt at working resolution (`assets/nao/rig/`, built by
-`tools/build-nao-rig.py`):
+Two rigs were tried before this one, and both failed the same way: they cut the
+character up. The first was a floating head. The second pasted an expression
+head onto a body drawing — two drawings, two canvases, two sets of proportions,
+so the shoulders doubled, the neck seam showed, and every mouth change moved her
+eyes four pixels.
 
-| Asset | What it is |
+**The rig is now whole figures and nothing else.** Six complete drawings, one
+style, one outfit, one set of proportions (`assets/nao/poses/`, built by
+`tools/build-nao-poses.py`):
+
+| Pose | Used for |
 | --- | --- |
-| `nao_body_neutral.png` | source drawing: full body, arms down, front, ~1300 px |
-| `nao_expr_sheet.png` | source drawing: 3×3 of expression heads, same character |
-| `rig/body.png` | the body with the head removed, background keyed out |
-| `rig/heads/*.png` | nine heads, **pre-aligned** onto the body's neck |
-| `rig/manifest.json` | anchors, and which head is which mouth/eye state |
+| `neutral` | talking to camera, hands at her sides |
+| `presenting` | open palms, offering the thing on screen |
+| `openhands` | both hands up, walking you through it |
+| `explaining` | one palm raised at chest height — the default close-up |
+| `pointing` | index finger out, for a shelf, a stamp, an icon |
+| `thinking` | hand at chin, for the incognito/`what is it` beats |
 
-Alignment is a one-off geometry problem, so it happens in Python once and every
-frame is cheap: the head is scaled until its hair width matches the body's, then
-translated so its hair-top and centre land on the body's anchor. The heads carry
-their own neck, choker and collar, so they are simply placed — the first version
-faded the neck, which erased the collar and left a visible gap.
+Each figure is keyed, scaled to one height (1280 px), and placed so her feet are
+on one baseline and the centre of her head is on one column. Alignment happens
+once, in Python, so a cut between two poses does not change her size or make her
+slide sideways.
 
-**Framing is upper body, not face.** `framingFor(placement, code)` picks from
-three sizes per placement: `CU`/`ECU` draw the head at 620 px (head to upper
-thigh), `MCU` at 470 px (head to mid-calf), wide shots at 380 px (the whole
-figure). Legs running off the bottom of the canvas is the point.
+**A pose changes only on a cut.** Within a shot she is one object, animated as a
+whole: breathing (±0.7 % vertical on a 3.6 s cycle), a weight shift (±0.55° on
+8.3 s, pivoting at her feet), a slow drift, a push-in, and a small nod driven by
+the lip-sync schedule's openness — she moves when she speaks. Every other shot
+the drawing is mirrored, which is a free second performance of the same pose.
 
-**What moves, per frame:**
+**Framing** is `[head px, top px, centre x]` per placement and size class. A
+close-up puts her head at 360 px (head to hip — the caption card covers the rest),
+a medium shot at 300, and a wide shot at 258, which is the whole figure with her
+feet on the canvas. The close values stop at the hip and not at the collarbone on
+purpose: a figure cut at the chest is the floating-head problem with extra steps,
+and her hands have to stay in frame, because the hands are the animation.
 
-| Motion | How |
+There is no mouth and no expression swap. That was a deliberate trade: a rig that
+can swap a face needs two drawings to agree, and ours never did. The lipsync
+compiler still emits a schedule per shot (`docs/11`); the rig spends it on the
+body instead of the face.
+
+### Sound
+
+The film carries its own soundtrack, built by `tools/mix-audio.mjs`:
+
+| Layer | Source |
 | --- | --- |
-| Breathing | vertical scale ±0.8 % on a 3.6 s cycle |
-| Weight shift | ±0.5° body rotation on an 8.3 s cycle |
-| Head | ±1.1° rotation and a small offset, **lagged 5 frames** behind the body |
-| Hair | the head sprite is drawn in 7 horizontal bands, sheared increasingly towards the chin — the bob swings, the skull does not |
-| Mouth | one of five drawn shapes, chosen from the lip-sync schedule's openness |
-| Blink | 5-frame cycle every 3.2–4.1 s, seeded per shot so cuts never sync |
-| Smile | only on the sign-off, and only in bursts — a two-second closed-eye smile reads as a mannequin |
+| Voice-over | one clip per run of shots, placed on the shot it belongs to and nudged to fit its window (`atempo`, capped at ±15 %) |
+| Effects | `tools/make-sfx.py` synthesises ten cues from maths; `tools/audio-cues.mjs` says where each one lands |
 
-Everything is a pure function of `(reel, frame)`: no clock, no random, so frame N
-is always the same pixels.
+Every cue is tied to an event in a world — the stamp lands on `thud`, the three
+blocked browsers on three `click`s, the recap chips on `pop`s — and is written as
+a fraction of its shot, so re-timing the script moves the sound with it. Every
+cut gets a quiet whoosh. The sign-off is the only place with a pad under it.
+
+The summing happens in Node, not in ffmpeg: the bundled ffmpeg is from 2018 and
+its `amix` divides by the input count, so a sixty-cue mix would come out nearly
+silent and duck itself as cues ended.
+
+### Captions
+
+The caption card is burned into the picture. `tools/export-captions.mjs` writes
+the same lines as a sidecar `.srt`, one cue per shot, with emphasis words
+upper-cased.
 
 ### The world
 
