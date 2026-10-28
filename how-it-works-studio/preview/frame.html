@@ -12,7 +12,7 @@
 <canvas id="c" width="1080" height="1920"></canvas>
 <script type="module">
   import { drawFrame } from '/src/stage/reel/render.js';
-  import { setRig } from '/src/stage/reel/nao.js';
+  import { setPoses } from '/src/stage/reel/nao.js';
 
   const q = new URLSearchParams(location.search);
   const reelPath = q.get('reel') || '/series/your-data-explained/reels/r03-why-the-ad-follows-you/';
@@ -22,8 +22,8 @@
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
 
-  async function loadRig(base) {
-    const manifest = await (await fetch(`${base}/manifest.json`, { cache: 'no-store' })).json();
+  async function loadPoses(base) {
+    const manifest = await (await fetch(`${base}/poses.json`, { cache: 'no-store' })).json();
     const load = (src) =>
       new Promise((resolve, reject) => {
         const img = new Image();
@@ -31,16 +31,15 @@
         img.onerror = () => reject(new Error(`missing ${src}`));
         img.src = src;
       });
-    const body = await load(`${base}/${manifest.body.file}`);
-    const heads = {};
-    await Promise.all(manifest.heads.map(async (h) => { heads[h.name] = await load(`${base}/${h.file}`); }));
-    setRig({ manifest, body, heads });
-    return Object.keys(heads).length;
+    const images = {};
+    await Promise.all(manifest.poses.map(async (p) => { images[p.name] = await load(`${base}/${p.file}`); }));
+    setPoses({ manifest, images });
+    return Object.keys(images).length;
   }
 
   (async () => {
     try {
-      const n = await loadRig('/assets/nao/rig');
+      const n = await loadPoses('/assets/nao/poses');
       const res = await fetch(`${reelPath}reel.json`, { cache: 'no-store' });
       if (!res.ok) throw new Error(`reel.json ${res.status}`);
       const reel = await res.json();

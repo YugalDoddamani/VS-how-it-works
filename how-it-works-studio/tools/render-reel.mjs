@@ -24,7 +24,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const { createCanvas, GlobalFonts, loadImage } = require('@napi-rs/canvas');
 const { drawFrame } = await import(path.join(ROOT, 'src/stage/reel/render.js'));
-const { setRig } = await import(path.join(ROOT, 'src/stage/reel/nao.js'));
+const { setPoses } = await import(path.join(ROOT, 'src/stage/reel/nao.js'));
 
 const FPS = 30;
 const W = 1080;
@@ -56,21 +56,20 @@ function registerFonts() {
   }
 }
 
-async function registerRig() {
-  const dir = path.join(ROOT, 'assets/nao/rig');
-  const manifestFile = path.join(dir, 'manifest.json');
+async function registerPoses() {
+  const dir = path.join(ROOT, 'assets/nao/poses');
+  const manifestFile = path.join(dir, 'poses.json');
   if (!fs.existsSync(manifestFile)) {
-    throw new Error('no rig — run: python3 tools/build-nao-rig.py');
+    throw new Error('no poses — run: python3 tools/build-nao-poses.py');
   }
   const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
-  const body = await loadImage(path.join(dir, manifest.body.file));
-  const heads = {};
-  for (const head of manifest.heads) {
-    const file = path.join(dir, '..', 'rig', head.file);
-    if (fs.existsSync(file)) heads[head.name] = await loadImage(file);
+  const images = {};
+  for (const pose of manifest.poses) {
+    const file = path.join(dir, pose.file);
+    if (fs.existsSync(file)) images[pose.name] = await loadImage(file);
   }
-  setRig({ manifest, body, heads });
-  return Object.keys(heads).length;
+  setPoses({ manifest, images });
+  return Object.keys(images).length;
 }
 
 // ---------------------------------------------------------------------------
@@ -117,8 +116,8 @@ async function main() {
   const reel = JSON.parse(fs.readFileSync(found.json, 'utf8'));
 
   registerFonts();
-  const headCount = await registerRig();
-  if (headCount < 9) console.warn(`  ! only ${headCount}/9 expression heads — run python3 tools/build-nao-rig.py`);
+  const poseCount = await registerPoses();
+  if (poseCount < 1) console.warn('  ! no figure poses loaded — run python3 tools/build-nao-poses.py');
 
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext('2d');

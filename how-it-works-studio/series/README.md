@@ -44,7 +44,7 @@ to write.
 | --- | --- | --- | --- | --- |
 | R01 | Your phone isn't dying. It's cold. | Small Tech Mysteries | reel | 48.4 s |
 | R02 | The padlock isn't a safety badge. | Your Data, Explained | reel | 52.0 s |
-| **R03** | **Why the ad follows you around.** | Your Data, Explained | reel | **45.0 s — rendered** |
+| **R03** | **Why the ad follows you around.** | Your Data, Explained | reel | **45.0 s — finished** |
 | R04 | Why your wifi dies at nine pm. | Small Tech Mysteries | reel | 50.0 s |
 | R05 | Your photos live in a warehouse. | The Cloud | reel | 55.2 s |
 | 0101 | Where your photos actually live | The Cloud | episode | 76 s |
@@ -91,19 +91,23 @@ A render adds `episode.json`, `frames/` and `output/final.mp4`. None exist yet.
 python3 tools/check_content.py          # validates every reel and every episode
 node tools/compile-reel.mjs             # script.md → reel.json, for every reel
 node tools/preview-server.mjs           # play and scrub a reel in a browser
-node tools/render-reel.mjs --reel r03 --all --mp4 <path>   # frames → MP4
+node tools/render-reel.mjs --reel r03 --all --mp4 <path>   # frames → MP4 (silent)
+node tools/mix-audio.mjs --reel r03 --video <in> --out <out>  # voice + effects
+node tools/export-captions.mjs --reel r03  # sidecar .srt for the platform
 node tools/build-projects.mjs           # regenerate episode documents
-python3 tools/build-nao-rig.py          # rebuild the body + 9 expression heads
+python3 tools/build-nao-poses.py        # rebuild the six whole-figure poses
+python3 tools/make-sfx.py               # rebuild the ten synthesised sound cues
 ```
 
 ## Honest status
 
-Ten items are written. **One is rendered**: R03 has a 45.00 s animatic MP4 and a
-scrubbable browser preview.
+Ten items are written. **One is finished**: R03 has a 45.00 s MP4 with voice-over,
+sound effects and burned-in captions (plus an `.srt`), and a scrubbable browser
+preview.
 
 | Item | State |
 | --- | --- |
-| R03 Why the ad follows you around | **rendered** — `output/r03-why-the-ad-follows-you.mp4` |
+| R03 Why the ad follows you around | **finished** — `output/r03-why-the-ad-follows-you.mp4` + `.srt` |
 | R01, R02, R04, R05 | scripts, shot by shot, not compiled |
 | 0101–0105 | episode documents, not compiled |
 

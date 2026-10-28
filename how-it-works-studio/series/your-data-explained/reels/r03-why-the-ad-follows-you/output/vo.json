@@ -1,0 +1,54 @@
+{
+  "voice": "voice-00",
+  "note": "spoken VO, distinct from the on-screen captions; one clip per run of shots",
+  "clips": [
+    {
+      "file": "vo/g1.mp3",
+      "start": 0,
+      "end": 78,
+      "text": "You looked at shoes. Now they're everywhere."
+    },
+    {
+      "file": "vo/g2.mp3",
+      "start": 78,
+      "end": 246,
+      "text": "Not mind-reading. One small file: a cookie. A note a site leaves in your browser."
+    },
+    {
+      "file": "vo/g3.mp3",
+      "start": 246,
+      "end": 360,
+      "text": "Same person as before. That's how logins work."
+    },
+    {
+      "file": "vo/g4.mp3",
+      "start": 360,
+      "end": 546,
+      "text": "Same note, second site. Same company. Two visits, one identity. That's the trick."
+    },
+    {
+      "file": "vo/g5.mp3",
+      "start": 546,
+      "end": 738,
+      "text": "That's a third-party cookie. A number, not your name. Incognito forgets on your device, not theirs."
+    },
+    {
+      "file": "vo/g6.mp3",
+      "start": 738,
+      "end": 930,
+      "text": "Not the exact pair. The standard calls it worrisome. Safari, Firefox and Brave block these."
+    },
+    {
+      "file": "vo/g7.mp3",
+      "start": 930,
+      "end": 1104,
+      "text": "Apps have their own switch, in your settings. Blocking rarely breaks anything."
+    },
+    {
+      "file": "vo/g8.mp3",
+      "start": 1104,
+      "end": 1350,
+      "text": "You don't need to understand it all. One note, every site, one switch. The shoes can't follow if the note can't travel."
+    }
+  ]
+}

@@ -7,7 +7,7 @@
  */
 
 import { drawFrame, shotAt } from '../src/stage/reel/render.js';
-import { setRig } from '../src/stage/reel/nao.js';
+import { setPoses } from '../src/stage/reel/nao.js';
 
 const W = 1080;
 const H = 1920;
@@ -253,9 +253,9 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/** Load the drawn rig: manifest, body and the nine expression heads. */
-async function loadRig(base) {
-  const manifest = await (await fetch(`${base}/manifest.json`, { cache: 'no-store' })).json();
+/** Load the whole-figure pose set: the manifest and one image per pose. */
+async function loadPoses(base) {
+  const manifest = await (await fetch(`${base}/poses.json`, { cache: 'no-store' })).json();
   const load = (src) =>
     new Promise((resolve, reject) => {
       const img = new Image();
@@ -263,15 +263,14 @@ async function loadRig(base) {
       img.onerror = () => reject(new Error(`missing ${src}`));
       img.src = src;
     });
-  const body = await load(`${base}/${manifest.body.file}`);
-  const heads = {};
+  const images = {};
   await Promise.all(
-    manifest.heads.map(async (h) => {
-      heads[h.name] = await load(`${base}/${h.file}`);
+    manifest.poses.map(async (p) => {
+      images[p.name] = await load(`${base}/${p.file}`);
     })
   );
-  setRig({ manifest, body, heads });
-  return Object.keys(heads).length;
+  setPoses({ manifest, images });
+  return Object.keys(images).length;
 }
 
 // ---------------------------------------------------------------------------
@@ -288,9 +287,9 @@ async function loadRig(base) {
   reelSelect.value = initial.path;
 
   try {
-    const n = await loadRig('/assets/nao/rig');
-    spritesReady = n === 9;
-    if (!spritesReady) console.warn(`only ${n}/9 expression heads loaded`);
+    const n = await loadPoses('/assets/nao/poses');
+    spritesReady = n > 0;
+    if (!spritesReady) console.warn('no figure poses loaded');
   } catch (err) {
     console.error(err);
   }

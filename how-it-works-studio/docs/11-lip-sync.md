@@ -119,6 +119,19 @@ Real mouths do not snap between shapes; they blend. Two rules, both cheap:
 | Mid shot | 200–600 px | Viseme image, mouth region only, 4-frame blend |
 | Full body | < 200 px | **Three states** (`closed` / `mid` / `open`) + jaw offset, from `openness` |
 
+## What the current rig actually does with it
+
+The shipped rig (`docs/13`) draws whole figures and has no mouth to swap. The
+schedule is not wasted: `nao.js` reads `openness` per frame and spends it on her
+**body** — a nod of a few pixels and a hair of extra lean on a stressed vowel.
+That is enough for a 360 px head at 30 fps, and it keeps the one property that
+mattered: the movement is derived from the words, so it can never drift from the
+caption.
+
+The viseme tables above stay as the specification for an articulated rig. When
+one exists, it plugs in at `opennessAt()` — the schedule, the timing rules and
+the coarticulation model do not change.
+
 Below 200 px of head height, per-viseme detail is sub-pixel. Use the three-state
 reduction; it reads as speech and it is cheaper to render.
 

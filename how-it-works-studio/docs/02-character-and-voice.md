@@ -284,10 +284,20 @@ The caption band is the script.
 
 ### Spoken voice (narration)
 
-Same text, with two allowances:
+Same voice, but **not the same words**. A 45 s reel carries about 120 spoken
+words at a natural pace; the caption band carries more, because reading is faster
+than listening. So the narration is a tighter performance of the script, not a
+read of it:
 
-- One filler word to breathe ("So,", "Okay —"), dropped from the caption.
+- Cut the connective tissue ("That is…", "It is…", "Now imagine…") before you
+  cut a noun. The caption keeps it; the ear does not need it.
+- One filler to breathe ("So,", "Okay —") is allowed, and never captioned.
 - `emphasis` tokens mark where the read stresses and where the caption tints.
+- Never let a sentence straddle a cut. If the line does not fit the shot, the
+  line is too long for the shot — not the shot too short for the line.
+
+Narration is stored as `output/vo.json` alongside the clips: one clip per run of
+shots, with the words, so the timing is reviewable without listening.
 
 ### How she talks to this audience
 

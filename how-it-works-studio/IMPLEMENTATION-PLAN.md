@@ -504,7 +504,7 @@ Written down so they are not re-argued in month two:
 | --- | --- | --- | --- |
 | 0 | Tooling ported, `doctor` and tests green | 0.5 | — |
 | 1 | Sheet validates and compiles to `episode.json` | 2–3 | 0 |
-| 2 | **An ugly but real 60 s MP4** — **done for R03** (45.00 s, 1080×1920, libx264) | 2 | 1 |
+| 2 | **An ugly but real 60 s MP4** — **done for R03** (45.00 s, 1080×1920, libx264, voice-over + effects + captions) | 2 | 1 |
 | 3 | Nao rig with poses, expressions, gestures | 4–5 | 2 |
 | 4 | Isometric world, 24 props, camera | 5–6 | 2 |
 | 5 | All 12 beat types, captions, transitions | 4 | 3, 4 |

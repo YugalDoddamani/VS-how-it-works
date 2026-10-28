@@ -17,7 +17,9 @@ Read the relevant files in `docs/` before changing behaviour, and read
 
 ## Current state
 
-- **One reel is rendered.** R03 has a 45.00 s animatic MP4 (`series/your-data-explained/reels/r03-*/output/`)
+- **One reel is finished.** R03 has a 45.00 s MP4 with voice-over, sound effects
+  and burned-in captions, plus a sidecar `.srt`
+  (`series/your-data-explained/reels/r03-*/output/`)
   and a browser preview (`node tools/preview-server.mjs`). The stage lives in
   `src/stage/reel/` and is dependency-free; `tools/render-reel.mjs` encodes with
   ffmpeg in Node, no browser. Read `docs/13-reel-rendering.md` before touching it.
@@ -123,8 +125,10 @@ The current format. When the user says "make a reel" / "make a video":
   3 a.m.). The four fixed things stay whatever she wears: headband, choker, pink
   palette, bob silhouette.
 - Body poses are all available; match the pose to the shot, not to a rule.
-- Her mouth is driven by the narration text through `src/stage/rig/visemes.js` and
-  `lipsync.js`. Do not add audio analysis, and do not hand-key mouth shapes.
+- Her movement is driven by the narration text through `src/stage/rig/visemes.js`
+  and `lipsync.js`. Do not add audio analysis, and do not hand-key mouth shapes.
+  The reel rig (`src/stage/reel/nao.js`) has no mouth to draw: it spends the
+  schedule's `openness` on a nod and a lean instead.
 - She has no biography, no age, no relationships, and no opinions outside the
   topic. Keep her blank enough that she can explain anything.
 - She gestures; she does not walk through a doorway into a new scene, she does
@@ -175,7 +179,8 @@ The current format. When the user says "make a reel" / "make a video":
 | Change sheet → episode.json | `src/lib/compile.js` |
 | Add a beat type | `src/stage/scenes.js`, register in `SCENES`, add to `gallery.js` |
 | Add a prop | `src/stage/iso/props.js`, add mesh style to `style.css`, add to gallery |
-| Add a Nao pose or expression | `src/stage/rig/nao.js`, then `Vocab` |
+| Add a Nao pose | `assets/nao/poses/src-<name>.png`, then `tools/build-nao-poses.py` and `POSE_BY_WORLD` in `src/stage/reel/nao.js` |
+| Change when a sound effect fires | `tools/audio-cues.mjs`, then re-mix |
 | Change the viseme set or mapping | `src/stage/rig/visemes.js`, then `docs/11` and `test/lipsync.test.js` |
 | Change lip-sync timing or blending | `src/stage/rig/lipsync.js`, then `docs/11` |
 | Add a content validation rule | `tools/check_content.py`, then `docs/08` |

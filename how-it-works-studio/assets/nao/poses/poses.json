@@ -1,0 +1,75 @@
+{
+  "builtBy": "tools/build-nao-poses.py",
+  "canvas": {
+    "width": 900,
+    "height": 1500
+  },
+  "figureHeight": 1280,
+  "feetY": 1460,
+  "headCx": 450,
+  "anchor": {
+    "headWidth": 214
+  },
+  "poses": [
+    {
+      "name": "neutral",
+      "file": "neutral.png",
+      "width": 900,
+      "height": 1500,
+      "headWidth": 214,
+      "headTop": 180,
+      "feetY": 1460,
+      "offsetX": 257
+    },
+    {
+      "name": "presenting",
+      "file": "presenting.png",
+      "width": 900,
+      "height": 1500,
+      "headWidth": 214,
+      "headTop": 180,
+      "feetY": 1460,
+      "offsetX": 217
+    },
+    {
+      "name": "pointing",
+      "file": "pointing.png",
+      "width": 900,
+      "height": 1500,
+      "headWidth": 211,
+      "headTop": 180,
+      "feetY": 1460,
+      "offsetX": 210
+    },
+    {
+      "name": "thinking",
+      "file": "thinking.png",
+      "width": 900,
+      "height": 1500,
+      "headWidth": 211,
+      "headTop": 180,
+      "feetY": 1460,
+      "offsetX": 328
+    },
+    {
+      "name": "explaining",
+      "file": "explaining.png",
+      "width": 900,
+      "height": 1500,
+      "headWidth": 214,
+      "headTop": 180,
+      "feetY": 1460,
+      "offsetX": 280
+    },
+    {
+      "name": "openhands",
+      "file": "openhands.png",
+      "width": 900,
+      "height": 1500,
+      "headWidth": 214,
+      "headTop": 180,
+      "feetY": 1460,
+      "offsetX": 297
+    }
+  ]
+}
