@@ -20,3 +20,7 @@ content/.~lock.*
 # the stills that go in the docs are committed; the mp4 is regenerated with
 #   node tools/render-reel.mjs --reel r03 --all --mp4 <path>
 series/*/reels/*/output/*.mp4
+# Except a film that has been approved and handed over. A gitignored render does
+# not survive a fresh checkout, and "where is the video" is not a question the
+# repo should be able to lose the answer to.
+!series/your-data-explained/reels/r03-why-the-ad-follows-you/output/r03-why-the-ad-follows-you.mp4
