@@ -161,6 +161,12 @@ What it adds, and is **not** built yet:
 3. **A `reel` pacing preset** — 1.2 s hook floor, 1.8–2.2 s average, hard cuts,
    one whip, and a 2.0 s sign-off that the compiler refuses to stretch.
 
+**Phase 2 has landed for one reel.** `tools/compile-reel.mjs` + `src/stage/reel/` +
+`tools/render-reel.mjs` produce a real MP4 from `script.md` with no browser, and
+`preview/` scrubs the same frames. What it does **not** yet do: sound, full-body
+poses, a `studio render` CLI verb, or more than one reel per invocation. See
+`docs/13-reel-rendering.md`.
+
 **Suggested order once Phase 2 lands:** build reels *first*. They are shorter, so
 one render cycle is 48 seconds instead of 76, they exercise the same scene types,
 and the corner overlay is the cheapest possible proof that Nao and the world can
@@ -498,7 +504,7 @@ Written down so they are not re-argued in month two:
 | --- | --- | --- | --- |
 | 0 | Tooling ported, `doctor` and tests green | 0.5 | — |
 | 1 | Sheet validates and compiles to `episode.json` | 2–3 | 0 |
-| 2 | **An ugly but real 60 s MP4** (render R04 first — a real reel) | 2 | 1 |
+| 2 | **An ugly but real 60 s MP4** — **done for R03** (45.00 s, 1080×1920, libx264) | 2 | 1 |
 | 3 | Nao rig with poses, expressions, gestures | 4–5 | 2 |
 | 4 | Isometric world, 24 props, camera | 5–6 | 2 |
 | 5 | All 12 beat types, captions, transitions | 4 | 3, 4 |

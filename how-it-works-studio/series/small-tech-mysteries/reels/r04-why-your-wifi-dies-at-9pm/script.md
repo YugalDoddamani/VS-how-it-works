@@ -9,6 +9,7 @@
 | Shots | 26 · average 1.92 s per shot |
 | Outfit | `sporty` — Black crop and shorts: she is on the sofa mid-workout-stream when it dies. The outfit is the setup. |
 | Cut rate | one cut every 1.9 s (hook cuts land at 1.2–1.6 s) |
+| Transitions | whip into 2 (tablet → her face); hard cuts everywhere else |
 | Status | **scripted** — not rendered |
 
 **The promise of this reel:** You will know why it is always the same time, and the three fixes that actually work.

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>frame</title>
+<style>
+  html, body { margin: 0; background: #000; }
+  canvas { display: block; width: 1080px; height: 1920px; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script type="module">
+  import { drawFrame } from '/src/stage/reel/render.js';
+  import { loadSprites, setLayerFactory } from '/src/stage/reel/nao.js';
+
+  const q = new URLSearchParams(location.search);
+  const reelPath = q.get('reel') || '/series/your-data-explained/reels/r03-why-the-ad-follows-you/';
+  const frame = Number(q.get('frame') || 0);
+  const guides = q.get('guides') === '1';
+
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+
+  setLayerFactory((w, h) => {
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    return c;
+  });
+
+  (async () => {
+    try {
+      const n = await loadSprites('/assets/nao/heads');
+      const res = await fetch(`${reelPath}reel.json`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`reel.json ${res.status}`);
+      const reel = await res.json();
+      drawFrame(ctx, reel, frame, { guides });
+      window.__frame = { ok: true, sprites: n, shots: reel.shots.length, frame };
+    } catch (err) {
+      window.__frame = { ok: false, error: String(err && err.message || err) };
+    }
+    document.body.dataset.ready = '1';
+  })();
+</script>
+</body>
+</html>

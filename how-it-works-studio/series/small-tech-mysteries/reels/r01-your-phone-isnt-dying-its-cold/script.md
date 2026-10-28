@@ -9,6 +9,7 @@
 | Shots | 26 · average 1.86 s per shot |
 | Outfit | `hoodie` — Winter, outside, hands in pockets. The hoodie is what she is actually wearing in this weather. |
 | Cut rate | one cut every 1.9 s (hook cuts land at 1.2–1.6 s) |
+| Transitions | whip into 4 (hook → world); hard cuts everywhere else |
 | Status | **scripted** — not rendered |
 
 **The promise of this reel:** By the end you know why the number falls, why it comes back, and the one pocket that fixes it.

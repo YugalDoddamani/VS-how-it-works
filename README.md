@@ -355,8 +355,12 @@ how-it-works-studio/
 └── src/                    the lip-sync engine, the reel compiler, the stage renderer
 ```
 
-**Status, stated plainly:** five reels are written shot-by-shot and five long-form
-episodes are written, validated and scheduled.
+**Status, stated plainly:** five reels are written shot-by-shot, five long-form
+episodes are written, validated and scheduled, and **one reel has been rendered** —
+[R03, 45.00 s](how-it-works-studio/series/your-data-explained/reels/r03-why-the-ad-follows-you/output/r03-why-the-ad-follows-you.mp4)
+— with a scrubbable browser preview (`node tools/preview-server.mjs`). It is an
+animatic: real timing, captions, lip-sync and camera grammar; flat vector art, no
+sound, talking heads only. Nothing is published.
 There is **no renderer yet** and no episode has been rendered. The lip-sync
 engine is real and tested (`npm test`), and the storyboards contain the actual
 mouth schedules it produces.

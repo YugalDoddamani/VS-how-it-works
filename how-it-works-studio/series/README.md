@@ -12,6 +12,8 @@ series/
 ├── <series-slug>/
 │   ├── series.md                 who it is for, the look, the roster, the rules
 │   ├── reels/<reel-slug>/script.md       45–60 s, shot by shot
+│   ├── reels/<reel-slug>/reel.json       compiled (git-ignored)
+│   ├── reels/<reel-slug>/output/         the cut: .mp4 + key-frames.jpg
 │   └── episodes/<episode-slug>/          76–78 s, beat by beat
 ```
 
@@ -42,7 +44,7 @@ to write.
 | --- | --- | --- | --- | --- |
 | R01 | Your phone isn't dying. It's cold. | Small Tech Mysteries | reel | 48.4 s |
 | R02 | The padlock isn't a safety badge. | Your Data, Explained | reel | 52.0 s |
-| **R03** | **Why the ad follows you around.** | Your Data, Explained | reel | **45.0 s** |
+| **R03** | **Why the ad follows you around.** | Your Data, Explained | reel | **45.0 s — rendered** |
 | R04 | Why your wifi dies at nine pm. | Small Tech Mysteries | reel | 50.0 s |
 | R05 | Your photos live in a warehouse. | The Cloud | reel | 55.2 s |
 | 0101 | Where your photos actually live | The Cloud | episode | 76 s |
@@ -87,13 +89,25 @@ A render adds `episode.json`, `frames/` and `output/final.mp4`. None exist yet.
 
 ```bash
 python3 tools/check_content.py          # validates every reel and every episode
+node tools/compile-reel.mjs             # script.md → reel.json, for every reel
+node tools/preview-server.mjs           # play and scrub a reel in a browser
+node tools/render-reel.mjs --reel r03 --all --mp4 <path>   # frames → MP4
 node tools/build-projects.mjs           # regenerate episode documents
-node tools/preview-server.mjs           # play the reels in a browser
+python3 tools/build-nao-sprites.py      # re-cut the 12 viseme sprites
 ```
 
 ## Honest status
 
-Ten items are written. **None is rendered, shot or published.** R03 has a
-frame-accurate animatic preview (`node tools/preview-server.mjs`); the other
-reels are scripts. Every `confirm link` in a sources table still needs a human to
-open it before publishing.
+Ten items are written. **One is rendered**: R03 has a 45.00 s animatic MP4 and a
+scrubbable browser preview.
+
+| Item | State |
+| --- | --- |
+| R03 Why the ad follows you around | **rendered** — `output/r03-why-the-ad-follows-you.mp4` |
+| R01, R02, R04, R05 | scripts, shot by shot, not compiled |
+| 0101–0105 | episode documents, not compiled |
+
+"Rendered" means an animatic: real timing, captions, lip-sync and camera grammar
+drawn by the stage — flat vector illustrations, **no sound**, talking heads only.
+It is not a finished illustrated film, and nothing here is published. Every
+`confirm link` in a sources table still needs a human to open it.

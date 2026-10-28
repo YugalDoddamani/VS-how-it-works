@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nao — reel preview</title>
+<link rel="stylesheet" href="./player.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="mark"></span>
+      <span class="name">how it works <em>studio</em></span>
+    </div>
+    <div class="picker">
+      <label for="reel-select">reel</label>
+      <select id="reel-select"></select>
+    </div>
+    <div class="hint">space play · ← → step · shift+← → one frame</div>
+  </header>
+
+  <main class="layout">
+    <section class="stage-wrap">
+      <div class="stage-frame">
+        <canvas id="stage" width="1080" height="1920"></canvas>
+      </div>
+
+      <div class="controls">
+        <button id="play" class="play" data-state="paused" aria-label="Play">
+          <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+        </button>
+        <input id="scrub" type="range" min="0" max="1349" value="0" step="1" aria-label="Scrub" />
+        <span id="timecode" class="tc">00:00.0 / 00:45.0</span>
+      </div>
+
+      <div class="film-bar">
+        <span class="film-label">final cut</span>
+        <a id="film-link" class="film-link" href="#" target="_blank" rel="noreferrer">r03-why-the-ad-follows-you.mp4</a>
+        <span id="film-status" class="film-status">checking…</span>
+      </div>
+
+      <div class="under">
+        <span id="shot-label" class="shot-label">shot —</span>
+        <label class="check"><input id="guides" type="checkbox" /> guides</label>
+        <button id="download" class="ghost">still PNG</button>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div id="meta" class="meta">loading…</div>
+      <ol id="shot-list" class="shots"></ol>
+      <p class="note">
+        Frame-exact preview of the compiled <code>reel.json</code>. Nothing here is
+        rendered to video yet; this is the animatic, not the final film.
+      </p>
+    </aside>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

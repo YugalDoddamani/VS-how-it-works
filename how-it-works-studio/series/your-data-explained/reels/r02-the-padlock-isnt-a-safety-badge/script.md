@@ -9,6 +9,7 @@
 | Shots | 26 · average 2.00 s per shot |
 | Outfit | `office-casual` — White shirt, pencil skirt. Scam messages arrive at work, and she looks like someone who just got one. |
 | Cut rate | one cut every 2.0 s (hook cuts land at 1.2–1.6 s) |
+| Transitions | match cut into 3 (phone → address bar); hard cuts everywhere else |
 | Status | **scripted** — not rendered |
 
 **The promise of this reel:** You will know exactly what the padlock proves, what it does not, and the one thing to read instead.

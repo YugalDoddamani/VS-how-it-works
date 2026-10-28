@@ -30,7 +30,12 @@
     "test": "node --test \"test/**/*.test.js\"",
     "content:check": "python3 tools/check_content.py",
     "projects:build": "node tools/build-projects.mjs",
-    "content:strict": "python3 tools/check_content.py --strict"
+    "content:strict": "python3 tools/check_content.py --strict",
+    "reel:compile": "node tools/compile-reel.mjs",
+    "reel:stills": "node tools/render-reel.mjs --stills 0,240,700",
+    "reel:render": "node tools/render-reel.mjs --all --mp4 series/your-data-explained/reels/r03-why-the-ad-follows-you/output/r03-why-the-ad-follows-you.mp4",
+    "reel:preview": "node tools/preview-server.mjs",
+    "sprites": "python3 tools/build-nao-sprites.py"
   },
   "dependencies": {
     "playwright-core": "^1.64.1",
@@ -39,6 +44,10 @@
   "optionalDependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@ffprobe-installer/ffprobe": "^2.1.2",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/source-serif-4": "^5.3.1",
+    "@napi-rs/canvas": "^1.0.13",
     "@sparticuz/chromium": "^153.0.0"
   }
 }

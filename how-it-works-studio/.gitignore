@@ -2,7 +2,9 @@ node_modules/
 package-lock.json.bak
 
 # Rendered frames are regenerable; the episode and the film are not.
-projects/*/frames/
+series/*/episodes/*/frames/
+series/*/reels/*/frames/
+series/*/reels/*/reel.json
 
 # Scratch output
 projects/*/preview/tmp/
@@ -13,3 +15,8 @@ projects/*/preview/tmp/
 # Workbook lock files created by Excel while open
 ~$*.xlsx
 content/.~lock.*
+
+# A reel's encoded film is a build artefact, and it is big. Key-frame sheets and
+# the stills that go in the docs are committed; the mp4 is regenerated with
+#   node tools/render-reel.mjs --reel r03 --all --mp4 <path>
+series/*/reels/*/output/*.mp4

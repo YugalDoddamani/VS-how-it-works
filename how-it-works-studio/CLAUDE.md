@@ -17,7 +17,11 @@ Read the relevant files in `docs/` before changing behaviour, and read
 
 ## Current state
 
-- **Five reels + five long-form episodes written, none rendered.** `series/<series>/reels/r01…r05/`
+- **One reel is rendered.** R03 has a 45.00 s animatic MP4 (`series/your-data-explained/reels/r03-*/output/`)
+  and a browser preview (`node tools/preview-server.mjs`). The stage lives in
+  `src/stage/reel/` and is dependency-free; `tools/render-reel.mjs` encodes with
+  ffmpeg in Node, no browser. Read `docs/13-reel-rendering.md` before touching it.
+- **Five reels + five long-form episodes written.** `series/<series>/reels/r01…r05/`
   are 45–60 s shot-by-shot scripts (the current posting format). `series/<series>/episodes/`
   are the 76 s long-form archive. The lip-sync engine exists and is tested; the rest
   of `src/` (renderer, CLI) does not exist yet.
@@ -177,6 +181,8 @@ The current format. When the user says "make a reel" / "make a video":
 | Add a content validation rule | `tools/check_content.py`, then `docs/08` |
 | Change a generated project document | `tools/build-projects.mjs` |
 | Change the reel shot grammar or cut rhythm | `docs/12-reels-format.md` |
+| Change how a reel is drawn or encoded | `docs/13-reel-rendering.md` |
+| Add a world/painter for a new background | `src/stage/reel/worlds.js` |
 | Find which series an item belongs to | `series/index.csv` |
 | Write a new reel | `series/<series>/reels/<slug>/script.md` (copy the shape of an existing one) |
 | Change the workbook layout | `tools/build-sheet.py`, then `docs/08` |

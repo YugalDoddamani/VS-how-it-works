@@ -9,6 +9,7 @@
 | Shots | 27 · average 2.04 s per shot |
 | Outfit | `casual` — Pink tee and shorts: the default look, and the reel is about her own camera roll, so it is a quiet evening at home. |
 | Cut rate | one cut every 2.0 s (hook cuts land at 1.2–1.6 s) |
+| Transitions | match cut into 3 (thumbnail → paper card); hard cuts everywhere else |
 | Status | **scripted** — not rendered |
 
 **The promise of this reel:** You will be able to picture the building, the copies, and the power bill behind one photo.

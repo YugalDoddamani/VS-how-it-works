@@ -9,7 +9,8 @@
 | Shots | 23 · average 1.96 s per shot |
 | Outfit | `casual-dress` — Off-shoulder top and pink plaid skirt: the reel is about shopping, so she is dressed for the part. |
 | Cut rate | one cut every 2.0 s (hook cuts land at 1.2–1.6 s) |
-| Status | **scripted** — not rendered |
+| Transitions | whip into 4 (phone → her face); hard cuts everywhere else |
+| Status | **rendered** — animatic MP4 + browser preview (see below) |
 
 **The promise of this reel:** You will know which cookie does it, why it can follow you across sites, and the one switch that stops it.
 
@@ -70,6 +71,21 @@ The world is a **shelf system**, not a warehouse: small tagged boxes on small sh
 
 Total: **1350 frames = 45.0 s** at 30 fps. Left column is timecode, not
 frame number; the renderer converts with `frame = round(t * 30)`.
+
+## The cut, rendered
+
+`output/r03-why-the-ad-follows-you.mp4` — 1080×1920, 30 fps, 45.00 s, libx264.
+
+```bash
+node tools/compile-reel.mjs r03        # script.md → reel.json
+node tools/preview-server.mjs          # scrub it in a browser
+node tools/render-reel.mjs --reel r03 --all --mp4 series/your-data-explained/reels/r03-why-the-ad-follows-you/output/r03-why-the-ad-follows-you.mp4
+```
+
+`output/key-frames.jpg` is eight frames from the cut, for review without opening
+the film. This is an **animatic**: real timing, real captions, real lip-sync, real
+camera grammar — flat vector art, no sound, no full-body poses. It is the cut, not
+the finished illustration.
 
 ## Key shots in detail
 
