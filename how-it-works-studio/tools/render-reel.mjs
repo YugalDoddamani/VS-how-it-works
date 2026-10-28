@@ -42,7 +42,7 @@ const has = (name) => process.argv.includes(`--${name}`);
 // ---------------------------------------------------------------------------
 
 function registerFonts() {
-  const dir = path.join(ROOT, 'preview/fonts');
+  const dir = path.join(ROOT, 'assets/fonts');
   const fonts = [
     'inter-latin-400-normal.woff2',
     'inter-latin-500-normal.woff2',

@@ -1,6 +1,6 @@
 # The Spec
 
-Thirteen documents, in reading order. Read `01` and `02` before writing anything; read
+Fourteen documents, in reading order. Read `01` and `02` before writing anything; read
 the rest when you touch that part of the system.
 
 | # | Document | Answers |
@@ -17,7 +17,8 @@ the rest when you touch that part of the system.
 | 10 | [Quality, Safety, and Publishing](10-quality-and-publishing.md) | The checklists, corrections, asset rights, and the publishing document. |
 | 11 | [Lip-Sync](11-lip-sync.md) | The 12 visemes, grapheme mapping, timing, coarticulation, and what is honest to claim. |
 | 12 | [Reel Format](12-reels-format.md) | The 45–60 s shot grammar: shot codes, lenses, corner overlay numbers, cut rhythm, interaction devices. |
-| 13 | [Reel Rendering](13-reel-rendering.md) | script.md → reel.json → frames → MP4, the sprite cut, and what is still missing. |
+| 13 | [Reel Rendering](13-reel-rendering.md) | script.md → reel.json → frames → MP4, the rig, the sound, the captions, and what is still missing. |
+| 14 | [Production Report](14-production-report.md) | What it took to finish R03 end to end: systems, assets, decisions, and the recipes for improvising it. |
 
 Two companion files sit outside `docs/`:
 

@@ -1,98 +1,174 @@
 # Assets
 
-Every visual in an episode is drawn with HTML/CSS/SVG at render time. There are no
-image or video files to license, and nothing is downloaded during a render.
+Everything the stage draws or plays, in one place. Nothing here is fetched over
+the network at build or render time, so a render is offline and byte-identical
+across machines.
 
-## Fonts
+**What belongs here:** anything reusable across reels and episodes — fonts,
+character art, props, sound cues.
+**What does not:** anything generated *for one reel* — its `reel.json`, its
+voice-over clips, its MP4, its key-frame sheet. Those live next to the reel, in
+`series/<series>/reels/<slug>/output/`, because they are results, not inputs.
 
-**Status: not yet added.** These four files are the intended set, copied from the
-reference studio (`digital-suspense-studio/assets/fonts/`) during Phase 0 of
-`IMPLEMENTATION-PLAN.md`. Until they are in place, `npm run doctor` reports the
-fonts as missing and the stage falls back to a system sans-serif, which changes
-line breaks and therefore layout. Do not ship a rendered episode on the fallback.
+```
+assets/
+├── fonts/                  6 woff2 faces, registered by the renderer
+├── nao/
+│   ├── poses/              the rig: 12 whole figures + its build output
+│   ├── reference/          the model sheet, split by section
+│   ├── visemes/            12 mouth shapes, cropped (spec, not rendered today)
+│   ├── model-sheet.webp    the design authority
+│   └── talking-head-sheet-1k.webp
+├── sfx/                    10 synthesised sound cues
+└── world/                  bitmap props for the worlds (the sneaker)
+```
 
-| File | Family | Weight | License |
+---
+
+## fonts/
+
+Six faces, Latin subset, bundled under the SIL Open Font License 1.1. The
+renderer registers them by path in `tools/render-reel.mjs` (`registerFonts()`);
+nothing loads from a CDN.
+
+| File | Family | Weight | Use |
 | --- | --- | --- | --- |
-| `fonts/inter-latin-400-normal.woff2` | Inter | 400 | SIL OFL 1.1 |
-| `fonts/inter-latin-500-normal.woff2` | Inter | 500 | SIL OFL 1.1 |
-| `fonts/inter-latin-600-normal.woff2` | Inter | 600 | SIL OFL 1.1 |
-| `fonts/inter-latin-700-normal.woff2` | Inter | 700 | SIL OFL 1.1 |
+| `inter-latin-400-normal.woff2` | Inter | 400 | captions at rest, body copy |
+| `inter-latin-500-normal.woff2` | Inter | 500 | meta lines |
+| `inter-latin-600-normal.woff2` | Inter | 600 | captions, labels, chips |
+| `inter-latin-700-normal.woff2` | Inter | 700 | titles, prices, the badge |
+| `source-serif-4-latin-400-normal.woff2` | Source Serif 4 | 400 | pull quotes and the spec card |
+| `ibm-plex-mono-latin-500-normal.woff2` | IBM Plex Mono | 500 | numbers, RFC references |
 
-Source: <https://github.com/rsms/inter> (the Inter Project Authors), distributed via
-the `@fontsource/inter` npm package. Latin subset only, under 25 KB per file.
+Inter has no emoji glyphs: an emoji in a caption renders as a tofu box. Do not
+put one in a script.
 
-The full licence is `fonts/OFL.txt` and must travel with the files. The SIL Open
-Font License allows bundling and redistribution, including commercially, provided
-the licence stays with the fonts and the fonts are not sold on their own.
+---
 
-Fonts load from disk, never a CDN, so a render is offline and byte-identical
-across machines. This matters more here than it does for a story video: Inter has
-no emoji glyphs, so an emoji in the sheet renders as a tofu box and nobody notices
-until a frame is inspected.
+## nao/poses/ — the rig
 
-## Audio (not present yet)
+The character is drawn as **whole figures**, never as a head composited onto a
+body. Twelve poses, each with its own face:
 
-| Path | What | Rights |
+| Pose | Face | Called for by lines like |
 | --- | --- | --- |
-| `audio/sfx/*.mp3` | Interface and prop sounds | to be recorded/synthesized locally |
-| `audio/music/*.mp3` | Beds | must be licensed; record the licence here |
+| `neutral` | calm, closed mouth | a plain statement |
+| `presenting` | warm, open | offering the thing on screen |
+| `openhands` | reassuring, both hands in | "blocking them rarely breaks anything" |
+| `explaining` | friendly, one palm up | the default walk-through |
+| `pointing` | focused, finger out | "look at this one" |
+| `thinking` | puzzled, hand at chin | "how does it know?" |
+| `skeptical` | one brow up, half-smile, arms folded | "that is not what you think" |
+| `onefinger` | bright, eyebrows up | "one small file" |
+| `deadpan` | flat stare | "yes, really" |
+| `warm` | eyes crinkled, generous smile | giving the other side its due |
+| `nope` | flat mouth, palm out | "incognito does not stop this" |
+| `fingerheart` | eyes shut, delighted | the sign-off |
 
-Rules:
+| Path | What |
+| --- | --- |
+| `src-<pose>.png` | **source art**, generated, white background, arbitrary size |
+| `<pose>.png` | **built sprite**, keyed, 900 × 1500, feet and head aligned |
+| `poses.json` | canvas size, anchor (`headWidth`), per-pose geometry |
 
-- Synthesize or record locally where possible, and note how in this file.
-- If a track is licensed, record the licence name, the source, and the expiry.
-- Generated narration is noted as generated, with the tool and the date, in the
-  episode's `render-report.json`.
-- Never commit audio the channel cannot prove the rights to.
+### How the sprites are built
 
-## Character art
+```bash
+python3 tools/build-nao-poses.py            # writes <pose>.png + poses.json
+python3 tools/build-nao-poses.py --report   # geometry only
+```
 
-The presenter **Nao** is defined by two generated sheets, supplied by the channel
-owner and committed here as the design authority. They are reference and
-generation input; the renderer draws from the rig, not from these files.
+1. **Key** — flood-fill the background from the border, so white *inside* the
+   drawing (the sneakers, the tee) survives.
+2. **Scale on the head, not the figure** — every drawing is resized until her
+   head is 212 px wide. An arm raised adds 40 px of canvas height; normalising
+   by height would make her face breathe in and out between cuts.
+3. **Align** — feet on `y = 1460`, head centre on `x = 450`, measured from the
+   alpha channel (top 11 %, central run — the raised pointing arm is excluded).
+
+### Provenance
+
+Generated from the design in `nao/model-sheet.webp` with an image model on
+2026-10-28, one drawing per pose, described in a single sentence each with the
+previous pose as a style reference. Same character, same outfit (pink tee, dark
+shorts, sneakers), same proportions across all twelve. To re-draw one, keep the
+prompt's outfit and proportions block identical and change only the pose and
+face sentence — then rebuild and check `poses.json` still reports `head 212`.
+
+---
+
+## nao/ — the design authority
 
 | Path | What it is |
 | --- | --- |
-| `nao/model-sheet.webp` | Character sheet, turnaround (front / ¾ / side / ¾ back / back), 15 expressions, 18 hand poses, 9 body poses, 7 outfits, accessories |
-| `nao/talking-head-sheet-1k.webp` | 12 visemes for lip-sync |
-| `nao/reference/01-character-and-turnaround.webp` | The model sheet split by section, for fast lookup |
-| `nao/reference/02-expressions.webp` | The 15 expressions |
-| `nao/reference/03-hand-poses.webp` | The 18 hand poses |
-| `nao/reference/04-full-body-poses.webp` | The 9 body poses |
-| `nao/reference/05-outfits-and-accessories.webp` | Outfits, headband, choker, emotion marks, device props |
-| `nao/visemes/*.webp` | The 12 visemes cropped to 256 × 256 and named for the pipeline |
+| `model-sheet.webp` | character sheet: turnaround, 15 expressions, 18 hand poses, 9 body poses, 7 outfits, accessories |
+| `reference/01…05-*.webp` | the same sheet split by section, for fast lookup |
+| `talking-head-sheet-1k.webp` | 12 visemes |
+| `visemes/*.webp` | those visemes cropped to 256 × 256 and named |
 
-### Provenance and rights
+The sheets define **who she is**: pink bob, black headband, black choker, gold
+eyes, pink tee, dark shorts. A new drawing that changes any of those is a new
+character, not a new pose.
 
-These sheets were generated by the channel owner with image models, and the
-character is original to the channel. Record which model and date produced each
-sheet here when it is re-generated, so a later re-draw can be matched:
+`visemes/` is currently specification only — the reel rig has no mouth to swap
+(see `docs/11-lip-sync.md` for why, and what it does instead).
 
-| Sheet | Model | Date | Note |
+---
+
+## sfx/ — the sound design
+
+Ten cues, synthesised from maths, 44.1 kHz mono 16-bit WAV:
+
+```bash
+python3 tools/make-sfx.py            # rebuild all ten
+python3 tools/make-sfx.py --report   # lengths only
+```
+
+| Cue | Length | Sounds like | Used for |
 | --- | --- | --- | --- |
-| `model-sheet.webp` | _fill in_ | 2026-10-28 | 1024 × 1536, downscaled from the 2k original |
-| `talking-head-sheet-1k.webp` | _fill in_ | 2026-10-28 | 1024 × 1024, downscaled from 2048 |
+| `whoosh` | 0.26 s | swept noise, 380 → 2400 Hz | every cut, and harder on the whip |
+| `swipe` | 0.18 s | short high sweep | a feed scroll, a card sliding |
+| `pop` | 0.13 s | pitched blip with a click | a card or chip arriving |
+| `click` | 0.07 s | filtered transient | a toggle, a browser blocking |
+| `tick` | 0.03 s | tiny high click | text landing, a number |
+| `thud` | 0.34 s | low body + slap | the stamp |
+| `paper` | 0.38 s | modulated high noise | a note or a spec card opening |
+| `riser` | 0.55 s | rising sine + noise | into the save frame |
+| `chime` | 1.10 s | three partials, decaying | the recap, the sign-off |
+| `warm` | 1.60 s | soft three-note pad | under the sign-off only |
 
-### Rules
+Where each one fires is **not** in this folder: it is
+`tools/audio-cues.mjs`, expressed as a fraction of the shot, so re-timing a
+script moves the sound with it.
 
-- The **headband, choker, pink palette and bob silhouette** are fixed. A new sheet
-  that changes them is a new character, not a new pose.
-- `summer` (swimwear) exists in the sheet and is **never rendered** on the channel
-  (see `docs/02-character-and-voice.md`).
-- Viseme crops are generated from the talking-head sheet by column/row geometry.
-  If that sheet is regenerated with a different layout, re-crop rather than
-  hand-editing, and check `rest`, `A`, `MBP` and `CGK` by eye.
+The random seed is fixed (`RNG = default_rng(20261028)`), so rebuilding produces
+the same bytes.
 
-### Palette sampled from the sheet
+---
 
-`--nao-hair #F2A6C0` · `--nao-hair-light #FFD3E0` · `--nao-skin #FBE0D2` ·
-`--nao-eye #E3A64E` · `--nao-band #3A343C` · `--nao-cloth #F49BB8` ·
-`--nao-shorts #4A4453`. Full table in `docs/02-character-and-voice.md`.
+## world/ — bitmap props
+
+| Path | What |
+| --- | --- |
+| `shoe.png` | the sneaker from the hook, keyed, 1292 × 654 |
+| `shoe-src.png` | the generated original, white background |
+
+One prop, and one lesson: a shoe built from beziers reads as a bread roll,
+because the proportions are anatomy and the anatomy was wrong. Vector suits the
+isometric world; a known silhouette wants an illustration.
+
+Loaded by hosts through `setWorldAssets()` (`src/stage/reel/worlds.js`) and drawn
+by `drawShoe()`. `oneShoe()` remains as the vector fallback, so the stage still
+renders in a test with no assets injected.
+
+---
 
 ## Adding an asset
 
 1. Confirm the licence permits commercial use and redistribution.
-2. Put the licence text next to the file.
-3. Record it in the tables above.
-4. Load it locally — never over the network.
-5. Re-run `npm run determinism -- <slug>` to confirm nothing shifted.
+2. Put it in the right folder, and record it in the table above.
+3. Prefer a build script over a hand-edited file (see `build-nao-poses.py`,
+   `make-sfx.py`): the input stays reproducible.
+4. Load it locally. Never over the network.
+5. Re-run `node --test "test/**/*.test.js"` and re-render one still before
+   committing.

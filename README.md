@@ -341,8 +341,9 @@ browser.
 ```
 how-it-works-studio/
 ├── README.md               the technical quick start
-├── docs/01–12              the spec: character, writing, style, world, motion,
-│                           scenes, the content sheet, rendering, QC, lip-sync, reels
+├── docs/01–14              the spec: character, writing, style, world, motion,
+│                           scenes, the content sheet, rendering, QC, lip-sync, reels,
+│                           the R03 production report
 ├── IMPLEMENTATION-PLAN.md  build order, phase by phase
 ├── series/                 ← everything is organised by series
 │   ├── index.csv           every item: series, format, length, outfit, status
