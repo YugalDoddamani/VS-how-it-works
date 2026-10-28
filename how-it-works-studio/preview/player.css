@@ -1,0 +1,259 @@
+:root {
+  --bg: #14110f;
+  --bg-soft: #1c1816;
+  --panel: #221d1a;
+  --line: #352d28;
+  --ink: #f4ece1;
+  --ink-soft: #a99c8d;
+  --accent: #e8743b;
+  --accent-soft: #3a2620;
+  --good: #6fbf8c;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 14px/1.5 "Inter", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ------------------------------------------------------------------ top */
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #1a1613, #14110f);
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
+.mark { width: 12px; height: 12px; background: var(--accent); display: inline-block; }
+.name { font-weight: 700; letter-spacing: 0.02em; }
+.name em { font-style: normal; color: var(--ink-soft); font-weight: 400; }
+
+.picker { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.picker label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-soft);
+}
+select {
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font: inherit;
+  max-width: 46vw;
+}
+.hint { color: var(--ink-soft); font-size: 12px; letter-spacing: 0.02em; }
+
+/* --------------------------------------------------------------- layout */
+
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(320px, 460px);
+  gap: 22px;
+  padding: 18px 22px 22px;
+  min-height: 0;
+}
+
+.stage-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-height: 0;
+}
+
+.stage-frame {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+canvas#stage {
+  height: 100%;
+  max-height: calc(100vh - 210px);
+  width: auto;
+  aspect-ratio: 1080 / 1920;
+  background: #fbf7f0;
+  border-radius: 14px;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* ------------------------------------------------------------- controls */
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 780px;
+}
+
+.play {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--accent);
+  color: #1a1109;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex: none;
+}
+.play svg { width: 22px; height: 22px; fill: currentColor; }
+.play .icon-pause { display: none; }
+.play[data-state="playing"] .icon-play { display: none; }
+.play[data-state="playing"] .icon-pause { display: block; }
+
+#scrub {
+  flex: 1;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent) var(--p, 0%), #2b2420 var(--p, 0%), #2b2420 100%);
+  outline: none;
+}
+#scrub::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--ink); border: 3px solid var(--bg);
+  cursor: grab;
+}
+#scrub::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--ink); border: 3px solid var(--bg); cursor: grab;
+}
+
+.tc {
+  font-family: "SF Mono", ui-monospace, "Courier New", monospace;
+  font-size: 12px;
+  color: var(--ink-soft);
+  min-width: 132px;
+  text-align: right;
+}
+
+.film-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 780px;
+  font-size: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #191512;
+}
+.film-label {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 10px;
+  color: var(--ink-soft);
+}
+.film-link { color: var(--accent); text-decoration: none; font-weight: 600; }
+.film-link:hover { text-decoration: underline; }
+.film-status { margin-left: auto; color: var(--ink-soft); font-family: "SF Mono", ui-monospace, monospace; font-size: 11px; }
+.film-status[data-state="ready"] { color: var(--good); }
+
+.under {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 780px;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+.shot-label { letter-spacing: 0.04em; }
+.check { display: flex; align-items: center; gap: 6px; margin-left: auto; cursor: pointer; }
+.ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font: inherit;
+  cursor: pointer;
+}
+.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ----------------------------------------------------------------- side */
+
+.side {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 12px;
+}
+
+.meta {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 4px;
+}
+.meta strong { font-size: 15px; }
+.meta span { color: var(--ink-soft); font-size: 12px; }
+.meta code, .note code {
+  background: #2c2521; padding: 1px 5px; border-radius: 5px; font-size: 11px;
+}
+
+.shots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #191512;
+}
+.shots li {
+  display: grid;
+  grid-template-columns: 28px 74px 62px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  padding: 8px 12px;
+  border-bottom: 1px solid #221d1a;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.shots li:hover { background: #1f1a17; }
+.shots li.active { background: var(--accent-soft); color: var(--ink); box-shadow: inset 3px 0 0 var(--accent); }
+.shots .n { font-variant-numeric: tabular-nums; color: #7a6f64; }
+.shots .code { font-weight: 700; letter-spacing: 0.06em; color: var(--ink); font-size: 11px; }
+.shots .lens { font-family: "SF Mono", ui-monospace, monospace; font-size: 11px; }
+.shots .vo { color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.note {
+  margin: 0;
+  color: #7a6f64;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .side { max-height: 40vh; }
+  .hint { display: none; }
+}

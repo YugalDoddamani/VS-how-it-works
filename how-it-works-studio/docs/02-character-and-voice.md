@@ -177,7 +177,7 @@ Rules:
 1. **One outfit per reel.** Never change mid-reel — it breaks continuity and reads
    as two videos stapled together.
 2. **Rotate.** No two consecutive reels in the same outfit. The rotation is
-   tracked in `reels/README.md`.
+   tracked in `series/README.md`.
 3. **Match the setting.** The outfit should be what someone would actually be
    wearing in the shot: a hoodie outside in winter, a towel and a crop top after a
    workout, sleepwear at 3 a.m.

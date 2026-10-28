@@ -42,8 +42,8 @@ npm run render  -- 0104-why-your-wifi-dies-at-nine-pm
 | Layer | Lives in | Written by |
 | --- | --- | --- |
 | **Content** | the workbook (`Episodes`, `Beats`, `Props`, `Sources`, …) | a human, in a spreadsheet |
-| **Compiled episode** | `projects/<slug>/episode.json` | `npm run sheet:build` |
-| **Pixels** | `projects/<slug>/frames/`, `output/final.mp4` | the renderer |
+| **Compiled episode** | `<series>/episodes/<slug>/episode.json` | `npm run sheet:build` |
+| **Pixels** | `<series>/episodes/<slug>/frames/`, `output/final.mp4` | the renderer |
 
 Only the first layer is hand-authored. `episode.json` is generated and should
 never be edited by hand — if a number is wrong, fix the sheet and rebuild.
@@ -282,7 +282,7 @@ how-it-works-studio/
 ├── assets/nao/             model sheet, 12 visemes, expression and pose crops
 ├── assets/fonts/           Inter, SIL OFL 1.1 (to be added; see assets/README.md)
 ├── content/                the workbook and its CSV mirror
-├── projects/               one folder per episode (5 written, none rendered)
+├── series/                 series → format → item (5 reels, 5 episodes)
 ├── tools/                  content checker, workbook builder, project generator
 ├── templates/              script, config, publishing, and sheet-tab starting points
 ├── docs/                   the design spec, kept in sync with the code

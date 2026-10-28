@@ -26,7 +26,7 @@ Edit in Excel, LibreOffice, or a Google Sheet. If you work in Google Sheets, set
 into the repo before committing.
 
 Never commit a workbook with unsaved edits from a render, and never edit
-`projects/<slug>/episode.json` — that file is generated. If a number is wrong,
+`<series>/episodes/<slug>/episode.json` — that file is generated. If a number is wrong,
 the sheet is wrong.
 
 ## Tabs

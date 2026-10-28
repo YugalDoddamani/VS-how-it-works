@@ -17,8 +17,12 @@ Read the relevant files in `docs/` before changing behaviour, and read
 
 ## Current state
 
-- **Five reels + five long-form episodes written, none rendered.** `reels/r01…r05/`
-  are 45–60 s shot-by-shot scripts (the current posting format). `projects/0101…0105/`
+- **One reel is rendered.** R03 has a 45.00 s animatic MP4 (`series/your-data-explained/reels/r03-*/output/`)
+  and a browser preview (`node tools/preview-server.mjs`). The stage lives in
+  `src/stage/reel/` and is dependency-free; `tools/render-reel.mjs` encodes with
+  ffmpeg in Node, no browser. Read `docs/13-reel-rendering.md` before touching it.
+- **Five reels + five long-form episodes written.** `series/<series>/reels/r01…r05/`
+  are 45–60 s shot-by-shot scripts (the current posting format). `series/<series>/episodes/`
   are the 76 s long-form archive. The lip-sync engine exists and is tested; the rest
   of `src/` (renderer, CLI) does not exist yet.
 - `IMPLEMENTATION-PLAN.md` is the build order. Do not start the renderer before
@@ -74,7 +78,7 @@ The current format. When the user says "make a reel" / "make a video":
 1. Pick a question from `topics.md` that can be answered in 45–60 s.
 2. **Write the hook first**: a thing the viewer has already experienced, in ≤ 14
    words. Write three variants before choosing.
-3. Fill the shot table in `reels/<slug>/script.md`: 22–27 shots, average 1.8–2.2 s,
+3. Fill the shot table in `series/<series>/reels/<slug>/script.md`: 22–27 shots, average 1.8–2.2 s,
    a stated shot code and focal length on **every** row. No row may say "somewhere
    in the middle".
 4. Put the world on screen before 12 s, and give the reel exactly one save frame
@@ -177,7 +181,10 @@ The current format. When the user says "make a reel" / "make a video":
 | Add a content validation rule | `tools/check_content.py`, then `docs/08` |
 | Change a generated project document | `tools/build-projects.mjs` |
 | Change the reel shot grammar or cut rhythm | `docs/12-reels-format.md` |
-| Write a new reel | `reels/<slug>/script.md` (copy the shape of an existing one) |
+| Change how a reel is drawn or encoded | `docs/13-reel-rendering.md` |
+| Add a world/painter for a new background | `src/stage/reel/worlds.js` |
+| Find which series an item belongs to | `series/index.csv` |
+| Write a new reel | `series/<series>/reels/<slug>/script.md` (copy the shape of an existing one) |
 | Change the workbook layout | `tools/build-sheet.py`, then `docs/08` |
 | Change palette, type scale, or the five zones | `src/stage/style.css` (`:root` custom properties) |
 | Change timing maths | `src/stage/timeline.js` |
@@ -198,7 +205,7 @@ Five folders already exist with the hand-written `README.md` and three generated
 documents. A build adds the rest.
 
 ```
-projects/<slug>/
+<series>/episodes/<slug>/
 ├── README.md             # hand-authored: idea, audience, hook variants, notes
 ├── episode.json          # compiled from the sheet, never edited by hand
 ├── script.md             # GENERATED: narration, claims, reading-speed check
@@ -216,7 +223,7 @@ projects/<slug>/
 `content/csv/*.csv` is the source of truth: the workbook is generated from it by
 `tools/build-sheet.py`, and the project documents by `tools/build-projects.mjs`.
 Commit the CSVs and the workbook; never hand-edit a generated document.
-`projects/*/frames/` is git-ignored.
+`series/*/episodes/*/frames/` is git-ignored.
 
 ## Audience and tone (non-negotiable)
 

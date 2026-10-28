@@ -77,7 +77,7 @@ README_LINES = [
     ("4. Lists use a semicolon:  Name goes in;Number comes out", 10, False),
     ("5. No merged cells, no formulas in data cells, no line breaks inside cells.", 10, False),
     ("6. python3 tools/check_content.py before every commit. It names the tab, row and column.", 10, False),
-    ("7. Never edit projects/<slug>/episode.json. It is generated; fix the sheet.", 10, False),
+    ("7. Never edit <series>/episodes/<slug>/episode.json. It is generated; fix the sheet.", 10, False),
     ("", 10, False),
     ("CURRENT CONTENTS", 12, True),
     ("5 episodes, 0101 to 0105, each 12 beats and about 76 seconds, status scripted.", 10, False),

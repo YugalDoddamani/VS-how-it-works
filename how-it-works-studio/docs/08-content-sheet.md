@@ -30,7 +30,7 @@ one-off ideas. That is the trade, made on purpose.
 | **Schema** | `templates/sheet/*.csv` | committed starting points: header-only, except `Vocab` (fully seeded) and `Episodes`/`Beats` (one illustrative row each) |
 
 The workbook is never read at render time. `content/how-it-works.xlsx` is read by
-`npm run sheet:build`, compiled to `projects/<slug>/episode.json`, and the
+`npm run sheet:build`, compiled to `<series>/episodes/<slug>/episode.json`, and the
 renderer consumes only that JSON.
 
 ### Getting a Google Sheet into the repo

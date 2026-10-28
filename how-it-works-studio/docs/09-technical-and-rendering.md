@@ -42,16 +42,16 @@ content/how-it-works.xlsx
   │  plan.js    validate against Vocab (+ arithmetic check)
   │  compile.js seconds→frames, resolve props, emit captions
   ▼
-projects/<slug>/episode.json  +  script.md
+<series>/episodes/<slug>/episode.json  +  script.md
   │  render.js  start server + browser, drive frames
   ▼
-projects/<slug>/frames/frame_000000.png …
+<series>/episodes/<slug>/frames/frame_000000.png …
   │  encode.js  ffmpeg -framerate 30 -i frame_%06d.png
   ▼
-projects/<slug>/output/final.mp4
+<series>/episodes/<slug>/output/final.mp4
   │  encode.js  ffprobe verification
   ▼
-projects/<slug>/render-report.json
+<series>/episodes/<slug>/render-report.json
 ```
 
 Only `sheet.js` and the file-writing half of `sheet-cli.js` touch the
@@ -186,7 +186,7 @@ When narration exists:
 
 1. Write the beats in the sheet; `sheet:build` emits `script.md`.
 2. Read `script.md` aloud. Fix anything you stumble on **in the sheet**.
-3. Record or generate one file per beat, into `projects/<slug>/audio/vo/`.
+3. Record or generate one file per beat, into `<series>/episodes/<slug>/audio/vo/`.
 4. `npm run render` picks them up automatically.
 
 Because the file name is the beat number, re-ordering beats in the sheet means

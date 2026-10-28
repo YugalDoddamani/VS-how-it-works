@@ -200,7 +200,7 @@ Question: *Why does the wifi get bad at the same time every night?*
 
 76 seconds, 12 beats, 146 spoken words, three new terms (radio, channel,
 oversubscription), four sourced claims. Every claim has a source. This is written
-out in full at `projects/0104-why-your-wifi-dies-at-nine-pm/` — read its
+out in full at `series/small-tech-mysteries/episodes/0104-why-your-wifi-dies-at-nine-pm/` — read its
 `script.md` and `storyboard.md` together before writing your first episode..
 
 ## Common failure modes

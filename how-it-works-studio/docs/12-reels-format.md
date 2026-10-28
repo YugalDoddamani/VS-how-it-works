@@ -3,7 +3,7 @@
 The short format: **45–60 seconds, 22–27 shots, one idea**.
 
 This is the format the channel actually posts. The longer 76-second explainers in
-`projects/` stay as the "deep cut" archive; a reel is what goes in the feed.
+`<series>/episodes/` stay as the "deep cut" archive; a reel is what goes in the feed.
 
 Everything here is a rule the script obeys and the renderer will enforce. If a
 reel breaks one of these, it should say why in its own `script.md`.

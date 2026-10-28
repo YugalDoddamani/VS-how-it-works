@@ -8,11 +8,11 @@ Only check a question once the episode is rendered and verified.
 
 ## Reels scripted (45–60 s, shot-by-shot)
 
-- [x] Why does my phone die the second I step outside? → `reels/r01`
-- [x] Does the padlock mean the site is safe? → `reels/r02`
-- [x] How does an ad know I looked at that? → `reels/r03`
-- [x] Why does the wifi get bad at the same time every night? → `reels/r04`
-- [x] Where do my photos actually go when I back them up? → `reels/r05`
+- [x] Why does my phone die the second I step outside? → `series/small-tech-mysteries/reels/r01`
+- [x] Does the padlock mean the site is safe? → `series/your-data-explained/reels/r02`
+- [x] How does an ad know I looked at that? → `series/your-data-explained/reels/r03`
+- [x] Why does the wifi get bad at the same time every night? → `series/small-tech-mysteries/reels/r04`
+- [x] Where do my photos actually go when I back them up? → `series/the-cloud/reels/r05`
 
 ## Long-form scripted, not rendered
 

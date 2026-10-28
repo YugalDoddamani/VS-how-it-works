@@ -88,7 +88,7 @@ them into a film.
 ## Standard project folder
 
 ```
-projects/<slug>/
+<series>/episodes/<slug>/
 ├── episode.json       compiled from the workbook; never edited by hand
 ├── script.md          narration in order, with claims and sources
 ├── publishing.md      copied from the Publish tab, plus the source list

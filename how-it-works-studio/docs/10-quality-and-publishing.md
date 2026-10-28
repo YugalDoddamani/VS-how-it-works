@@ -128,7 +128,7 @@ watched the finished film.
 
 ## Publishing document
 
-`npm run publish -- <slug>` writes `projects/<slug>/publishing.md` containing:
+`npm run publish -- <slug>` writes `<series>/episodes/<slug>/publishing.md` containing:
 
 1. Suggested title (the question, restated as a hook).
 2. The post caption from the `Publish` tab.
