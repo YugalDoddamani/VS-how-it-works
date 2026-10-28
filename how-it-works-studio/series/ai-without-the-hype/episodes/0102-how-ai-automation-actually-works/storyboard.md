@@ -110,7 +110,7 @@ rest@0 · O@5 · rest@15 · A@17 · SZTD@22 · rest@27 · A@29 · U@31 · rest@3
 
 </details>
 
-## Beat 7 — step-by-step · 10.0 s · 0:37.0
+## Beat 7 — step-by-step · 8.0 s · 0:37.0
 
 - **Narration:** Set a goal. Give it tools. Check the result. Go again.
 - **Board title:** The loop
@@ -124,12 +124,12 @@ rest@0 · O@5 · rest@15 · A@17 · SZTD@22 · rest@27 · A@29 · U@31 · rest@3
 <details><summary>Mouth schedule (44 change points)</summary>
 
 ```
-rest@0 · SZTD@8 · E@15 · SZTD@22 · rest@29 · A@33 · rest@40 · CGK@44 · O@52 · L@60 · rest@68 · CGK@72 · I@79 · FV@86 · rest@93 · I@97 · SZTD@104 · rest@111 · SZTD@115 · U@122 · L@129 · SZTD@136 · rest@143 · CGK@147 · E@157 · CGK@167 · rest@177 · SZTD@181 · E@188 · rest@195 · L@199 · E@206 · SZTD@213 · U@220 · L@227 · SZTD@234 · rest@241 · CGK@245 · O@252 · rest@259 · A@263 · CGK@273 · E@283 · rest@292
+rest@0 · SZTD@6 · E@11 · SZTD@16 · rest@21 · A@25 · rest@30 · CGK@34 · O@41 · L@48 · rest@55 · CGK@59 · I@64 · FV@69 · rest@74 · I@78 · SZTD@83 · rest@88 · SZTD@92 · U@98 · L@104 · SZTD@110 · rest@116 · CGK@120 · E@128 · CGK@136 · rest@144 · SZTD@148 · E@153 · rest@158 · L@162 · E@167 · SZTD@172 · U@177 · L@182 · SZTD@187 · rest@192 · CGK@196 · O@201 · rest@206 · A@210 · CGK@218 · E@226 · rest@232
 ```
 
 </details>
 
-## Beat 8 — explain · 8.0 s · 0:47.0
+## Beat 8 — explain · 8.0 s · 0:45.0
 
 - **Narration:** That loop is the automation. The model is only one part of it.
 - **Board title:** The loop is the automation
@@ -146,7 +146,7 @@ rest@0 · SZTD@5 · A@11 · SZTD@17 · rest@23 · L@26 · U@32 · MBP@38 · rest
 
 </details>
 
-## Beat 9 — myth-check · 8.0 s · 0:55.0
+## Beat 9 — myth-check · 8.0 s · 0:53.0
 
 - **Narration:** It is not one genius robot. It is a loop with a safety check bolted on.
 - **Board title:** Not a genius robot
@@ -163,7 +163,7 @@ rest@0 · I@4 · SZTD@7 · rest@10 · I@13 · SZTD@16 · rest@19 · O@22 · SZTD
 
 </details>
 
-## Beat 10 — explain · 7.0 s · 1:03.0
+## Beat 10 — explain · 7.0 s · 1:01.0
 
 - **Narration:** And the check is where it fails. No check means no automation, just vibes.
 - **Board title:** Where it fails
@@ -180,7 +180,7 @@ rest@0 · A@4 · SZTD@9 · rest@14 · SZTD@16 · E@19 · rest@22 · CGK@24 · E@
 
 </details>
 
-## Beat 11 — recap · 5.0 s · 1:10.0
+## Beat 11 — recap · 5.0 s · 1:08.0
 
 - **Narration:** Goal. Tools. Check. Repeat.
 - **Board title:** The loop
@@ -197,7 +197,7 @@ rest@0 · CGK@7 · O@15 · L@23 · rest@31 · SZTD@35 · U@42 · L@49 · SZTD@56
 
 </details>
 
-## Beat 12 — outro · 3.0 s · 1:15.0
+## Beat 12 — outro · 5.0 s · 1:13.0
 
 - **Narration:** So next time someone says the AI does it, ask where the check is.
 - **Board title:** Episode 02
@@ -206,10 +206,10 @@ rest@0 · CGK@7 · O@15 · L@23 · rest@31 · SZTD@35 · U@42 · L@49 · SZTD@56
 - **Transition in:** wipe · **sfx:** pop-soft
 - **Emphasis:** check
 
-<details><summary>Mouth schedule (33 change points)</summary>
+<details><summary>Mouth schedule (48 change points)</summary>
 
 ```
-rest@0 · SZTD@3 · O@5 · E@8 · SZTD@11 · I@17 · MBP@19 · SZTD@22 · O@24 · MBP@26 · E@28 · O@30 · SZTD@33 · E@35 · SZTD@37 · E@42 · I@47 · SZTD@50 · A@52 · SZTD@54 · I@57 · SZTD@59 · A@62 · SZTD@64 · CGK@66 · W@69 · E@71 · SZTD@74 · E@76 · CGK@79 · E@82 · CGK@85 · rest@86
+rest@0 · SZTD@4 · O@7 · rest@10 · E@12 · SZTD@16 · rest@20 · SZTD@22 · I@26 · MBP@30 · rest@34 · SZTD@36 · O@40 · MBP@44 · E@48 · O@52 · rest@56 · SZTD@58 · E@61 · SZTD@64 · rest@67 · SZTD@69 · E@72 · rest@75 · E@77 · I@80 · rest@83 · SZTD@85 · A@88 · SZTD@91 · rest@94 · I@96 · SZTD@99 · rest@102 · A@104 · SZTD@107 · U@111 · rest@113 · W@115 · E@118 · rest@121 · SZTD@123 · E@126 · rest@129 · CGK@131 · E@135 · CGK@139 · rest@143
 ```
 
 </details>

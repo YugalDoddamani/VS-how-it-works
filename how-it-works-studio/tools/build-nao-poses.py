@@ -44,6 +44,7 @@ POSES = ROOT / "assets" / "nao" / "poses"
 POSE_NAMES = [
     "neutral", "presenting", "openhands", "explaining", "pointing", "thinking",
     "skeptical", "onefinger", "deadpan", "warm", "nope", "fingerheart",
+    "gesture", "openhands2",
 ]
 
 WHITE = 246           # a channel at or above this is background

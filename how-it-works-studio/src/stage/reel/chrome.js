@@ -45,6 +45,32 @@ function normal(word) {
 }
 
 /**
+ * Where the caption card starts, for a given shot.
+ *
+ * The number is public because the figure has to stop there. Her drawing runs to
+ * her feet, the feet are off the bottom of the frame, and the card sits on top -
+ * so without this the legs reappear underneath it and she looks like she is
+ * standing behind a floating plank.
+ */
+export function captionTop(ctx, shot) {
+  const text = shot.caption?.text || shot.vo || '';
+  if (!text) return CAP.bottom;
+  ctx.save();
+  let size = CAP.fontSize;
+  ctx.font = `600 ${size}px ${FONT_SANS}`;
+  let lines = wrap(ctx, text, CAP.maxWidth);
+  if (lines.length > 2) {
+    size = 40;
+    ctx.font = `600 ${size}px ${FONT_SANS}`;
+    lines = wrap(ctx, text, CAP.maxWidth);
+  }
+  ctx.restore();
+  const lineHeight = size * 1.32;
+  const cardH = CAP.pad * 2 + lines.length * lineHeight - (lineHeight - size) * 0.2;
+  return CAP.bottom - cardH;
+}
+
+/**
  * Draw the caption card for a shot. Emphasis words are tinted and underlined;
  * a caption is on screen for the whole shot, because the shot *is* the line.
  */

@@ -2,24 +2,25 @@
 /**
  * mix-audio.mjs - build the soundtrack and mux it onto the film.
  *
- * Two layers, mixed by hand:
- *   1. voice-over - one clip per line, placed at the shot it belongs to and
- *                   nudged to fit its window (atempo, capped, never chipmunked)
+ * Three layers, all placed on the same timeline:
+ *   1. voice-over - one clip per group of shots, from output/vo.json
  *   2. effects    - the cue table in audio-cues.mjs, one shared WAV per cue
+ *   3. the bed    - nothing. Silence between lines is the point; a music bed
+ *                   would sit under the jokes and make the film feel like an ad.
  *
- * The summing happens here rather than inside ffmpeg's amix on purpose: this
- * environment ships a 2018 ffmpeg whose amix divides by the input count, so a
- * 60-cue mix would come out near-silent and duck itself as cues ended. Summing
- * plain PCM is 30 lines and does exactly what is asked.
+ * Summing happens here rather than in ffmpeg's amix on purpose: this environment
+ * ships a 2018 ffmpeg whose amix divides by the input count, so a 60-cue mix
+ * comes out near-silent and dips every time a cue ends. Summing plain PCM is
+ * thirty lines and does exactly what is asked.
  *
  * Usage:
- *   node tools/mix-audio.mjs --reel r03 --wav out.wav              (no video)
- *   node tools/mix-audio.mjs --reel r03 --video in.mp4 --out out.mp4
- *   ... --no-vo          effects only
- *   ... --vo-gain 1.0    override the voice level
+ *   node tools/mix-audio.mjs --reel 0102 --wav /tmp/mix.wav      (no video)
+ *   node tools/mix-audio.mjs --reel 0102 --video in.mp4 --out out.mp4
+ *   ... --no-vo            effects only
+ *   ... --vo-gain 1.0      override the voice level
  *
  * The voice clips and their frames live in output/vo.json:
- *   { "clips": [ { "file": "g1.mp3", "start": 0, "end": 78 } ] }
+ *   { "clips": [ { "file": "g1.mp3", "start": 0, "end": 120 } ] }
  */
 
 import fs from 'node:fs';
@@ -30,6 +31,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 
 import { cuesFor } from './audio-cues.mjs';
+import { findCompiled } from './lookup.mjs';
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -41,22 +43,6 @@ function arg(name, fallback = null) {
   return i >= 0 ? process.argv[i + 1] : fallback;
 }
 const has = (name) => process.argv.includes(`--${name}`);
-
-function findReel(id) {
-  const seriesDir = path.join(ROOT, 'series');
-  for (const series of fs.readdirSync(seriesDir)) {
-    const reels = path.join(seriesDir, series, 'reels');
-    if (!fs.existsSync(reels)) continue;
-    for (const slug of fs.readdirSync(reels)) {
-      const dir = path.join(reels, slug);
-      const file = path.join(dir, 'reel.json');
-      if (!fs.existsSync(file)) continue;
-      const reel = JSON.parse(fs.readFileSync(file, 'utf8'));
-      if (reel.id.toLowerCase() === id.toLowerCase()) return { reel, dir };
-    }
-  }
-  throw new Error(`no compiled reel ${id} — run node tools/compile-reel.mjs ${id}`);
-}
 
 /** Read a 16-bit PCM WAV into Float32 mono at 44.1 kHz (mono is all we make). */
 function readWav(file) {
@@ -131,7 +117,7 @@ function decode(file, tempo, tmpDir) {
   args.push('-ar', String(RATE), '-ac', '1', '-c:a', 'pcm_s16le', out);
   const r = spawnSync(FFMPEG, args, { encoding: 'utf8' });
   if (r.status !== 0) {
-    console.error(r.stderr.split('\n').slice(-10).join('\n'));
+    console.error((r.stderr || '').split('\n').slice(-10).join('\n'));
     throw new Error(`could not decode ${file}`);
   }
   return out;
@@ -148,13 +134,14 @@ function duration(file) {
 // build
 // ---------------------------------------------------------------------------
 
-const reelId = arg('reel', 'r03');
-const { reel, dir } = findReel(reelId);
+const reelId = arg('reel', '0102');
+const { reel, dir } = findCompiled(ROOT, reelId);
 const outDir = path.join(dir, 'output');
 const voGain = Number(arg('vo-gain', '1.0'));
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nao-mix-'));
 
-const totalSamples = Math.ceil((reel.frames / reel.fps) * RATE) + RATE;
+const filmLength = Math.ceil((reel.frames / reel.fps) * RATE);
+const totalSamples = filmLength + RATE;
 const mix = new Float32Array(totalSamples);
 
 // ---- voice-over -----------------------------------------------------------
@@ -168,15 +155,17 @@ if (!has('no-vo') && fs.existsSync(voFile)) {
     const at = clip.start / reel.fps;
     const window = (clip.end - clip.start) / reel.fps;
     const raw = duration(file) || window;
-    // fit the clip to its window without turning her into a chipmunk: at most
-    // 15 % faster, at most 5 % slower. Beyond that the cut is the problem.
-    const tempo = Math.min(1.15, Math.max(0.95, raw / Math.max(0.2, window)));
+    // Fit a clip that overruns its window, and only then: at most 15 % faster.
+    // A clip that already fits is left at its recorded speed, because stretching
+    // every line by 5 % makes the whole read sound sedated.
+    const ratio = raw / Math.max(0.2, window);
+    const tempo = ratio > 1.0 ? Math.min(1.15, ratio) : 1.0;
     const wav = decode(file, tempo, tmpDir);
     addLayer(mix, readWav(wav), at, voGain);
     voCount++;
   }
 } else if (!has('no-vo')) {
-  console.warn('  ! no output/vo.json — mixing effects only');
+  console.log('  ! no output/vo.json — mixing effects only');
 }
 
 // ---- effects --------------------------------------------------------------
@@ -192,7 +181,6 @@ for (const cue of cues) {
 }
 
 // ---- normalise and write --------------------------------------------------
-const filmLength = Math.ceil((reel.frames / reel.fps) * RATE);
 let peak = 0;
 for (let i = 0; i < filmLength; i++) peak = Math.max(peak, Math.abs(mix[i]));
 const scale = peak > 0 ? 0.89 / peak : 1;
@@ -211,7 +199,8 @@ if (wavOut) {
   console.log(`wav    → ${path.relative(process.cwd(), wavOut) || wavOut}  ` +
     `${(filmLength / RATE).toFixed(2)}s  peak ${level} dBFS  ` +
     `${voCount} voice clips, ${cues.length} effects`);
-} else if (videoIn && mp4Out) {
+}
+if (videoIn && mp4Out) {
   const r = spawnSync(
     FFMPEG,
     [
@@ -231,7 +220,8 @@ if (wavOut) {
   const size = (fs.statSync(mp4Out).size / 1e6).toFixed(1);
   console.log(`mp4    → ${path.relative(ROOT, mp4Out)}  ${size} MB  ` +
     `${voCount} voice clips, ${cues.length} effects, peak ${level} dBFS`);
-} else {
+}
+if (!wavOut && !(videoIn && mp4Out)) {
   console.error('nothing to do: pass --wav <file> or --video <in> --out <out>');
   process.exit(1);
 }

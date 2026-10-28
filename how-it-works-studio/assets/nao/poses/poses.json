@@ -142,6 +142,28 @@
       "headTop": 207,
       "feetY": 1460,
       "offsetX": 295
+    },
+    {
+      "name": "gesture",
+      "figureHeight": 1267,
+      "file": "gesture.png",
+      "width": 900,
+      "height": 1500,
+      "headWidth": 212,
+      "headTop": 193,
+      "feetY": 1460,
+      "offsetX": 259
+    },
+    {
+      "name": "openhands2",
+      "figureHeight": 1161,
+      "file": "openhands2.png",
+      "width": 900,
+      "height": 1500,
+      "headWidth": 212,
+      "headTop": 299,
+      "feetY": 1460,
+      "offsetX": 198
     }
   ]
 }

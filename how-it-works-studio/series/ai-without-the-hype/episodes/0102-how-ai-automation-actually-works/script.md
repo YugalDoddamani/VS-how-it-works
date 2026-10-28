@@ -11,7 +11,7 @@
 | Beats | 12 |
 | Length | 78.0 s — 2340 frames @ 30 fps |
 | Words spoken | 139 |
-| Status | `scripted` |
+| Status | `rendered` |
 
 ## The question
 
@@ -31,12 +31,12 @@
 | 4 | 0:14.0 | explain | 7.0 | For fifty years those steps were rules. If this, then that. | If this, then that |
 | 5 | 0:21.0 | explain | 7.0 | Rules break the moment real life looks slightly different from the example. | Rules break easily |
 | 6 | 0:28.0 | analogy | 9.0 | Now add a model. Something that reads a messy pile and guesses the sensible thing. | Messy in, sensible out |
-| 7 | 0:37.0 | step-by-step | 10.0 | Set a goal. Give it tools. Check the result. Go again. | The loop |
-| 8 | 0:47.0 | explain | 8.0 | That loop is the automation. The model is only one part of it. | The loop is the automation |
-| 9 | 0:55.0 | myth-check | 8.0 | It is not one genius robot. It is a loop with a safety check bolted on. | Not a genius robot |
-| 10 | 1:03.0 | explain | 7.0 | And the check is where it fails. No check means no automation, just vibes. | Where it fails |
-| 11 | 1:10.0 | recap | 5.0 | Goal. Tools. Check. Repeat. | The loop |
-| 12 | 1:15.0 | outro | 3.0 | So next time someone says the AI does it, ask where the check is. | Episode 02 |
+| 7 | 0:37.0 | step-by-step | 8.0 | Set a goal. Give it tools. Check the result. Go again. | The loop |
+| 8 | 0:45.0 | explain | 8.0 | That loop is the automation. The model is only one part of it. | The loop is the automation |
+| 9 | 0:53.0 | myth-check | 8.0 | It is not one genius robot. It is a loop with a safety check bolted on. | Not a genius robot |
+| 10 | 1:01.0 | explain | 7.0 | And the check is where it fails. No check means no automation, just vibes. | Where it fails |
+| 11 | 1:08.0 | recap | 5.0 | Goal. Tools. Check. Repeat. | The loop |
+| 12 | 1:13.0 | outro | 5.0 | So next time someone says the AI does it, ask where the check is. | Episode 02 |
 
 ## Claims and sources
 
@@ -64,9 +64,9 @@ Every caption needs `words / 4 + 0.6` seconds on screen. Measured per beat:
 | 4 | 11 | 3.4 | 7.0 | ok |
 | 5 | 12 | 3.6 | 7.0 | ok |
 | 6 | 15 | 4.3 | 9.0 | ok |
-| 7 | 11 | 3.4 | 10.0 | ok |
+| 7 | 11 | 3.4 | 8.0 | ok |
 | 8 | 13 | 3.9 | 8.0 | ok |
 | 9 | 16 | 4.6 | 8.0 | ok |
 | 10 | 14 | 4.1 | 7.0 | ok |
 | 11 | 4 | 1.6 | 5.0 | ok |
-| 12 | 14 | 4.1 | 3.0 | **too fast** |
+| 12 | 14 | 4.1 | 5.0 | ok |

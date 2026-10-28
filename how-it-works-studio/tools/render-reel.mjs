@@ -11,6 +11,7 @@
  *   node tools/render-reel.mjs --reel r03 --stills 0,240,700 --out /tmp/stills
  *   node tools/render-reel.mjs --reel r03 --all --out /tmp/stills
  *   node tools/render-reel.mjs --reel r03 --mp4 series/.../output/r03.mp4
+ *   node tools/render-reel.mjs --reel 0102 --all --mp4 <episode>/output/0102.mp4
  */
 
 import fs from 'node:fs';
@@ -26,6 +27,7 @@ const { createCanvas, GlobalFonts, loadImage } = require('@napi-rs/canvas');
 const { drawFrame } = await import(path.join(ROOT, 'src/stage/reel/render.js'));
 const { setPoses } = await import(path.join(ROOT, 'src/stage/reel/nao.js'));
 const { setWorldAssets } = await import(path.join(ROOT, 'src/stage/reel/worlds.js'));
+const { findCompiled } = await import(path.join(ROOT, 'tools/lookup.mjs'));
 
 const FPS = 30;
 const W = 1080;
@@ -82,25 +84,6 @@ async function registerPoses() {
 // reel lookup
 // ---------------------------------------------------------------------------
 
-function findReel(id) {
-  const seriesDir = path.join(ROOT, 'series');
-  for (const series of fs.readdirSync(seriesDir)) {
-    const reels = path.join(seriesDir, series, 'reels');
-    if (!fs.existsSync(reels)) continue;
-    for (const slug of fs.readdirSync(reels)) {
-      if (slug.startsWith(id)) {
-        return {
-          series,
-          slug,
-          json: path.join(reels, slug, 'reel.json'),
-          dir: path.join(reels, slug),
-        };
-      }
-    }
-  }
-  throw new Error(`no reel starting with "${id}"`);
-}
-
 function ffmpegPath() {
   try {
     return require('@ffmpeg-installer/ffmpeg').path;
@@ -115,11 +98,8 @@ function ffmpegPath() {
 
 async function main() {
   const reelId = (arg('reel', 'r03') || 'r03').toLowerCase();
-  const found = findReel(reelId);
-  if (!fs.existsSync(found.json)) {
-    throw new Error(`not compiled: ${path.relative(ROOT, found.json)} — run node tools/compile-reel.mjs ${reelId}`);
-  }
-  const reel = JSON.parse(fs.readFileSync(found.json, 'utf8'));
+  const found = findCompiled(ROOT, reelId);
+  const reel = found.reel;
 
   registerFonts();
   const poseCount = await registerPoses();
