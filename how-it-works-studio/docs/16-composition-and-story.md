@@ -97,6 +97,16 @@ platformTop 120, platformBottom 260, gutter 24 }`. The bench is derived per shot
 `902` when she is in frame, `min(1180, captionTop - 150)` when she is not — because
 a fixed bench wasted the bottom third on inserts.
 
+### The card ends her, not the crop
+
+A corner insert has no bottom edge of its own: the shot continues to the caption,
+so **the caption card is what ends the figure**. That makes the card the thing the
+framing numbers have to clear, and it is why `FRAMING` in `nao.js` starts her head
+at 760–900 px rather than at 1065 px. With the old numbers the card landed across
+her chest, which reads as a head on a shelf — the floating-head problem with a
+caption in front of it. Head, shoulders and waist now sit above the card at every
+size, and her hands stay in frame because the hands are the animation.
+
 ## 4 · Subjects have roles
 
 Every prop in `worlds-episode.js` declares a role: `demonstrate`, `compare`,

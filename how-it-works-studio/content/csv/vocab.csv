@@ -147,3 +147,16 @@ source_kind,measured,Measured,Measured by the author. Say how in the quote.,FALS
 lip_sync_mode,talking-head,Talking head,Head and shoulders. Full 12 visemes.,FALSE
 lip_sync_mode,mid,Mid shot,"Full viseme set, mouth region only.",FALSE
 lip_sync_mode,full-body,Full body,"Three states: closed, mid, open.",FALSE
+gesture,pointing,Pointing,"Index to the board, weight on one leg. The reel rig pose.",FALSE
+gesture,presenting,Presenting,"Both palms open, board offered. The reel rig pose.",FALSE
+gesture,openhands,Open hands,"Both palms up, explaining. The reel rig pose.",FALSE
+gesture,onefinger,One finger up,"Index up, counting. The reel rig pose.",FALSE
+prop_id,chat-bubble,Chat bubble,One rounded bubble on a plinth. An answer you read.,FALSE
+prop_id,chat-panels,Chat panels,A bubble beside a task checklist. The hook comparison.,FALSE
+prop_id,route-card,Route card,"A small card with a path drawn on it. Directions, handed over.",FALSE
+prop_id,calendar,Calendar,A grid of day tiles with three fixed. A tool outside the chat window.,FALSE
+prop_id,steps-row,Steps row,"Three numbered crates: plan, use a tool, check the result.",FALSE
+prop_id,garble,Garble,Crossed-out text blocks. A goal the agent got wrong.,FALSE
+prop_id,checkpoint,Checkpoint,A gate with an approve chip. Actions stop here.,FALSE
+prop_id,versus,Versus,"Two labelled columns: chatbot responds, agent takes steps.",FALSE
+prop_id,cat-pillow,Cat pillow,"The cat from the bench, propping up a card.",FALSE

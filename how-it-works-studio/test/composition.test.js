@@ -274,7 +274,15 @@ test('a caption fits its shot and can be read before it leaves', () => {
       const seconds = run / episode.fps;
       const why = `${episode.id}/${s.n}: "${text}"`;
       assert.ok(words <= 26, `${why} is ${words} words — two lines is the limit`);
-      assert.ok(text.length <= 120, `${why} is ${text.length} chars`);
+      if (s.caption.treatment === 'steps') {
+        // a numbered list is read row by row, so each row is its own line
+        const rows = Array.isArray(s.caption.steps) && s.caption.steps.length
+          ? s.caption.steps
+          : text.split(/(?<=\.)\s+/).filter(Boolean);
+        for (const row of rows) assert.ok(row.length <= 96, `${why}: the row "${row}" is ${row.length} chars`);
+      } else {
+        assert.ok(text.length <= 120, `${why} is ${text.length} chars`);
+      }
       // The reading rule the rest of the project uses: words / 4 + 0.6 s. It is
       // applied per shot to an authored plan - the same caption card is on
       // screen for every shot of its beat, so a shot is the time it has. A

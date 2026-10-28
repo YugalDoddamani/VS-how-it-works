@@ -130,8 +130,12 @@ const FRAMING = {
   center: { close: [360, 300, 540], medium: [300, 520, 540], wide: [258, 250, 540] },
   left: { close: [345, 320, 452], medium: [290, 530, 430], wide: [258, 250, 380] },
   'split-right': { close: [345, 320, 800], medium: [290, 530, 800], wide: [258, 250, 790] },
-  'corner-br': { close: [268, 940, 812], medium: [225, 1010, 818], wide: [196, 1065, 822] },
-  'corner-bl': { close: [268, 940, 306], medium: [225, 1010, 300], wide: [196, 1065, 296] },
+  // A corner insert sits behind the caption card, so the card - not the crop -
+  // is what ends her. That means the head starts well above it: with the old
+  // numbers the card landed on her chest and the shot was a head on a shelf.
+  // The tops below keep head, shoulders and waist above the card at every size.
+  'corner-br': { close: [200, 760, 806], medium: [172, 850, 812], wide: [152, 900, 818] },
+  'corner-bl': { close: [200, 760, 300], medium: [172, 850, 294], wide: [152, 900, 288] },
 };
 
 /** The framing preset for a compiled shot, or null when she is not in frame. */

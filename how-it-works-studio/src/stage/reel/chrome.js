@@ -118,11 +118,17 @@ export function measureCaption(ctx, shot) {
   ctx.save();
   ctx.font = `${kind === 'takeaway' ? 600 : 600} ${size}px ${kind === 'takeaway' ? FONT_SERIF : FONT_SANS}`;
   if (kind === 'steps') {
-    rows = stepRows(shot);
+    const raw = stepRows(shot);
     const width = CARD.width - t.pad * 2 - 74;
+    rows = raw;
     while (size > t.shrinkTo && rows.some((r) => ctx.measureText(r).width > width)) {
       size -= 2;
       ctx.font = `600 ${size}px ${FONT_SANS}`;
+    }
+    // Shrinking has a floor. Past it a long step wraps like prose, and the
+    // second line hangs under the first so the numbering still reads as a list.
+    if (rows.some((r) => ctx.measureText(r).width > width)) {
+      rows = raw.flatMap((r) => wrap(ctx, r, width));
     }
   } else {
     const maxWidth = CARD.width - t.pad * 2;
@@ -357,5 +363,26 @@ export function drawGuides(ctx, { caption = true, safe = true, thirds = true, ca
       ctx.stroke();
     });
   }
+  ctx.restore();
+}
+
+
+/**
+ * The disclosure.
+ *
+ * The channel's rule is that the presenter is illustrated and says so. On a
+ * phone a legal line is either legible or ignored, so it is set small, quiet,
+ * and just above the caption card - part of the furniture, not a pop-up.
+ */
+export function drawDisclosure(ctx, shot) {
+  if (!shot?.chrome?.disclosure) return;
+  const text = shot.chrome.disclosureText || 'Illustrated explainer. Not a real person.';
+  ctx.save();
+  ctx.font = `500 22px ${FONT_SANS}`;
+  ctx.fillStyle = alpha(P.ink, 0.42);
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'alphabetic';
+  // under the header strip: plain paper, nothing behind it to fight with
+  ctx.fillText(text, W - 72, 168);
   ctx.restore();
 }
