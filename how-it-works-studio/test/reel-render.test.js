@@ -66,21 +66,26 @@ function imgStub(w = 370, h = 1202) {
   return { width: w, height: h };
 }
 
-/** A minimal rig: one body and the nine expression heads from the manifest. */
-function rigStub() {
-  const names = ['rest', 'small', 'open', 'closed', 'mid', 'smile', 'blink', 'half', 'oh'];
-  const heads = {};
-  for (const n of names) heads[n] = imgStub();
+/** A figure stub carries a marker, so the test can tell her from the world's art. */
+function poseStub(w = 900, h = 1500) {
+  return { width: w, height: h, nao: true };
+}
+
+/** A minimal pose set: the six whole figures, on a 900x1500 canvas. */
+function posesStub() {
+  const names = ['neutral', 'presenting', 'pointing', 'thinking', 'explaining', 'openhands'];
+  const images = {};
+  for (const n of names) images[n] = poseStub();
   return {
     manifest: {
-      body: { file: 'body.png', width: 370, height: 1202 },
-      anchor: { x: 176, y: 3, headWidth: 309 },
-      heads: names.map((n) => ({ name: n, file: `heads/${n}.png`, eyes: 'open', mouth: 'closed' })),
-      byEyes: { open: 'rest', closed: 'blink', half: 'half', 'closed-smile': 'smile', wide: 'oh' },
-      byMouth: { closed: 'rest', small: 'small', mid: 'mid', open: 'open', oh: 'oh' },
+      canvas: { width: 900, height: 1500 },
+      figureHeight: 1280,
+      feetY: 1460,
+      headCx: 450,
+      anchor: { headWidth: 212 },
+      poses: names.map((n) => ({ name: n, file: `${n}.png`, width: 900, height: 1500, headWidth: 212, headTop: 90, feetY: 1460 })),
     },
-    body: imgStub(),
-    heads,
+    images,
   };
 }
 
@@ -108,10 +113,10 @@ test('the compiled reel exists and is internally consistent', () => {
 
 test('every frame of the reel renders without throwing', async () => {
   const { drawFrame } = await loadStage();
-  const { setRig } = await loadNao();
+  const { setPoses } = await loadNao();
   const reel = JSON.parse(fs.readFileSync(REEL, 'utf8'));
 
-  setRig(rigStub());
+  setPoses(posesStub());
 
   const { ctx } = fakeContext();
   for (let f = 0; f < reel.frames; f++) {
@@ -121,9 +126,9 @@ test('every frame of the reel renders without throwing', async () => {
 
 test('a frame is deterministic', async () => {
   const { drawFrame } = await loadStage();
-  const { setRig } = await loadNao();
+  const { setPoses } = await loadNao();
   const reel = JSON.parse(fs.readFileSync(REEL, 'utf8'));
-  setRig(rigStub());
+  setPoses(posesStub());
 
   const a = fakeContext();
   const b = fakeContext();
@@ -137,9 +142,9 @@ test('a frame is deterministic', async () => {
 
 test('every shot draws its caption text', async () => {
   const { drawFrame } = await loadStage();
-  const { setRig } = await loadNao();
+  const { setPoses } = await loadNao();
   const reel = JSON.parse(fs.readFileSync(REEL, 'utf8'));
-  setRig(rigStub());
+  setPoses(posesStub());
 
   for (const shot of reel.shots) {
     const { ctx, log } = fakeContext();
@@ -155,71 +160,66 @@ test('every shot draws its caption text', async () => {
   }
 });
 
-test('the character is inside the frame on every shot that has her', async () => {
+test('the character is a whole figure, inside the frame, on every shot that has her', async () => {
   const { drawFrame } = await loadStage();
-  const { setRig } = await loadNao();
+  const { setPoses } = await loadNao();
   const reel = JSON.parse(fs.readFileSync(REEL, 'utf8'));
-  setRig(rigStub());
+  setPoses(posesStub());
 
   for (const shot of reel.shots) {
     const { ctx, log } = fakeContext();
     drawFrame(ctx, reel, shot.start + 2);
-    const images = log.filter((c) => c[0] === 'drawImage');
+    // her drawing is the one whose image is a pose stub; the world draws its
+    // own art through the same call
+    const figures = log.filter((c) => c[0] === 'drawImage' && c[1] && c[1].nao === true);
     const expected = !['hands', 'off', 'absent'].includes(shot.placement);
-    if (expected) {
-      assert.ok(images.length > 0, `shot ${shot.n} (${shot.placement}) drew no character`);
-      // index 0 is the body; the head is drawn afterwards, in bands
-      const body = images[0];
-      const x = body[2];
-      const y = body[3];
-      if (body.length >= 11) {
-        // 9-arg drawImage: (img, sx, sy, sw, sh, dx, dy, dw, dh)
-        const dx = body[7];
-        const dy = body[8];
-        const dw = body[9];
-        const dh = body[10];
-        assert.ok(dx < 1080 && dx + dw > 0, `shot ${shot.n}: body is off-frame horizontally`);
-        assert.ok(dy < 1920, `shot ${shot.n}: body starts below the canvas`);
-        assert.ok(dh > 300, `shot ${shot.n}: body is only ${Math.round(dh)} px tall`);
-      } else {
-        assert.ok(x < 1080, `shot ${shot.n}: body is off-frame`);
-        assert.ok(y < 1920, `shot ${shot.n}: body starts below the canvas`);
-      }
-      const heads = images.length - 1;
-      assert.ok(heads >= 1, `shot ${shot.n}: head was never drawn`);
-    } else {
-      assert.strictEqual(images.length, 0, `shot ${shot.n} should not draw a character`);
+    if (!expected) {
+      assert.strictEqual(figures.length, 0, `shot ${shot.n} should not draw a character`);
+      continue;
     }
+
+    // exactly one drawing: a pose is a whole figure, never a body plus a head
+    assert.strictEqual(figures.length, 1, `shot ${shot.n} drew ${figures.length} character images, expected 1`);
+    const draw = figures[0];
+    assert.strictEqual(draw.length, 6, `shot ${shot.n}: a figure should be one drawImage, not a stack`);
+    const [, , dx, dy, dw, dh] = draw;
+    assert.ok(Math.abs(dw / dh - 900 / 1500) < 0.01, `shot ${shot.n}: figure was squashed (${Math.round(dw)}x${Math.round(dh)})`);
+    assert.ok(dx < 1080 && dx + dw > 0, `shot ${shot.n}: figure is off-frame horizontally`);
+    assert.ok(dy < 1920, `shot ${shot.n}: figure starts below the canvas`);
+    assert.ok(dh > 600, `shot ${shot.n}: figure is only ${Math.round(dh)} px tall`);
   }
 });
 
-test('the head swaps with the mouth shape and blinks on its own clock', async () => {
-  const { headState, blinkAt } = await loadNao();
-  const { setRig } = await loadNao();
-  setRig(rigStub());
+test('a pose changes only on a cut, never inside a shot', async () => {
+  const { poseFor, figureState } = await loadNao();
+  const { setPoses } = await loadNao();
+  setPoses(posesStub());
   const reel = JSON.parse(fs.readFileSync(REEL, 'utf8'));
 
-  // the mouth actually changes across a shot that has a sentence in it
-  const shot = reel.shots[3];
-  const seen = new Set();
-  for (let f = shot.start; f < shot.end; f++) seen.add(headState(shot, f).mouth);
-  assert.ok(seen.size >= 2, `mouth never changed across shot ${shot.n}: ${[...seen]}`);
-
-  // and it blinks: within any 4-second window there is a closed frame
-  const closed = [];
-  for (let f = 0; f < 120; f++) if (blinkAt(shot, f) !== 'open') closed.push(f);
-  assert.ok(closed.length > 0, 'no blink in 4 seconds');
-  assert.ok(closed.length < 40, 'blinking too often to read as blinking');
-
-  // eyes are closed at most briefly - never for a whole shot
-  let run = 0;
-  let maxRun = 0;
-  for (let f = shot.start; f < shot.end; f++) {
-    const eyes = headState(shot, f).eyes;
-    run = eyes === 'closed' || eyes === 'half' ? run + 1 : 0;
-    maxRun = Math.max(maxRun, run);
+  for (const shot of reel.shots) {
+    const first = poseFor(shot);
+    for (let f = shot.start; f < shot.end; f++) {
+      assert.strictEqual(figureState(shot, f).pose, first, `shot ${shot.n} changed pose at frame ${f}`);
+    }
   }
-  assert.ok(maxRun <= 5, `eyes stayed shut for ${maxRun} frames in one shot`);
+
+  // and the reel actually uses more than one pose, or the gestures are decoration
+  const used = new Set(reel.shots.filter((s) => !['hands', 'off', 'absent'].includes(s.placement)).map((s) => poseFor(s)));
+  assert.ok(used.size >= 3, `only ${used.size} poses used across the reel: ${[...used]}`);
+});
+
+test('her body follows the words: the lip-sync schedule still drives the frame', async () => {
+  const { opennessAt } = await loadNao();
+  const { setPoses } = await loadNao();
+  setPoses(posesStub());
+  const reel = JSON.parse(fs.readFileSync(REEL, 'utf8'));
+
+  const shot = reel.shots.find((s) => s.vo.split(' ').length > 4);
+  const values = [];
+  for (let f = shot.start; f < shot.end; f++) values.push(opennessAt(shot, f));
+  const max = Math.max(...values);
+  assert.ok(max > 0.4, `shot ${shot.n}: openness never rose above ${max}`);
+  assert.ok(values.some((v) => v === 0), `shot ${shot.n}: she never pauses`);
 });
 
 test('the reel keeps its grammar: corners, inserts, one whip', async () => {
