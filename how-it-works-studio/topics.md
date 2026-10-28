@@ -6,7 +6,15 @@ list only if it passes the four-question test in
 
 Only check a question once the episode is rendered and verified.
 
-## Scripted, not rendered
+## Reels scripted (45–60 s, shot-by-shot)
+
+- [x] Why does my phone die the second I step outside? → `reels/r01`
+- [x] Does the padlock mean the site is safe? → `reels/r02`
+- [x] How does an ad know I looked at that? → `reels/r03`
+- [x] Why does the wifi get bad at the same time every night? → `reels/r04`
+- [x] Where do my photos actually go when I back them up? → `reels/r05`
+
+## Long-form scripted, not rendered
 
 These five are written, validated and scheduled. They are checked below because
 the *writing* is done; they are not in Completed because there is no film yet.

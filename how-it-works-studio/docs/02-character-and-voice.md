@@ -145,27 +145,47 @@ Mapping to beat intent:
 `thinking`, `presenting-palm-up`, `cheerful-jump`, `sitting-cross-legged`,
 `lying-down-relaxed`, plus the `hoodie` outfit variant.
 
-**Channel default is `standing-neutral` → `pointing-explaining` →
-`presenting-palm-up`.** The seated and lying poses exist but are `restricted`:
-they read as lifestyle content, and this channel is an explainer. `cheerful-jump`
-is allowed once per episode, maximum, on the recap.
+**All nine are available — none is restricted.** The default for an explainer
+shot is `standing-neutral` → `pointing-explaining` → `presenting-palm-up`,
+because those read as a presenter. The seated, lying and jumping poses are used
+when the shot calls for them: a cosy night-topic reel, a floor-level `CORNER`
+shot, a recap with a jump. Match the pose to the shot, not to a rule.
+
+One practical note: `lying-down-relaxed` and `sitting-cross-legged` work best in
+`CORNER` and `POV` shots, where she is part of the viewer's space rather than
+presenting a diagram. In a `SPLIT`, they look odd because the split implies she is
+standing beside a board.
 
 ## Outfits (7)
 
-| id | Outfit | Status |
-| --- | --- | --- |
-| `casual` | pink tee, charcoal shorts | **default, every episode** |
-| `hoodie` | black oversized hoodie | allowed for "cosy/evening" topics |
-| `sporty` | black crop, black shorts | allowed, sparingly |
-| `casual-dress` | off-shoulder top, pink plaid skirt | allowed |
-| `office-casual` | white shirt, pencil skirt | allowed for work/career topics |
-| `sleepwear` | pink character pyjamas | allowed for late-night topics |
-| `summer` | two-piece swimwear | **restricted — never rendered** |
+**All seven are in rotation. Nothing is flagged off.** The wardrobe is a feature
+of the channel, not a hazard: a new outfit per reel is one of the cheapest
+reasons to re-watch and one of the clearest signals that a new video is new.
 
-`summer` exists in the reference sheet and is deliberately excluded from the
-channel. Explainers aimed at a broad audience do not need it, and platform
-recommendation systems punish creators who mix it in. The exclusion is a rule in
-this document, not a preference.
+| id | Outfit | Best for | Used in |
+| --- | --- | --- | --- |
+| `casual` | pink tee, charcoal shorts | the default; topics about your own stuff | R05 |
+| `hoodie` | black oversized hoodie | cold, cosy, evening, outside | R01 |
+| `sporty` | black crop top, black shorts | movement, home, screens in the living room | R04 |
+| `casual-dress` | off-shoulder top, pink plaid skirt | bright, weekend, shopping, social | R03 |
+| `office-casual` | white shirt, pencil skirt | work, money, messages from "your bank" | R02 |
+| `sleepwear` | pink character pyjamas | late-night scrolling, doom-scrolling, 3 a.m. topics | — |
+| `summer` | two-piece swimwear | holidays, heat, travel, seasonal | — |
+
+Rules:
+
+1. **One outfit per reel.** Never change mid-reel — it breaks continuity and reads
+   as two videos stapled together.
+2. **Rotate.** No two consecutive reels in the same outfit. The rotation is
+   tracked in `reels/README.md`.
+3. **Match the setting.** The outfit should be what someone would actually be
+   wearing in the shot: a hoodie outside in winter, a towel and a crop top after a
+   workout, sleepwear at 3 a.m.
+4. **Keep the four fixed things.** Whatever the outfit, the headband, choker,
+   pink palette and bob silhouette stay. Those are the character; the clothes are
+   not.
+5. **No outfit changes the presentation rules.** She explains the same way in
+   every look.
 
 ## Accessories and marks
 
