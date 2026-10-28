@@ -71,9 +71,10 @@ function poseStub(w = 900, h = 1500) {
   return { width: w, height: h, nao: true };
 }
 
-/** A minimal pose set: the six whole figures, on a 900x1500 canvas. */
+/** A minimal pose set: the twelve whole figures, on a 900x1500 canvas. */
 function posesStub() {
-  const names = ['neutral', 'presenting', 'pointing', 'thinking', 'explaining', 'openhands'];
+  const names = ['neutral', 'presenting', 'openhands', 'explaining', 'pointing', 'thinking',
+    'skeptical', 'onefinger', 'deadpan', 'warm', 'nope', 'fingerheart'];
   const images = {};
   for (const n of names) images[n] = poseStub();
   return {
@@ -204,8 +205,12 @@ test('a pose changes only on a cut, never inside a shot', async () => {
   }
 
   // and the reel actually uses more than one pose, or the gestures are decoration
-  const used = new Set(reel.shots.filter((s) => !['hands', 'off', 'absent'].includes(s.placement)).map((s) => poseFor(s)));
-  assert.ok(used.size >= 3, `only ${used.size} poses used across the reel: ${[...used]}`);
+  const visible = reel.shots.filter((s) => !['hands', 'off', 'absent'].includes(s.placement));
+  const used = new Set(visible.map((s) => poseFor(s)));
+  assert.ok(used.size >= 6, `only ${used.size} poses used across ${visible.length} visible shots: ${[...used]}`);
+  for (const shot of visible) {
+    assert.ok(posesStub().images[poseFor(shot)], `shot ${shot.n} asks for a pose that does not exist: ${poseFor(shot)}`);
+  }
 });
 
 test('her body follows the words: the lip-sync schedule still drives the frame', async () => {
@@ -220,6 +225,24 @@ test('her body follows the words: the lip-sync schedule still drives the frame',
   const max = Math.max(...values);
   assert.ok(max > 0.4, `shot ${shot.n}: openness never rose above ${max}`);
   assert.ok(values.some((v) => v === 0), `shot ${shot.n}: she never pauses`);
+});
+
+test("the script's performance note becomes the pose", async () => {
+  const { poseFor } = await loadNao();
+  const { setPoses } = await loadNao();
+  setPoses(posesStub());
+  const reel = JSON.parse(fs.readFileSync(REEL, 'utf8'));
+
+  // every shot whose cell names a performance gets that pose, not a world default
+  const authored = reel.shots.filter((s) => s.pose);
+  assert.ok(authored.length >= 6, `only ${authored.length} shots carry a performance note`);
+  for (const shot of authored) assert.strictEqual(poseFor(shot), shot.pose, `shot ${shot.n}`);
+
+  // spot-check the three the script is explicit about
+  const byN = Object.fromEntries(reel.shots.map((s) => [s.n, s]));
+  assert.strictEqual(poseFor(byN[3]), 'skeptical', 'shot 3 is "half-smile, one brow up"');
+  assert.strictEqual(poseFor(byN[11]), 'deadpan', 'shot 11 is "deadpan, flat stare"');
+  assert.strictEqual(poseFor(byN[23]), 'fingerheart', 'shot 23 is "finger heart, warm smile"');
 });
 
 test('the reel keeps its grammar: corners, inserts, one whip', async () => {

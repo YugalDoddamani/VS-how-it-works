@@ -10,7 +10,7 @@
 | Outfit | `casual-dress` — Off-shoulder top and pink plaid skirt: the reel is about shopping, so she is dressed for the part. |
 | Cut rate | one cut every 2.0 s (hook cuts land at 1.2–1.6 s) |
 | Transitions | whip into 4 (phone → her face); hard cuts everywhere else |
-| Status | **rendered** — animatic MP4 + browser preview (see below) |
+| Status | **finished** — MP4 with voice-over, effects and captions (see below) |
 
 **The promise of this reel:** You will know which cookie does it, why it can follow you across sites, and the one switch that stops it.
 

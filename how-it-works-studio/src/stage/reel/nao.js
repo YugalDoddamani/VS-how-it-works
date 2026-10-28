@@ -50,29 +50,31 @@ export function poseInfo() {
 // ---------------------------------------------------------------------------
 
 /**
- * The gesture is chosen by what is being explained, not by the shot index: a
- * pointing hand on the shelf, open palms on the recap. It changes only when the
- * shot changes, so the drawing never flickers.
+ * The gesture and the face are chosen by what is being said, not by the shot
+ * index: the script's `Nao` column names the performance ("half-smile, one brow
+ * up", "deadpan, flat stare") and compile-reel turns it into a pose. The table
+ * below is only the fallback for a shot that never wrote a note down. Either
+ * way it changes when the shot changes, so the drawing never flickers.
  */
 const POSE_BY_WORLD = {
-  //                 close-up (hands have to read above her waist)   everywhere else
-  pov_phone: ['thinking', 'neutral'],
+  //                 close-up (hands read above her waist)   everywhere else
+  pov_phone: ['thinking', 'thinking'],
   feed_ad: ['pointing', 'pointing'],
   bokeh: ['explaining', 'neutral'],
   shelf_one: ['explaining', 'presenting'],
-  shelf_two: ['openhands', 'presenting'],
+  shelf_two: ['warm', 'warm'],
   note_open: ['explaining', 'presenting'],
-  stamp: ['pointing', 'pointing'],
-  link: ['openhands', 'presenting'],
-  note_number: ['thinking', 'thinking'],
-  incognito: ['explaining', 'neutral'],
-  spec_card: ['openhands', 'presenting'],
-  browsers: ['explaining', 'presenting'],
+  stamp: ['skeptical', 'skeptical'],
+  link: ['openhands', 'openhands'],
+  note_number: ['deadpan', 'deadpan'],
+  incognito: ['skeptical', 'skeptical'],
+  spec_card: ['warm', 'warm'],
+  browsers: ['warm', 'warm'],
   app_icon: ['pointing', 'pointing'],
-  settings: ['openhands', 'presenting'],
+  settings: ['pointing', 'pointing'],
   toggle: ['pointing', 'pointing'],
-  flat_grid: ['explaining', 'presenting'],
-  recap: ['openhands', 'neutral'],
+  flat_grid: ['presenting', 'presenting'],
+  recap: ['warm', 'warm'],
 };
 
 /** CU/ECU -> close, MCU/SPLIT/CORNER/OTS -> medium, everything else -> wide. */
@@ -83,6 +85,10 @@ function sizeClass(code) {
 }
 
 export function poseFor(shot) {
+  // the script's Nao column wins: it is the only place that says what her face
+  // is doing on this beat
+  if (shot.pose && poses.images.has(shot.pose)) return shot.pose;
+
   const close = sizeClass(shot.code) === 'close';
   const pair = POSE_BY_WORLD[shot.world];
   // a close shot can only afford a gesture that happens above her waist, so it

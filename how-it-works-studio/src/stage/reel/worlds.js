@@ -17,6 +17,19 @@ import {
 const W = 1080;
 const H = 1920;
 
+/**
+ * Bitmap props the worlds can use. Vector shapes are right for the isometric
+ * world, but a sneaker drawn from beziers reads as a bread roll - some objects
+ * are cheaper to illustrate once and load than to reconstruct from primitives.
+ * Hosts inject them (render-reel, the preview); with nothing injected the
+ * painters fall back to their vector stand-ins and the frame still renders.
+ */
+const assets = {};
+
+export function setWorldAssets(next) {
+  Object.assign(assets, next || {});
+}
+
 /** Warm paper, a soft light from the top left, and a hairline grid. */
 function backdrop(ctx, { warm = 1, vignette = 0.9, grid = true } = {}) {
   const g = ctx.createLinearGradient(0, 0, 0, H);
@@ -101,133 +114,411 @@ function prog(t, a, b) {
 // worlds
 // ---------------------------------------------------------------------------
 
-/** Shot 1: the shoe listing, seen from her hand. */
+/**
+ * Shot 1: the shoe listing, seen from her hand.
+ *
+ * This is the hook and the first thing anyone sees, so it is drawn like a real
+ * product page and not like a diagram of one: a straight phone, a shoe that
+ * reads as a shoe at thumbnail size, real type hierarchy, and one thumb that
+ * lands on the button instead of floating over the copy.
+ */
 function povPhone(ctx, shot, frame, t) {
-  backdrop(ctx);
-  // desk
-  ctx.fillStyle = mix(P.isoLeft, 0.18);
+  backdrop(ctx, { warm: 1.1 });
+
+  // the desk the phone is lying on
+  ctx.fillStyle = mix(P.isoLeft, 0.2);
   ctx.beginPath();
-  ctx.moveTo(0, 1420);
-  ctx.lineTo(W, 1250);
+  ctx.moveTo(0, 1470);
+  ctx.lineTo(W, 1330);
   ctx.lineTo(W, H);
   ctx.lineTo(0, H);
   ctx.closePath();
   ctx.fill();
 
-  const push = 1 + 0.035 * t;
-  ctx.save();
-  ctx.translate(W / 2, 900);
-  ctx.scale(push, push);
-  ctx.translate(-W / 2, -900);
-  ctx.rotate(-0.035);
+  // ---- the phone ---------------------------------------------------------
+  const px = 158;
+  const py = 186;
+  const pw = 764;
+  const ph = 1256;
+  const push = 1 + 0.03 * t;
 
-  // phone body
-  const px = 190;
-  const py = 300;
-  const pw = 700;
-  const ph = 1230;
   ctx.save();
-  ctx.shadowColor = alpha(P.ink, 0.28);
-  ctx.shadowBlur = 60;
-  ctx.shadowOffsetY = 26;
-  roundRect(ctx, px, py, pw, ph, 62);
+  ctx.translate(W / 2, py + ph / 2);
+  ctx.scale(push, push);
+  ctx.translate(-W / 2, -(py + ph / 2));
+
+  ctx.save();
+  ctx.shadowColor = alpha(P.ink, 0.3);
+  ctx.shadowBlur = 70;
+  ctx.shadowOffsetY = 30;
+  roundRect(ctx, px, py, pw, ph, 66);
   ctx.fillStyle = P.ink;
   ctx.fill();
   ctx.restore();
 
-  roundRect(ctx, px + 16, py + 16, pw - 32, ph - 32, 48);
-  ctx.fillStyle = '#FFFCF7';
+  roundRect(ctx, px + 15, py + 15, pw - 30, ph - 30, 54);
+  ctx.fillStyle = '#FFFDFA';
   ctx.fill();
+
+  const sx = px + 34;          // screen content, inset
+  const sw = pw - 68;
+  const sy = py + 40;
 
   // status bar
-  label(ctx, '9:41', px + 62, py + 92, { size: 24, color: alpha(P.ink, 0.55), align: 'left' });
-
-  // product photo
-  const cx = px + 44;
-  const cy = py + 130;
-  const cw = pw - 88;
-  const ch = 620;
-  roundRect(ctx, cx, cy, cw, ch, 34);
-  ctx.fillStyle = mix(P.accentSoft, 0.45);
-  ctx.fill();
-
-  // a stylised shoe
+  label(ctx, '9:41', sx + 6, sy + 30, { size: 26, color: P.ink, align: 'left', weight: 600 });
   ctx.save();
-  ctx.translate(cx + cw / 2, cy + ch * 0.58);
-  ctx.rotate(-0.06);
-  ctx.fillStyle = mix(P.accent, 0.1);
+  ctx.fillStyle = alpha(P.ink, 0.8);
+  for (let i = 0; i < 4; i++) ctx.fillRect(sx + sw - 106 + i * 13, sy + 26 - i * 4, 8, 4 + i * 4);
+  roundRect(ctx, sx + sw - 44, sy + 12, 34, 18, 5);
+  ctx.fill();
+  ctx.restore();
+
+  // nav row: back, then a bag
+  ctx.save();
+  ctx.strokeStyle = alpha(P.ink, 0.75);
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
   ctx.beginPath();
-  ctx.ellipse(0, -10, 190, 96, 0, Math.PI, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = mix(P.accent, 0.32);
+  ctx.moveTo(sx + 20, sy + 86);
+  ctx.lineTo(sx + 2, sy + 104);
+  ctx.lineTo(sx + 20, sy + 122);
+  ctx.stroke();
+
+  ctx.strokeStyle = alpha(P.ink, 0.7);
+  roundRect(ctx, sx + sw - 34, sy + 96, 32, 30, 6);
+  ctx.stroke();
   ctx.beginPath();
-  ctx.moveTo(-190, -10);
-  ctx.bezierCurveTo(-150, 70, 120, 92, 196, 26);
-  ctx.lineTo(210, 54);
-  ctx.bezierCurveTo(130, 132, -160, 108, -205, 34);
-  ctx.closePath();
+  ctx.arc(sx + sw - 18, sy + 96, 10, Math.PI, 0);
+  ctx.stroke();
+  ctx.restore();
+
+  // ---- product photo -----------------------------------------------------
+  const cx = sx;
+  const cy = sy + 150;
+  const cw = sw;
+  const ch = 512;
+  const shot0 = ctx.createLinearGradient(cx, cy, cx, cy + ch);
+  shot0.addColorStop(0, mix(P.accentSoft, 0.5));
+  shot0.addColorStop(1, mix(P.accentSoft, 0.16));
+  roundRect(ctx, cx, cy, cw, ch, 30);
+  ctx.fillStyle = shot0;
   ctx.fill();
-  ctx.fillStyle = P.surface;
-  roundRect(ctx, -200, 42, 410, 30, 15);
+
+  // floor shadow under the shoe
+  ctx.save();
+  ctx.fillStyle = alpha('#8A5A44', 0.1);
+  ctx.beginPath();
+  ctx.ellipse(cx + cw / 2, cy + ch * 0.74, 190, 26, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = alpha(P.ink, 0.35);
-  ctx.lineWidth = 3;
-  for (let i = 0; i < 4; i++) {
+  ctx.restore();
+
+  drawShoe(ctx, cx + cw / 2, cy + ch * 0.52, cw * 0.82);
+
+  // ---- product copy ------------------------------------------------------
+  const tx = sx + 2;
+  let ty = cy + ch + 66;
+  label(ctx, 'Trail Runner 2', tx, ty, { size: 46, color: P.ink, align: 'left', weight: 700 });
+
+  ty += 44;
+  drawStars(ctx, tx + 2, ty - 9, 4);
+  label(ctx, '128 reviews', tx + 152, ty, { size: 25, color: P.inkSoft, align: 'left', weight: 500 });
+
+  ty += 62;
+  label(ctx, '$48', tx, ty, { size: 48, color: P.accent, align: 'left', weight: 700 });
+  label(ctx, '$64', tx + 118, ty, { size: 28, color: alpha(P.ink, 0.42), align: 'left', weight: 500 });
+  drawStrike(ctx, tx + 118, ty - 10, 52);
+
+  ty += 40;
+  label(ctx, 'Free returns · arrives Thursday', tx, ty, { size: 25, color: P.inkSoft, align: 'left', weight: 500 });
+
+  // divider
+  ctx.save();
+  ctx.strokeStyle = alpha(P.line, 0.85);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(sx, ty + 34);
+  ctx.lineTo(sx + sw, ty + 34);
+  ctx.stroke();
+  ctx.restore();
+
+  // ---- the button, with the thumb about to land on it --------------------
+  const bw = sw;
+  const bh = 92;
+  const bx = sx;
+  const by = ty + 70;
+
+  // a tap ripple on the frame the thumb presses, per the shot's direction
+  const press = prog(t, 0.45, 0.75);
+  if (press > 0) {
+    ctx.save();
+    ctx.strokeStyle = alpha(P.accent, 0.5 * (1 - press));
+    ctx.lineWidth = 6 * (1 - press) + 1;
     ctx.beginPath();
-    ctx.moveTo(-40 + i * 34, -46);
-    ctx.lineTo(-24 + i * 34, -16);
+    ctx.arc(bx + bw * 0.7, by + bh / 2, 30 + press * 90, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  roundRect(ctx, bx, by, bw, bh, 26);
+  ctx.fillStyle = P.accent;
+  ctx.fill();
+  label(ctx, 'Add to cart', bx + bw * 0.34, by + bh / 2 + 12, {
+    size: 34, color: '#FFF8F3', weight: 700,
+  });
+
+  // home indicator
+  ctx.save();
+  ctx.fillStyle = alpha(P.ink, 0.22);
+  roundRect(ctx, W / 2 - 90, py + ph - 58, 180, 8, 4);
+  ctx.fill();
+  ctx.restore();
+  ctx.restore();
+
+  // ---- the hand ----------------------------------------------------------
+  drawThumb(ctx, 596, by + bh + 96, 0.62, frame);
+}
+
+/**
+ * A side-on sneaker. Flat, long and low - the proportions are what make it read
+ * as a shoe rather than a bun: a sole that runs past the toe, an upper no taller
+ * than a third of its length, and laces where laces actually are.
+ */
+/**
+ * Draw the shoe prop at `width` px wide, centred on (cx, cy).
+ * The bitmap is the real illustration; `oneShoe()` is only a stand-in for hosts
+ * that have not injected it (the tests, and any render before the asset loads).
+ */
+function drawShoe(ctx, cx, cy, width) {
+  const img = assets.shoe;
+  if (!img) {
+    drawSneaker(ctx, cx, cy, width / 420);
+    return;
+  }
+  const scale = width / img.width;
+  const h = img.height * scale;
+  ctx.save();
+  ctx.shadowColor = alpha('#8A5A44', 0.18);
+  ctx.shadowBlur = 26;
+  ctx.shadowOffsetY = 10;
+  ctx.drawImage(img, cx - width / 2, cy - h / 2, width, h);
+  ctx.restore();
+}
+
+/**
+ * A pair of sneakers, side on.
+ *
+ * A single shoe drawn from rounded shapes reads as a bread roll. The fix is
+ * proportion and anatomy, not detail: a low toe, a high heel counter, a thin
+ * sole with the upper sitting *on* it, laces on a tongue, and a second shoe
+ * behind so the eye gets "pair of shoes" before it gets "shape".
+ */
+function drawSneaker(ctx, cx, cy, scale) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+
+  ctx.save();
+  ctx.translate(26, -26);
+  ctx.rotate(-0.09);
+  ctx.globalAlpha = 0.55;
+  oneShoe(ctx, 0.94);
+  ctx.restore();
+
+  oneShoe(ctx, 1);
+  ctx.restore();
+}
+
+function oneShoe(ctx, k) {
+  ctx.save();
+  ctx.scale(k, k);
+  const ink = alpha(P.ink, 0.88);
+  ctx.lineJoin = 'round';
+
+  // ---- upper: low at the toe, high at the heel ---------------------------
+  ctx.beginPath();
+  ctx.moveTo(-188, 30);
+  ctx.bezierCurveTo(-192, 2, -170, -18, -134, -26);
+  ctx.bezierCurveTo(-96, -34, -52, -40, -8, -42);
+  ctx.lineTo(58, -44);
+  ctx.bezierCurveTo(44, -30, 42, -22, 46, -14);
+  ctx.bezierCurveTo(86, -22, 118, -26, 146, -16);
+  ctx.bezierCurveTo(164, -8, 170, 8, 168, 26);
+  ctx.lineTo(166, 34);
+  ctx.closePath();
+  ctx.fillStyle = mix('#F8EFE9', 0.18);
+  ctx.fill();
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // collar opening
+  ctx.save();
+  ctx.translate(112, -20);
+  ctx.rotate(0.22);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 34, 11, 0, 0, Math.PI * 2);
+  ctx.fillStyle = alpha(P.ink, 0.35);
+  ctx.fill();
+  ctx.restore();
+
+  // toe cap
+  ctx.beginPath();
+  ctx.moveTo(-188, 30);
+  ctx.bezierCurveTo(-192, 2, -170, -18, -134, -26);
+  ctx.bezierCurveTo(-150, 0, -152, 20, -146, 34);
+  ctx.closePath();
+  ctx.fillStyle = alpha('#FFFFFF', 0.65);
+  ctx.fill();
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 3.5;
+  ctx.stroke();
+
+  // tongue + laces
+  ctx.beginPath();
+  ctx.moveTo(-44, -40);
+  ctx.lineTo(60, -44);
+  ctx.lineTo(56, -22);
+  ctx.lineTo(-40, -18);
+  ctx.closePath();
+  ctx.fillStyle = mix('#FFFFFF', 0.35);
+  ctx.fill();
+  ctx.strokeStyle = alpha(P.ink, 0.45);
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  ctx.save();
+  ctx.strokeStyle = alpha(P.ink, 0.65);
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 4; i++) {
+    const x = -30 + i * 24;
+    ctx.beginPath();
+    ctx.moveTo(x, -38);
+    ctx.lineTo(x + 18, -24);
     ctx.stroke();
   }
   ctx.restore();
-  ctx.restore();
 
-  // mock screen UI (drawn unrotated so the type stays crisp)
-  ctx.save();
-  const ux = px + 44;
-  const uy = cy + ch + 44;
-  label(ctx, 'Trail Runner 2', ux, uy + 26, { size: 44, color: P.ink, align: 'left', weight: 700 });
-  label(ctx, '$48', ux, uy + 84, { size: 38, color: P.accent, align: 'left', weight: 700 });
-  label(ctx, 'Free returns', ux + 116, uy + 84, { size: 26, color: P.inkSoft, align: 'left', weight: 500 });
-
-  const btnPulse = 1 + 0.012 * Math.sin(frame / 5) * (t > 0.55 ? 1 : 0);
-  ctx.save();
-  ctx.translate(ux + (pw - 88) / 2, uy + 190);
-  ctx.scale(btnPulse, btnPulse);
-  roundRect(ctx, -(pw - 88) / 2, -44, pw - 88, 88, 44);
-  ctx.fillStyle = P.accent;
-  ctx.fill();
-  label(ctx, 'Add to cart', 0, 15, { size: 34, color: '#FFF8F3', weight: 700 });
-  ctx.restore();
-  ctx.restore();
-
-  // the hand: a thumb reaching in from the bottom-right, with a nail
-  ctx.save();
-  const hx = 872;
-  const hy = 1520 + Math.sin(frame / 9) * 5;
-  ctx.translate(hx, hy);
-  ctx.rotate(-0.5);
-  const skin = mix('#E8C2A8', 0.05);
-  ctx.fillStyle = skin;
+  // accent flash along the side
   ctx.beginPath();
-  ctx.moveTo(-150, 300);
-  ctx.bezierCurveTo(-190, 60, -120, -190, 10, -250);
-  ctx.bezierCurveTo(120, -300, 190, -190, 165, -60);
-  ctx.bezierCurveTo(150, 80, 120, 240, 130, 320);
+  ctx.moveTo(-140, 26);
+  ctx.bezierCurveTo(-84, 4, -6, -8, 92, -12);
+  ctx.lineTo(96, 2);
+  ctx.bezierCurveTo(-2, 8, -70, 22, -118, 34);
   ctx.closePath();
+  ctx.fillStyle = mix(P.accent, 0.22);
   ctx.fill();
-  // nail
-  ctx.fillStyle = mix('#F6DCCB', 0.25);
-  ctx.beginPath();
-  ctx.ellipse(28, -196, 46, 62, 0.06, 0, Math.PI * 2);
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // heel tab
+  roundRect(ctx, 146, -22, 22, 46, 9);
+  ctx.fillStyle = mix(P.accent, 0.3);
   ctx.fill();
-  // shadow side
-  ctx.fillStyle = alpha('#8A5A44', 0.10);
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // ---- sole: thin, and it runs past the toe ------------------------------
   ctx.beginPath();
-  ctx.moveTo(-150, 300);
-  ctx.bezierCurveTo(-190, 60, -120, -190, 10, -250);
-  ctx.bezierCurveTo(-40, -170, -70, 40, -30, 300);
+  ctx.moveTo(-200, 30);
+  ctx.lineTo(164, 30);
+  ctx.bezierCurveTo(182, 30, 186, 44, 172, 50);
+  ctx.bezierCurveTo(100, 62, -150, 62, -192, 52);
+  ctx.bezierCurveTo(-208, 47, -210, 34, -200, 30);
   ctx.closePath();
+  ctx.fillStyle = '#FFFDF9';
   ctx.fill();
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  ctx.save();
+  ctx.strokeStyle = alpha(P.ink, 0.16);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-188, 42);
+  ctx.bezierCurveTo(-110, 52, 96, 52, 168, 40);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.restore();
+}
+
+function drawStars(ctx, x, y, filled) {
+  ctx.save();
+  for (let i = 0; i < 5; i++) {
+    const px = x + i * 30;
+    ctx.beginPath();
+    for (let k = 0; k < 10; k++) {
+      const r = k % 2 ? 5 : 11;
+      const a = (Math.PI / 5) * k - Math.PI / 2;
+      const px2 = px + Math.cos(a) * r;
+      const py2 = y + Math.sin(a) * r;
+      if (k === 0) ctx.moveTo(px2, py2);
+      else ctx.lineTo(px2, py2);
+    }
+    ctx.closePath();
+    ctx.fillStyle = i < filled ? P.accent : alpha(P.ink, 0.18);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawStrike(ctx, x, y, w) {
+  ctx.save();
+  ctx.strokeStyle = alpha(P.ink, 0.4);
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + w, y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** A thumb coming in from the bottom-right. One shape, one nail, one shadow. */
+/**
+ * A thumb reaching in from the bottom-right corner, tip on the button. Short
+ * enough to read as a thumb and not as a finger lying across the screen.
+ */
+function drawThumb(ctx, x, y, angle, frame) {
+  const bob = Math.sin(frame / 9) * 3;
+  ctx.save();
+  ctx.translate(x, y + bob);
+  ctx.rotate(angle);
+
+  const g = ctx.createLinearGradient(-80, 0, 90, 0);
+  g.addColorStop(0, '#EFCBB2');
+  g.addColorStop(0.55, '#E4B79B');
+  g.addColorStop(1, '#CF9D82');
+
+  ctx.save();
+  ctx.shadowColor = alpha('#8A5A44', 0.32);
+  ctx.shadowBlur = 26;
+  ctx.shadowOffsetY = 8;
+  roundRect(ctx, -62, -78, 132, 430, 66);
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.restore();
+
+  roundRect(ctx, -34, -56, 76, 100, 38);
+  ctx.fillStyle = '#F8E1D0';
+  ctx.fill();
+  ctx.strokeStyle = alpha('#C2926F', 0.5);
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  ctx.save();
+  ctx.strokeStyle = alpha('#B07A5D', 0.3);
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(-46, 92);
+  ctx.quadraticCurveTo(4, 122, 54, 92);
+  ctx.stroke();
+  ctx.restore();
+
   ctx.restore();
 }
 
@@ -250,23 +541,8 @@ function feedAd(ctx, shot, frame, t) {
     ctx.fill();
 
     if (i === 0) {
-      // the same shoe, recognisably
-      ctx.save();
-      ctx.translate(x + w / 2, c.y + 300);
-      ctx.scale(0.82, 0.82);
-      ctx.rotate(-0.05);
-      ctx.fillStyle = mix(P.accent, 0.32);
-      ctx.beginPath();
-      ctx.moveTo(-190, -10);
-      ctx.bezierCurveTo(-150, 70, 120, 92, 196, 26);
-      ctx.lineTo(210, 54);
-      ctx.bezierCurveTo(130, 132, -160, 108, -205, 34);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = P.surface;
-      roundRect(ctx, -200, 42, 410, 28, 14);
-      ctx.fill();
-      ctx.restore();
+      // the same shoe, recognisably - it is the whole point of the shot
+      drawShoe(ctx, x + w / 2, c.y + 300, w * 0.8);
     } else {
       ctx.save();
       ctx.translate(x + w / 2, c.y + 320);
