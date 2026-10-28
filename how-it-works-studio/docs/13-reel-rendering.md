@@ -129,6 +129,17 @@ grammar survives compilation (3+ `CORNER`, 4+ `INSERT`, one whip, opens on `POV`
 They prove the reel renders. They cannot prove it looks good — that is what the
 preview is for, and it needs a human.
 
+## One dead end, recorded
+
+The first attempt screenshotted frames from a headless browser (`playwright-core` +
+`@sparticuz/chromium`). It does not work here: the bundled chromium needs
+`libnss3` / `libnspr4`, which this image does not have, so it exits 127 before
+loading a page. The Node canvas path replaced it, and is better anyway — it is
+faster (16.5 fps vs a page load per frame), needs no browser, and removes the
+possibility of the preview and the film diverging. `playwright-core` and
+`@sparticuz/chromium` are still in `package.json` for the future `studio render`
+verb; nothing uses them today.
+
 ## What is still missing
 
 - **Sound.** The scripts specify a bed, two silences and per-cut ticks; none of it
