@@ -1,13 +1,13 @@
 # Reels
 
 Five short-form scripts, ready to shoot or render. **45–60 seconds each, shot by
-shot, with focal lengths — 48.4, 52.0, 54.0, 50.0 and 55.2 seconds.**
+shot, with focal lengths — 48.4, 52.0, 45.0, 50.0 and 55.2 seconds.**
 
 | # | Reel | Series | Length | Shots | Outfit |
 | --- | --- | --- | --- | --- | --- |
 | R01 | [Your phone isn't dying. It's cold.](r01-your-phone-isnt-dying-its-cold/script.md) | Small Tech Mysteries | 48.4 s | 26 | `hoodie` |
 | R02 | [The padlock isn't a safety badge.](r02-the-padlock-isnt-a-safety-badge/script.md) | Your Data, Explained | 52.0 s | 26 | `office-casual` |
-| R03 | [Why the ad follows you around.](r03-why-the-ad-follows-you/script.md) | Your Data, Explained | 54.0 s | 27 | `casual-dress` |
+| R03 | [Why the ad follows you around.](r03-why-the-ad-follows-you/script.md) | Your Data, Explained | 45.0 s | 23 | `casual-dress` |
 | R04 | [Why your wifi dies at nine pm.](r04-why-your-wifi-dies-at-9pm/script.md) | Small Tech Mysteries | 50.0 s | 26 | `sporty` |
 | R05 | [Your photos live in a warehouse.](r05-your-photos-live-in-a-warehouse/script.md) | The Cloud | 55.2 s | 27 | `casual` |
 
@@ -72,10 +72,13 @@ so it's safe, right?" No. The tunnel is encrypted; the building at the end is
 unvetted. The save frame is a lookalike domain with two letters swapped. Highest
 share rate of the five, because correcting a belief is a social act.
 
-**R03 — Why the ad follows you around.** *(54.0 s, casual-dress)*
+**R03 — Why the ad follows you around.** *(45.0 s, casual-dress — the tightest cut in the slate)*
 One small file, carried between sites. The cookie is a tagged box she physically
 moves between shelves — the clearest metaphor in the slate. Ends with the actual
-switch, flipped on camera. The only reel with a bright, Saturday grade.
+switch, flipped on camera, and a held save frame that flattens the whole system
+into one line: one note, every site, one switch. The only reel with a bright,
+Saturday grade, and the only one at the 45-second floor — it is 23 shots with no
+second helpings.
 
 **R04 — Why your wifi dies at nine pm.** *(50.0 s, sporty)*
 Starts on a buffering workout video because everyone has watched that spinner.
