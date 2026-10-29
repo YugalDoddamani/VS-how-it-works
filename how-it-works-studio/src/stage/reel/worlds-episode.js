@@ -968,6 +968,609 @@ const SUBJECTS = {
     },
   },
 
+  // ---------------------------------------------------------------------------
+  // 0107 - what happens when you type a URL?
+  // ---------------------------------------------------------------------------
+  // The whole episode is one journey, so its subjects are the same six objects
+  // seen at different sizes: an address bar, a directory, an address card, a
+  // wire, a padlock, a request and the page it becomes.
+
+  'url-bar': {
+    role: 'demonstrate',
+    about: 'the address bar, with a URL being typed into it',
+    draw(ctx, b, o) {
+      const text = String(o.options.text || 'nao.explains/cat');
+      const w = Math.min(b.w * 0.98, 800);
+      const h = Math.max(96, Math.min(b.h * 0.34, 140));
+      const x = b.x + (b.w - w) / 2;
+      const y = b.y + b.h * 0.42 - h / 2;
+      const typed = Math.round(Math.min(1, prog(o.t, 0.03, 0.4)) * text.length);
+
+      shadow(ctx, x + w / 2, y + h + 14, w * 0.4, 18, 0.08);
+      roundRect(ctx, x, y, w, h, h / 2);
+      ctx.fillStyle = P.surface;
+      ctx.fill();
+      ctx.strokeStyle = alpha(P.ink, 0.14);
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // the little globe: this is a web address, not a search box
+      const gx = x + h * 0.66;
+      const gy = y + h / 2;
+      ctx.save();
+      ctx.strokeStyle = alpha(P.link, 0.8);
+      ctx.lineWidth = 2.6;
+      ctx.beginPath();
+      ctx.arc(gx, gy, h * 0.21, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(gx, gy, h * 0.09, h * 0.21, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(gx - h * 0.21, gy);
+      ctx.lineTo(gx + h * 0.21, gy);
+      ctx.stroke();
+      ctx.restore();
+
+      // the Enter key, and it gets pressed - measured first, because the text
+      // has to live in what is left of the pill
+      const kw = Math.min(150, w * 0.2);
+      const kh = h * 0.62;
+      const kx = x + w - kw - h * 0.24;
+      const ky = y + (h - kh) / 2;
+
+      const tx0 = gx + h * 0.34;
+      const room = kx - tx0 - h * 0.24;
+      let size = Math.min(40, h * 0.33);
+      ctx.save();
+      ctx.font = `600 ${size}px ${FONT_SANS}`;
+      while (size > 16 && ctx.measureText(text).width > room) {
+        size -= 2;
+        ctx.font = `600 ${size}px ${FONT_SANS}`;
+      }
+      const shown = text.slice(0, typed);
+      ctx.fillStyle = P.ink;
+      ctx.textAlign = 'left';
+      ctx.fillText(shown, tx0, gy + size * 0.34);
+      if (Math.floor(o.t * 3.4) % 2 === 0 || typed < text.length) {
+        ctx.fillStyle = alpha(P.accent, 0.85);
+        ctx.fillRect(tx0 + ctx.measureText(shown).width + 3, gy - size * 0.55, 3, size * 1.1);
+      }
+      ctx.restore();
+      const press = prog(o.t, 0.42, 0.52);
+      ctx.save();
+      roundRect(ctx, kx, ky + press * 4, kw, kh, kh * 0.32);
+      ctx.fillStyle = press > 0 ? mix(P.accent, 0.82) : P.surfaceSoft;
+      ctx.fill();
+      ctx.strokeStyle = alpha(P.ink, 0.12);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.font = `700 ${Math.min(24, kh * 0.42)}px ${FONT_SANS}`;
+      ctx.fillStyle = press > 0 ? alpha(P.ink, 0.85) : P.inkSoft;
+      ctx.textAlign = 'center';
+      ctx.fillText('ENTER', kx + kw / 2, ky + kh * 0.62 + press * 4);
+      ctx.restore();
+
+      label(ctx, o.options.caption || 'one line, six words', b.x + b.w / 2, y - 24, {
+        size: 24, color: alpha(P.ink, 0.45), weight: 700, spacing: 2,
+      });
+    },
+  },
+
+  'page-stage': {
+    role: 'transform',
+    about: 'the browser window, empty and then built out of the files',
+    draw(ctx, b, o) {
+      const w = Math.min(b.w * 0.98, 760);
+      const h = Math.min(b.h * 0.94, 620);
+      const x = b.x + (b.w - w) / 2;
+      const y = b.y + b.h * 0.96 - h;
+      const open = easeOut(prog(o.t, 0.02, 0.24));
+      const broken = Boolean(o.options.broken);
+
+      ctx.save();
+      ctx.globalAlpha = 0.35 + 0.65 * open;
+      ctx.translate(x + w / 2, y + h);
+      ctx.scale(0.94 + 0.06 * open, 0.94 + 0.06 * open);
+      ctx.translate(-(x + w / 2), -(y + h));
+      shadow(ctx, x + w / 2, y + h + 10, w * 0.42, 18, 0.09);
+      paperCard(ctx, x, y, w, h, { r: 26 });
+
+      // the window's own chrome: three dots and a small address field
+      const barH = Math.min(64, h * 0.13);
+      ctx.save();
+      roundRect(ctx, x, y, w, barH, 26);
+      ctx.clip();
+      ctx.fillStyle = mix(P.surfaceSoft, 0.1);
+      ctx.fillRect(x, y, w, barH);
+      ctx.restore();
+      [0, 1, 2].forEach((i) => {
+        ctx.beginPath();
+        ctx.arc(x + 30 + i * 22, y + barH / 2, 6, 0, Math.PI * 2);
+        ctx.fillStyle = alpha(P.ink, 0.14 - i * 0.03);
+        ctx.fill();
+      });
+      roundRect(ctx, x + 104, y + barH * 0.28, w * 0.52, barH * 0.44, barH * 0.22);
+      ctx.fillStyle = alpha(P.ink, 0.05);
+      ctx.fill();
+      label(ctx, o.options.url || 'nao.explains/cat', x + 120, y + barH * 0.62, {
+        size: Math.min(20, barH * 0.34), color: alpha(P.ink, 0.5), weight: 600, align: 'left',
+      });
+
+      // the page itself: a hero, two lines, three thumbnails
+      const px = x + w * 0.06;
+      const pw = w * 0.88;
+      const py = y + barH + h * 0.07;
+      const ph = h - barH - h * 0.16;
+      const assemble = Boolean(o.options.assemble);
+      const step = (i) => (assemble ? easeOut(prog(o.t, 0.1 + i * 0.09, 0.26 + i * 0.09)) : 1);
+
+      const heroH = ph * 0.44;
+      const heroP = step(0);
+      if (heroP > 0) {
+        ctx.save();
+        ctx.globalAlpha *= heroP;
+        roundRect(ctx, px, py, pw, heroH, 14);
+        if (broken && o.options.missing === 'hero') {
+          ctx.fillStyle = alpha(P.stop, 0.06);
+          ctx.fill();
+          ctx.setLineDash([10, 8]);
+          ctx.strokeStyle = alpha(P.stop, 0.4);
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+          ctx.setLineDash([]);
+          // the broken-image glyph
+          const gx = px + pw / 2;
+          const gy = py + heroH / 2;
+          const gs = Math.min(heroH * 0.42, 64);
+          ctx.strokeStyle = alpha(P.stop, 0.65);
+          ctx.lineWidth = 3;
+          ctx.strokeRect(gx - gs / 2, gy - gs * 0.36, gs, gs * 0.72);
+          ctx.beginPath();
+          ctx.moveTo(gx - gs / 2, gy + gs * 0.36);
+          ctx.lineTo(gx - gs * 0.1, gy - gs * 0.04);
+          ctx.lineTo(gx + gs * 0.12, gy + gs * 0.2);
+          ctx.lineTo(gx + gs * 0.34, gy - gs * 0.08);
+          ctx.lineTo(gx + gs / 2, gy + gs * 0.36);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(gx + gs * 0.24, gy - gs * 0.16, 4, 0, Math.PI * 2);
+          ctx.fillStyle = alpha(P.stop, 0.65);
+          ctx.fill();
+          label(ctx, o.options.missingName || 'hero.jpg did not load', gx, gy + gs * 0.72 + 22, {
+            size: Math.min(21, heroH * 0.12), color: alpha(P.stop, 0.8), weight: 600,
+          });
+        } else {
+          ctx.fillStyle = mix(P.accent, 0.78);
+          ctx.fill();
+          // a tiny horizon, so the tile reads as a picture and not a slab
+          ctx.save();
+          ctx.beginPath();
+          roundRect(ctx, px, py, pw, heroH, 14);
+          ctx.clip();
+          ctx.fillStyle = alpha(P.surface, 0.4);
+          ctx.beginPath();
+          ctx.arc(px + pw * 0.78, py + heroH * 0.34, heroH * 0.16, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.restore();
+      }
+      [1, 2].forEach((i) => {
+        const p = step(i);
+        if (p <= 0) return;
+        ctx.save();
+        ctx.globalAlpha *= p;
+        const ly = py + heroH + h * 0.06 + (i - 1) * h * 0.055;
+        roundRect(ctx, px, ly, pw * (i === 1 ? 0.82 : 0.6), h * 0.026, 8);
+        ctx.fillStyle = alpha(P.ink, 0.12);
+        ctx.fill();
+        ctx.restore();
+      });
+      const tiles = 3;
+      for (let i = 0; i < tiles; i++) {
+        const p = step(3 + i);
+        if (p <= 0) continue;
+        ctx.save();
+        ctx.globalAlpha *= p;
+        const tw = (pw - 16 * (tiles - 1)) / tiles;
+        const ty = py + ph - h * 0.2;
+        const tx = px + i * (tw + 16);
+        roundRect(ctx, tx, ty, tw, h * 0.16, 10);
+        ctx.fillStyle = i === 1 ? mix(P.link, 0.8) : alpha(P.ink, 0.07);
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.restore();
+    },
+  },
+
+  'dns-directory': {
+    role: 'demonstrate',
+    about: 'the address book: a name goes in, an IP address comes out',
+    draw(ctx, b, o) {
+      const w = Math.min(b.w * 0.96, 700);
+      const rows = (o.options.rows || [
+        ['nao.explains', '203.0.113.7'],
+        ['wikipedia.org', '198.51.100.4'],
+        ['a-shop.example', '192.0.2.61'],
+        ['news.example', '198.51.100.23'],
+      ]).slice(0, 4);
+      const rowH = Math.min(78, b.h * 0.16);
+      const h = rowH * rows.length + 96;
+      const x = b.x + (b.w - w) / 2;
+      const y = b.y + b.h * 0.94 - h;
+
+      shadow(ctx, x + w / 2, y + h + 10, w * 0.42, 18, 0.08);
+      paperCard(ctx, x, y, w, h, { r: 22 });
+
+      // header: the book's title, and a magnifier that is doing the looking
+      label(ctx, 'DNS', x + 32, y + 46, { size: 26, color: alpha(P.accent, 0.95), weight: 700, align: 'left', spacing: 3 });
+      label(ctx, 'the address book', x + 104, y + 46, { size: 22, color: alpha(P.ink, 0.4), weight: 600, align: 'left' });
+      const found = prog(o.t, 0.34, 0.5);
+      const mx = x + w - 56 - (1 - found) * 26;
+      ctx.save();
+      ctx.strokeStyle = alpha(P.ink, 0.4);
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(mx, y + 40, 14, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(mx + 10, y + 50);
+      ctx.lineTo(mx + 22, y + 62);
+      ctx.stroke();
+      ctx.restore();
+
+      const hit = Math.max(0, Math.min(rows.length - 1, Number(o.options.hit ?? 0)));
+      rows.forEach(([name, ip], i) => {
+        const ry = y + 76 + i * rowH;
+        const isHit = i === hit;
+        const lit = isHit ? easeOut(prog(o.t, 0.3, 0.46)) : 0;
+        if (lit > 0) {
+          ctx.save();
+          ctx.globalAlpha = 0.9 * lit;
+          roundRect(ctx, x + 16, ry - rowH * 0.42, w - 32, rowH * 0.84, 12);
+          ctx.fillStyle = mix(P.accent, 0.9);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.save();
+        ctx.font = `600 ${Math.min(26, rowH * 0.36)}px ${FONT_SANS}`;
+        ctx.fillStyle = isHit && lit > 0.4 ? P.ink : alpha(P.ink, 0.72);
+        ctx.textAlign = 'left';
+        ctx.fillText(name, x + 34, ry + 8);
+        ctx.font = `500 ${Math.min(24, rowH * 0.32)}px ${FONT_SANS}`;
+        ctx.fillStyle = alpha(P.link, 0.95);
+        ctx.textAlign = 'right';
+        ctx.fillText(ip, x + w - (isHit && lit > 0.5 ? 62 : 34), ry + 8);
+        ctx.restore();
+        ctx.save();
+        ctx.strokeStyle = alpha(P.ink, 0.08);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x + 28, ry + rowH * 0.44);
+        ctx.lineTo(x + w - 28, ry + rowH * 0.44);
+        ctx.stroke();
+        ctx.restore();
+        if (isHit && lit > 0.5) {
+          tick(ctx, x + w - 30, ry - rowH * 0.24, 22, alpha(P.good, lit), 4);
+        }
+      });
+    },
+  },
+
+  'address-card': {
+    role: 'compare',
+    about: 'the answer DNS gives back: a name resolved to an address',
+    draw(ctx, b, o) {
+      const w = Math.min(b.w * 0.92, 620);
+      const h = Math.min(b.h * 0.72, 400);
+      const x = b.x + (b.w - w) / 2;
+      const y = b.y + b.h * 0.9 - h;
+      const pop = easeOut(prog(o.t, 0.04, 0.26));
+      ctx.save();
+      ctx.globalAlpha = 0.35 + 0.65 * pop;
+      ctx.translate(x + w / 2, y + h / 2);
+      ctx.rotate(-0.02 + 0.012 * Math.sin(o.t * Math.PI * 2));
+      ctx.translate(-(x + w / 2), -(y + h / 2));
+      shadow(ctx, x + w / 2, y + h + 8, w * 0.4, 16, 0.08);
+      paperCard(ctx, x, y, w, h, { r: 20 });
+      const kSize = Math.max(14, Math.min(22, w * 0.045, h * 0.075));
+      label(ctx, o.options.kicker || 'the answer', x + w / 2, y + h * 0.14, {
+        size: kSize, color: alpha(P.ink, 0.42), weight: 700, spacing: 2,
+      });
+      // name, arrow down, address
+      ctx.save();
+      ctx.font = `600 ${Math.min(34, w * 0.075, h * 0.1)}px ${FONT_SANS}`;
+      ctx.fillStyle = alpha(P.ink, 0.75);
+      ctx.textAlign = 'center';
+      ctx.fillText(o.options.name || 'nao.explains', x + w / 2, y + h * 0.32);
+      ctx.restore();
+      arrow(ctx, [x + w / 2, y + h * 0.36], [x + w / 2, y + h * 0.5], {
+        colour: alpha(P.ink, 0.26), width: 4, head: 12, progress: easeOut(prog(o.t, 0.16, 0.36)),
+      });
+      ctx.save();
+      const ipSize = Math.min(52, w * 0.115, h * 0.17);
+      ctx.font = `700 ${ipSize}px ${FONT_SERIF}`;
+      ctx.fillStyle = P.ink;
+      ctx.textAlign = 'center';
+      ctx.fillText(o.options.ip || '203.0.113.7', x + w / 2, y + h * 0.68);
+      const subSize = Math.max(13, Math.min(23, w * 0.05, h * 0.072));
+      ctx.font = `500 ${subSize}px ${FONT_SANS}`;
+      ctx.fillStyle = alpha(P.ink, 0.45);
+      wrapText(ctx, o.options.sub || 'the real place on the network', w * 0.86, 2)
+        .forEach((line, li, all) => ctx.fillText(line, x + w / 2, y + h * 0.82 + (li - (all.length - 1) / 2) * (subSize * 1.3)));
+      ctx.restore();
+      const done = easeOut(prog(o.t, 0.4, 0.56));
+      if (done > 0) tick(ctx, x + w - 52, y + h - 44, 32, alpha(P.good, done), 6);
+      ctx.restore();
+    },
+  },
+
+  'link-path': {
+    role: 'demonstrate',
+    about: 'a wire between your machine and the server, with data on it',
+    draw(ctx, b, o) {
+      // Two plinths and a road between them. Drawn horizontally unless the box
+      // is genuinely tall, because the shot is about the distance, not the height.
+      const vertical = b.h > b.w * 1.5;
+      const inset = Math.min(b.w, b.h) * 0.1;
+      const a = vertical
+        ? { x: b.x + b.w * 0.5, y: b.y + b.h * 0.9 }
+        : { x: b.x + inset + 70, y: b.y + b.h * 0.84 };
+      const c = vertical
+        ? { x: b.x + b.w * 0.5, y: b.y + b.h * 0.1 }
+        : { x: b.x + b.w - inset - 70, y: b.y + b.h * 0.84 };
+      const blockW = Math.min(vertical ? b.w * 0.5 : b.w * 0.27, 240);
+      const blockH = Math.min(b.h * 0.44, blockW * 1.05);
+
+      shadow(ctx, a.x, a.y + 6, blockW * 0.9, 16, 0.08);
+      crate(ctx, a.x, a.y, blockW, blockH, P.isoLeft);
+      label(ctx, o.options.near || 'you', a.x, a.y - blockH - 22, {
+        size: Math.min(24, blockW * 0.2), color: alpha(P.ink, 0.6), weight: 700, spacing: 1,
+      });
+      shadow(ctx, c.x, c.y + 6, blockW * 0.9, 16, 0.08);
+      crate(ctx, c.x, c.y, blockW, blockH, P.darkRack || P.isoRight);
+      label(ctx, o.options.far || 'the server', c.x, c.y - blockH - 22, {
+        size: Math.min(24, blockW * 0.2), color: alpha(P.ink, 0.6), weight: 700, spacing: 1,
+      });
+
+      // the road is drawn on, then packets run along it
+      const draw = easeOut(prog(o.t, 0.06, 0.4));
+      const lineY = a.y - blockH * 0.5;
+      const lineY2 = c.y - blockH * 0.5;
+      ctx.save();
+      ctx.strokeStyle = alpha(P.ink, 0.24);
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      ctx.setLineDash([16, 14]);
+      ctx.lineDashOffset = -o.t * 90;
+      ctx.beginPath();
+      if (vertical) {
+        ctx.moveTo(a.x, a.y - blockH - 8);
+        ctx.lineTo(c.x, c.y + blockH + 8);
+      } else {
+        ctx.moveTo(a.x + blockW * 0.75, lineY);
+        ctx.lineTo(a.x + blockW * 0.75 + (c.x - blockW * 0.75 - (a.x + blockW * 0.75)) * draw, lineY2);
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      // packets: three small squares travelling the wire
+      for (let i = 0; i < 3; i++) {
+        const p = ((o.t * 1.4 + i * 0.33) % 1);
+        const px = vertical ? a.x : a.x + blockW * 0.75 + (c.x - blockW * 0.75 - (a.x + blockW * 0.75)) * p;
+        const py = vertical ? a.y - blockH - 8 + (c.y + blockH + 8 - (a.y - blockH - 8)) * p : lineY + (lineY2 - lineY) * p;
+        if (!vertical && p > draw) continue;
+        ctx.save();
+        ctx.globalAlpha = 0.85;
+        roundRect(ctx, px - 11, py - 11, 22, 22, 6);
+        ctx.fillStyle = mix(P.accent, 0.3);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      if (o.options.secure) {
+        const done = easeOut(prog(o.t, 0.34, 0.5));
+        if (done > 0) {
+          ctx.save();
+          ctx.globalAlpha = done;
+          const cx = vertical ? b.x + b.w * 0.5 : (a.x + c.x) / 2;
+          const cy = vertical ? (a.y + c.y) / 2 : lineY - 34;
+          chip(ctx, cx - 66, cy - 22, 'TLS', { accent: true, size: 22 });
+          ctx.restore();
+        }
+      }
+    },
+  },
+
+  'https-lock': {
+    role: 'demonstrate',
+    about: 'the padlock: the same wire, with everything on it encrypted',
+    draw(ctx, b, o) {
+      const s = Math.min(b.w * 0.7, b.h * 0.62, 340);
+      const cx = b.x + b.w / 2;
+      const cy = b.y + b.h * 0.52;
+      const closed = easeOut(prog(o.t, 0.12, 0.4));
+      label(ctx, 'HTTPS', cx, cy - s * 0.78, {
+        size: Math.min(34, s * 0.14), color: alpha(P.accent, 0.95), weight: 700, spacing: 4,
+      });
+
+      // body
+      shadow(ctx, cx, cy + s * 0.5, s * 0.5, s * 0.1, 0.1);
+      roundRect(ctx, cx - s * 0.42, cy - s * 0.08, s * 0.84, s * 0.6, s * 0.1);
+      ctx.fillStyle = mix(P.good, 0.6);
+      ctx.fill();
+      ctx.strokeStyle = mix(P.good, -0.2);
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // shackle: it comes down as the connection is secured
+      ctx.save();
+      ctx.strokeStyle = mix(P.good, -0.15);
+      ctx.lineWidth = Math.max(10, s * 0.075);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      const sh = s * (0.34 - 0.06 * (1 - closed));
+      ctx.arc(cx, cy - s * 0.1 - (1 - closed) * s * 0.12, sh, Math.PI, 0);
+      ctx.stroke();
+      ctx.restore();
+
+      // keyhole
+      ctx.beginPath();
+      ctx.arc(cx, cy + s * 0.16, s * 0.055, 0, Math.PI * 2);
+      ctx.fillStyle = alpha(P.surface, 0.95);
+      ctx.fill();
+      roundRect(ctx, cx - s * 0.022, cy + s * 0.16, s * 0.044, s * 0.14, s * 0.02);
+      ctx.fill();
+
+      // the packets on the wire are wrapped while they pass through
+      const bandY = cy + s * 0.66;
+      ctx.save();
+      ctx.strokeStyle = alpha(P.good, 0.35);
+      ctx.lineWidth = 3;
+      ctx.setLineDash([10, 10]);
+      ctx.lineDashOffset = -o.t * 80;
+      ctx.beginPath();
+      ctx.moveTo(b.x + b.w * 0.1, bandY);
+      ctx.lineTo(b.x + b.w * 0.9, bandY);
+      ctx.stroke();
+      ctx.restore();
+      for (let i = 0; i < 3; i++) {
+        const p = (o.t * 1.2 + i * 0.34) % 1;
+        const px = b.x + b.w * 0.1 + p * b.w * 0.8;
+        ctx.save();
+        ctx.globalAlpha = 0.5 + 0.5 * Math.sin(p * Math.PI);
+        roundRect(ctx, px - 10, bandY - 10, 20, 20, 5);
+        ctx.fillStyle = alpha(P.good, 0.55);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      if (closed > 0.6) {
+        label(ctx, o.options.caption || 'nobody in the middle can read it', cx, cy + s * 0.78, {
+          size: Math.min(23, s * 0.1), color: alpha(P.ink, 0.45), weight: 600,
+        });
+      }
+    },
+  },
+
+  'request-envelope': {
+    role: 'transform',
+    about: 'the request: one envelope, addressed to the server',
+    draw(ctx, b, o) {
+      const w = Math.min(b.w * 0.66, 420);
+      const h = Math.min(b.h * 0.5, 280);
+      const cx = b.x + b.w / 2;
+      const cy = b.y + b.h * 0.5;
+      const fly = easeOut(prog(o.t, 0.06, 0.44));
+      const x = cx - w / 2 + fly * Math.min(b.w * 0.12, 70);
+      const y = cy - h / 2;
+
+      // the address it is going to, up in the corner - only when the shot does
+      // not already carry a labelled link, or the server is named twice
+      if (o.options.to) {
+        label(ctx, o.options.to, b.x + b.w * 0.78, b.y + b.h * 0.12, {
+          size: 22, color: alpha(P.ink, 0.42), weight: 700, spacing: 1,
+        });
+      }
+
+      ctx.save();
+      ctx.translate(x + w / 2, y + h / 2);
+      ctx.rotate(-0.03 + 0.02 * Math.sin(o.t * Math.PI * 2));
+      ctx.translate(-(x + w / 2), -(y + h / 2));
+      shadow(ctx, x + w / 2, y + h + 4, w * 0.42, 14, 0.09);
+      roundRect(ctx, x, y, w, h, 14);
+      ctx.fillStyle = mix(P.surfaceSoft, 0.12);
+      ctx.fill();
+      ctx.strokeStyle = alpha(P.ink, 0.16);
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      // flap
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x + 2, y + 2);
+      ctx.lineTo(x + w / 2, y + h * 0.56);
+      ctx.lineTo(x + w - 2, y + 2);
+      ctx.strokeStyle = alpha(P.ink, 0.16);
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.restore();
+      // the message
+      ctx.save();
+      ctx.font = `700 ${Math.min(40, w * 0.105)}px ${FONT_SERIF}`;
+      ctx.fillStyle = P.ink;
+      ctx.textAlign = 'center';
+      ctx.fillText(o.options.label || 'GET /page', x + w / 2, y + h * 0.78);
+      ctx.restore();
+      ctx.restore();
+
+      // and the little arrow that says which way it goes
+      arrow(ctx, [x + w + 12, cy], [b.x + b.w * 0.92, cy], {
+        colour: alpha(P.accent, 0.7), width: 4, head: 13, progress: prog(o.t, 0.18, 0.5),
+      });
+      label(ctx, 'REQUEST', b.x + b.w * 0.5, y - 22, {
+        size: 22, color: alpha(P.accent, 0.9), weight: 700, spacing: 3,
+      });
+    },
+  },
+
+  'file-cards': {
+    role: 'demonstrate',
+    about: 'the files that come back: HTML, CSS, JavaScript, images',
+    draw(ctx, b, o) {
+      const defaults = [
+        ['HTML', 'the words', P.accent],
+        ['CSS', 'the look', P.link],
+        ['JS', 'the behaviour', P.good],
+        ['IMG', 'the pictures', P.stop],
+      ];
+      const files = (o.options.files || defaults).slice(0, 4)
+        .map(([tag, sub, tone], i) => [tag, sub, tone || defaults[i % defaults.length][2]]);
+      // Four cards in a fan: each one lands, then the whole stack settles.
+      const cw = Math.min(b.w * 0.46, 340);
+      const chh = Math.min(b.h * 0.42, 260);
+      const cx = b.x + b.w * 0.5;
+      const baseY = b.y + b.h * 0.9;
+      files.forEach(([tag, sub, tone], i) => {
+        const p = easeOut(prog(o.t, 0.04 + i * 0.09, 0.2 + i * 0.09));
+        if (p <= 0) return;
+        const spread = (i - (files.length - 1) / 2);
+        const x = cx - cw / 2 + spread * cw * 0.42;
+        const y = baseY - chh - Math.abs(spread) * chh * 0.14 - (1 - p) * 60;
+        ctx.save();
+        ctx.globalAlpha = 0.25 + 0.75 * p;
+        ctx.translate(x + cw / 2, y + chh);
+        ctx.rotate(spread * 0.05 + 0.01 * Math.sin(o.t * Math.PI * 2 + i));
+        ctx.translate(-(x + cw / 2), -(y + chh));
+        shadow(ctx, x + cw / 2, y + chh + 6, cw * 0.36, 12, 0.07);
+        paperCard(ctx, x, y, cw, chh, { r: 16 });
+        ctx.save();
+        roundRect(ctx, x, y, cw, chh * 0.2, 16);
+        ctx.clip();
+        ctx.fillStyle = mix(tone, 0.82);
+        ctx.fillRect(x, y, cw, chh * 0.2);
+        ctx.restore();
+        label(ctx, tag, x + cw / 2, y + chh * 0.14, {
+          size: Math.min(24, cw * 0.09), color: alpha(P.surface, 0.98), weight: 700, spacing: 2,
+        });
+        label(ctx, sub, x + cw / 2, y + chh * 0.52, {
+          size: Math.min(30, cw * 0.105), color: alpha(P.ink, 0.8), weight: 600,
+        });
+        // a couple of lines, so the card reads as a file and not a label
+        [0, 1].forEach((r) => {
+          roundRect(ctx, x + cw * 0.12, y + chh * 0.68 + r * chh * 0.1, cw * (r ? 0.5 : 0.74), chh * 0.045, 6);
+          ctx.fillStyle = alpha(P.ink, 0.1);
+          ctx.fill();
+        });
+        ctx.restore();
+      });
+      label(ctx, o.options.caption || 'the pieces of one page', b.x + b.w / 2, b.y + 26, {
+        size: 24, color: alpha(P.ink, 0.45), weight: 700, spacing: 2,
+      });
+    },
+  },
+
   signpost: {
     role: 'label',
     about: 'the question the episode leaves behind',
@@ -1685,13 +2288,39 @@ const SUBJECTS = {
     role: 'label',
     about: 'the channel joke: a small cat cushion holding something up',
     draw(ctx, b, o) {
-      const w = Math.min(b.w * 0.86, 300);
+      // The cushion is measured against the box in both directions: a support
+      // box is wide and short, and a cushion sized from width alone climbs out
+      // of it into the header.
+      const w = Math.min(b.w * 0.86, b.h * 1.45, 300);
       const h = w * 0.62;
       const cx = b.x + b.w / 2;
       const baseY = b.y + b.h * 0.94;
       const breathe = Math.sin(o.t * Math.PI * 2) * 3;
       // the cushion's whole job is to hold something up: a small card tilted
       // against its head, so the joke reads as "even the cat checked this"
+      if (o.options.stack) {
+        // the joke, second use: the cat keeps the files steady while the page
+        // is being built. The pile sits on the cushion and is measured up from
+        // it, so the whole thing stays inside the box it was given.
+        const sw = w * 0.92;
+        const shh = Math.min(sw * 0.3, (b.h - h) * 0.62);
+        const pile = baseY - h - shh * 0.2;
+        for (let i = 2; i >= 0; i--) {
+          const drop = (1 - easeOut(prog(o.t, 0.04 + (2 - i) * 0.07, 0.2 + (2 - i) * 0.07))) * 34;
+          ctx.save();
+          ctx.translate(cx + i * 3, pile - i * shh * 0.42 - drop);
+          ctx.rotate(-0.06 + i * 0.04);
+          shadow(ctx, 0, shh * 0.5 + 4, sw * 0.32, 8, 0.06);
+          paperCard(ctx, -sw / 2, -shh / 2, sw, shh, { r: 10 });
+          roundRect(ctx, -sw / 2 + 12, -shh * 0.22, sw * 0.34, shh * 0.2, 4);
+          ctx.fillStyle = alpha(P.accent, 0.3 + i * 0.14);
+          ctx.fill();
+          roundRect(ctx, -sw / 2 + 12, shh * 0.06, sw * 0.48, shh * 0.14, 4);
+          ctx.fillStyle = alpha(P.ink, 0.12);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
       if (o.options.card) {
         const cw = Math.min(w * 1.12, b.w * 0.94);
         const chh = cw * 0.46;
@@ -1747,7 +2376,7 @@ const SUBJECTS = {
       ctx.stroke();
       ctx.restore();
       ctx.restore();
-      if (!o.options.card) {
+      if (!o.options.card && !o.options.stack) {
         label(ctx, o.options.caption || 'even the cat checked this', cx, Math.min(b.y + b.h - 2, baseY + 34), {
           size: 21, color: alpha(P.ink, 0.45), weight: 600, spacing: 1,
         });
@@ -1834,6 +2463,19 @@ export const SCENES = {
   ep_ai_permissions: { subjects: ['checkpoint'], kicker: 'permissions' },
   ep_ai_recap: { subjects: ['versus', 'cat-pillow'], kicker: 'the difference' },
   ep_ai_outro: { subjects: ['versus'], kicker: 'next time' },
+
+  // 0107 - what happens when you type a URL
+  ep_url_hook: { subjects: ['url-bar', 'page-stage'], kicker: 'one line' },
+  ep_url_dns: { subjects: ['dns-directory', 'address-card'], kicker: 'find the address' },
+  ep_url_address: { subjects: ['address-card', 'dns-directory'], kicker: 'the address' },
+  ep_url_connect: { subjects: ['link-path'], kicker: 'connect' },
+  ep_url_https: { subjects: ['https-lock', 'link-path'], kicker: 'https' },
+  ep_url_request: { subjects: ['request-envelope', 'link-path'], kicker: 'request' },
+  ep_url_response: { subjects: ['file-cards', 'request-envelope'], kicker: 'response' },
+  ep_url_render: { subjects: ['page-stage', 'file-cards', 'cat-pillow'], kicker: 'render' },
+  ep_url_broken: { subjects: ['page-stage', 'file-cards'], kicker: 'looks broken' },
+  ep_url_recap: { subjects: ['steps-row'], kicker: 'the short version' },
+  ep_url_outro: { subjects: ['steps-row'], kicker: 'next time' },
 };
 
 // ---------------------------------------------------------------------------

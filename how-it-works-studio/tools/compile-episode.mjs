@@ -126,6 +126,18 @@ const SUBJECT_OPTIONS = {
     9: { versus: {}, 'cat-pillow': { card: 'CHECK RESULT' } },
     10: { versus: {} },
   },
+  '0107': {
+    1: { 'url-bar': { text: 'nao.explains/cat', caption: 'six words, one page' }, 'page-stage': { url: 'nao.explains/cat' } },
+    2: { 'dns-directory': { hit: 0 }, 'address-card': {} },
+    3: { 'address-card': { name: 'nao.explains', ip: '203.0.113.7', kicker: 'the answer' } },
+    4: { 'link-path': { near: 'you', far: 'the server' } },
+    5: { 'https-lock': { caption: 'nobody in the middle can read it' }, 'link-path': { secure: true } },
+    6: { 'request-envelope': { label: 'GET /cat' }, 'link-path': { near: 'you', far: 'the server' } },
+    7: { 'file-cards': { files: [['HTML', 'the words', null], ['CSS', 'the look', null], ['JS', 'the behaviour', null], ['IMG', 'the pictures', null]] } },
+    8: { 'page-stage': { assemble: true, url: 'nao.explains/cat' }, 'cat-pillow': { stack: true } },
+    9: { 'page-stage': { broken: true, missing: 'hero', missingName: 'hero.jpg did not load' } },
+    10: { 'steps-row': { items: ['FIND', 'CONNECT', 'REQUEST', 'RENDER'] } },
+  },
   '0102': {
     5: { 'rule-cards': { broken: true }, 'rule-machine': { broken: true } },
     10: { checkpoint: { failing: true } },
@@ -204,6 +216,11 @@ const EPISODE_WORLDS = {
     1: 'ep_ai_panels', 2: 'ep_ai_chatbot', 3: 'ep_ai_agent', 4: 'ep_ai_invite',
     5: 'ep_ai_setup', 6: 'ep_ai_steps', 7: 'ep_ai_mistake', 8: 'ep_ai_permissions',
     9: 'ep_ai_recap', 10: 'ep_ai_outro',
+  },
+  '0107': {
+    1: 'ep_url_hook', 2: 'ep_url_dns', 3: 'ep_url_address', 4: 'ep_url_connect',
+    5: 'ep_url_https', 6: 'ep_url_request', 7: 'ep_url_response', 8: 'ep_url_render',
+    9: 'ep_url_broken', 10: 'ep_url_recap', 11: 'ep_url_outro',
   },
   '0104': {
     1: 'ep_wifi_title', 2: 'ep_wifi_title', 3: 'ep_wifi_router', 4: 'ep_wifi_channels',

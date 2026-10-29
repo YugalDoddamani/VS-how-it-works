@@ -160,3 +160,11 @@ prop_id,garble,Garble,Crossed-out text blocks. A goal the agent got wrong.,FALSE
 prop_id,checkpoint,Checkpoint,A gate with an approve chip. Actions stop here.,FALSE
 prop_id,versus,Versus,"Two labelled columns: chatbot responds, agent takes steps.",FALSE
 prop_id,cat-pillow,Cat pillow,"The cat from the bench, propping up a card.",FALSE
+prop_id,url-bar,Address bar,A pill with a URL typed into it and an Enter key. Where a journey starts.,FALSE
+prop_id,page-stage,Page stage,"A browser window that opens, builds itself from tiles, or misses one.",FALSE
+prop_id,dns-directory,DNS directory,"Rows of name to address, one of them found. The address book.",FALSE
+prop_id,address-card,Address card,"A name resolved to an IP address, ticked. What the lookup returns.",FALSE
+prop_id,link-path,Link path,"Two blocks and a road between them, with packets on it.",FALSE
+prop_id,https-lock,HTTPS lock,"A padlock closing over the wire, with the packets went through it.",FALSE
+prop_id,request-envelope,Request envelope,"One envelope addressed to the server, labelled with the request.",FALSE
+prop_id,file-cards,File cards,"HTML, CSS, JS and IMG fanned out: the files one page needs.",FALSE
