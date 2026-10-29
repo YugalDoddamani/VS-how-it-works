@@ -1,0 +1,51 @@
+1
+00:00:00,000 --> 00:00:05,900
+You type SIX words, hit Enter, and a whole website APPEARS. Here's the journey behind that.
+
+2
+00:00:05,900 --> 00:00:10,700
+First, your browser has to FIND
+where that DOMAIN actually points.
+
+3
+00:00:10,700 --> 00:00:15,500
+It asks DNS for the right ADDRESS, like
+looking up a contact before calling.
+
+4
+00:00:15,500 --> 00:00:18,900
+Next, your browser opens a
+CONNECTION to that SERVER.
+
+5
+00:00:18,900 --> 00:00:23,900
+For a SECURE site, it also sets
+up an ENCRYPTED HTTPS connection.
+
+6
+00:00:23,900 --> 00:00:27,500
+Then it sends a REQUEST:
+please give me this PAGE.
+
+7
+00:00:27,500 --> 00:00:35,400
+The server replies with data: HTML, CSS, JavaScript, IMAGES, or links to more files.
+
+8
+00:00:35,400 --> 00:00:39,300
+Your browser reads those pieces
+and BUILDS the PAGE you see.
+
+9
+00:00:39,300 --> 00:00:44,700
+That is why a page can look BROKEN while the server responds fine: one image failed to load.
+
+10
+00:00:44,700 --> 00:00:49,300
+So the short version: FIND the address,
+connect, request, receive, RENDER.
+
+11
+00:00:49,300 --> 00:00:54,000
+Next time you type a URL,
+you'll see the whole JOURNEY.

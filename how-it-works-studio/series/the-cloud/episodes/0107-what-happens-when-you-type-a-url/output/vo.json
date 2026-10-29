@@ -1,0 +1,66 @@
+{
+ "voice": "voice-02",
+ "note": "spoken VO, one read per beat; the recap and the sign-off are one continuous read, so the film ends on a falling line rather than two clipped ones.",
+ "clips": [
+  {
+   "file": "vo/g1.mp3",
+   "start": 0,
+   "end": 177,
+   "text": "You type six words, hit Enter, and a whole website appears. Here's the journey behind that."
+  },
+  {
+   "file": "vo/g2.mp3",
+   "start": 177,
+   "end": 321,
+   "text": "First, your browser has to find where that domain actually points."
+  },
+  {
+   "file": "vo/g3.mp3",
+   "start": 321,
+   "end": 465,
+   "text": "It asks DNS for the right address, like looking up a contact before calling."
+  },
+  {
+   "file": "vo/g4.mp3",
+   "start": 465,
+   "end": 567,
+   "text": "Next, your browser opens a connection to that server."
+  },
+  {
+   "file": "vo/g5.mp3",
+   "start": 567,
+   "end": 717,
+   "text": "For a secure site, it also sets up an encrypted HTTPS connection."
+  },
+  {
+   "file": "vo/g6.mp3",
+   "start": 717,
+   "end": 825,
+   "text": "Then it sends a request: please give me this page."
+  },
+  {
+   "file": "vo/g7.mp3",
+   "start": 825,
+   "end": 1062,
+   "text": "The server replies with data: HTML, CSS, JavaScript, images, or links to more files."
+  },
+  {
+   "file": "vo/g8.mp3",
+   "start": 1062,
+   "end": 1179,
+   "text": "Your browser reads those pieces and builds the page you see."
+  },
+  {
+   "file": "vo/g9.mp3",
+   "start": 1179,
+   "end": 1341,
+   "text": "That is why a page can look broken while the server responds fine: one image failed to load."
+  },
+  {
+   "file": "vo/g10.mp3",
+   "start": 1341,
+   "end": 1620,
+   "text": "So the short version: find the address, connect, request, receive, render. Next time you type a URL, you'll see the whole journey."
+  }
+ ]
+}
