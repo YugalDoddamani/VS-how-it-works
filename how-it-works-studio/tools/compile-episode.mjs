@@ -127,16 +127,30 @@ const SUBJECT_OPTIONS = {
     10: { versus: {} },
   },
   '0107': {
-    1: { 'url-bar': { text: 'nao.explains/cat', caption: 'six words, one page' }, 'page-stage': { url: 'nao.explains/cat' } },
-    2: { 'dns-directory': { hit: 0 }, 'address-card': {} },
-    3: { 'address-card': { name: 'nao.explains', ip: '203.0.113.7', kicker: 'the answer' } },
+    // Options are the *content* of the demonstration; the cue list above is its
+    // timing. Keeping them apart is what lets the same painter carry a different
+    // point on a different beat.
+    1: { 'url-bar': { text: 'nao.explains/cat' } },
+    2: { 'dns-directory': { hit: 0 } },
+    3: { 'address-card': { name: 'nao.explains', ip: '203.0.113.7' } },
     4: { 'link-path': { near: 'you', far: 'the server' } },
-    5: { 'https-lock': { caption: 'nobody in the middle can read it' }, 'link-path': { secure: true } },
-    6: { 'request-envelope': { label: 'GET /cat' }, 'link-path': { near: 'you', far: 'the server' } },
-    7: { 'file-cards': { files: [['HTML', 'the words', null], ['CSS', 'the look', null], ['JS', 'the behaviour', null], ['IMG', 'the pictures', null]] } },
-    8: { 'page-stage': { assemble: true, url: 'nao.explains/cat' }, 'cat-pillow': { stack: true } },
-    9: { 'page-stage': { broken: true, missing: 'hero', missingName: 'hero.jpg did not load' } },
-    10: { 'steps-row': { items: ['FIND', 'CONNECT', 'REQUEST', 'RENDER'] } },
+    5: { 'https-lock': {} },
+    6: { 'request-envelope': { label: 'GET /cat', near: 'you', far: 'the server' } },
+    7: {
+      'file-cards': {
+        files: [
+          ['HTML', 'the words', null],
+          ['CSS', 'the look', null],
+          ['JS', 'the behaviour', null],
+          ['IMG', 'the pictures', null],
+          ['LINKS', 'more files', null],
+        ],
+      },
+    },
+    8: { 'page-stage': { url: 'nao.explains/cat' } },
+    9: { 'page-stage': { url: 'nao.explains/cat', broken: true, missing: 'hero' } },
+    10: { 'route-steps': { items: ['FIND', 'CONNECT', 'REQUEST', 'RECEIVE', 'RENDER'] } },
+    11: { 'route-steps': { items: ['FIND', 'CONNECT', 'REQUEST', 'RECEIVE', 'RENDER'] } },
   },
   '0102': {
     5: { 'rule-cards': { broken: true }, 'rule-machine': { broken: true } },
@@ -144,6 +158,99 @@ const SUBJECT_OPTIONS = {
     12: { signpost: { kicker: 'ask where', text: 'the check is' } },
   },
 };
+
+/**
+ * CUES - what the picture changes *on*, word by word.
+ *
+ * A beat's animation used to run off shot progress, which meant it advanced at
+ * its own pace and the voice commentated from the side. Each entry here names a
+ * word in the narration; at that word the demonstration advances to its next
+ * state, and the short `tag` is what the prop says while that state is live.
+ *
+ * The words are checked against the narration at compile time, so a cue can
+ * never quietly drift out of sync with the script: rename a word and the build
+ * fails instead of the picture going silent.
+ */
+const CUES = {
+  '0107': {
+    // `tag` is the note written above the ring: only where the prop does not
+    // already say it. A painter that labels its own object does not need a chip
+    // repeating the same word on top of it.
+    1: [
+      { at: 'type', tag: '' },
+      { at: 'Enter', tag: '' },
+      { at: 'appears', tag: 'the page' },
+      { at: 'journey', tag: '' },
+    ],
+    2: [
+      { at: 'find', tag: 'DNS' },
+      { at: 'domain', tag: '' },
+      { at: 'points', tag: '' },
+    ],
+    3: [
+      { at: 'asks', tag: 'ask DNS' },
+      { at: 'contact', tag: '' },
+      { at: 'calling', tag: '' },
+    ],
+    4: [
+      { at: 'opens', tag: '' },
+      { at: 'connection', tag: '' },
+      { at: 'server', tag: '' },
+    ],
+    5: [
+      { at: 'secure', tag: '' },
+      { at: 'encrypted', tag: 'HTTPS' },
+      { at: 'HTTPS', tag: '' },
+    ],
+    6: [
+      { at: 'sends', tag: '' },
+      { at: 'request', tag: '' },
+      { at: 'page', tag: 'the page' },
+    ],
+    7: [
+      { at: 'replies', tag: '' },
+      { at: 'data', tag: '' },
+      { at: 'HTML', tag: '' },
+      { at: 'CSS', tag: '' },
+      { at: 'JavaScript', tag: '' },
+      { at: 'images', tag: '' },
+      { at: 'links', tag: '' },
+    ],
+    8: [
+      { at: 'reads', tag: '' },
+      { at: 'pieces', tag: '' },
+      { at: 'builds', tag: 'the page' },
+      { at: 'page', tag: '' },
+    ],
+    9: [
+      { at: 'broken', tag: '' },
+      { at: 'server', tag: 'server ok' },
+      { at: 'failed', tag: 'hero.jpg' },
+      { at: 'load', tag: '' },
+    ],
+    10: [
+      { at: 'find', tag: '' },
+      { at: 'connect', tag: '' },
+      { at: 'request', tag: '' },
+      { at: 'receive', tag: '' },
+      { at: 'render', tag: '' },
+    ],
+    11: [
+      { at: 'type', tag: '' },
+      { at: 'URL', tag: '' },
+      { at: 'journey', tag: '' },
+    ],
+  },
+};
+
+/** Poses with a hand out where the camera can see it, for a cue that points. */
+const EXTENDED_POSES = new Set(['pointing', 'onefinger', 'explaining', 'gesture']);
+
+/**
+ * Beats whose authored pose is the point of the shot - the finger heart that
+ * ends the film is not improved by being replaced with a pointing hand.
+ */
+const POSE_IS_THE_POINT = new Set(['0107:11']);
 
 const EMPHASIS_WORDS = new Set([
   'not', 'never', 'one', 'two', 'three', 'four', 'loop', 'check', 'goal',
@@ -189,6 +296,7 @@ const listOf = (cell, sep = '|') => String(cell || '').split(sep).map((s) => s.t
 // scenes, from the stage
 // ---------------------------------------------------------------------------
 
+const { resolveCues, validateCues } = await import(path.join('file://', ROOT, 'src/stage/reel/cues.js'));
 const stageModule = await import(path.join('file://', ROOT, 'src/stage/reel/worlds-episode.js'));
 const { SCENES, SUBJECTS, SUBJECT_ROLES, SUBJECT_IDS } = stageModule;
 const { COMPOSITION_IDS, CAMERAS, FRAME_FOR_COMPOSITION } = await import(
@@ -270,14 +378,22 @@ const PERFORMANCE = {
   angry: { inserts: ['nope', 'skeptical'], close: 'nope' },
 };
 
-/** An episode can overrule one beat when the expression is not the performance. */
+/**
+ * An episode can overrule one beat when the expression is not the performance.
+ * Keyed by episode *and* beat: a beat number alone means 0102's gate would also
+ * put a "no" pose on 0107's render beat, which is a bug that only shows up as
+ * an expression that does not fit the line.
+ */
 const PERFORMANCE_BY_BEAT = {
   // the gate opens: she does not say "no", she holds an open palm and waits
-  8: { inserts: ['nope', 'pointing'], close: 'nope' },
+  '0102:8': { inserts: ['nope', 'pointing'], close: 'nope' },
+  // the sign-off is a finger heart, and the route is still on the bench behind
+  // it: the pose is the ending, the route is what the ending is about
+  '0107:11': { inserts: ['fingerheart'], close: 'fingerheart' },
 };
 
 function performanceFor(beat, shotIndex, isReactionShot) {
-  const beatTable = PERFORMANCE_BY_BEAT[Number(beat.beat_no)];
+  const beatTable = PERFORMANCE_BY_BEAT[`${EPISODE_IN_CONTEXT}:${Number(beat.beat_no)}`];
   const table = beatTable || PERFORMANCE[beat.expression] || null;
   const fallback = POSE_BY_EXPRESSION[beat.expression] || 'presenting';
   if (!table) return fallback;
@@ -543,6 +659,20 @@ function validateEpisode(episode, plans, beats) {
 
     // the five questions
     if (!plan.rationale) warnings.push(`${tag}: no rationale written for the visual choice`);
+
+    // the cues: a tag that names a word the narration never says is a sync bug
+    const authoredCues = (CUES[where] || {})[beat.beat_no] || [];
+    for (const problem of validateCues(authoredCues, beat.narration)) {
+      errors.push(`${tag}: ${problem}`);
+    }
+    if (authoredCues.length) {
+      const words = String(beat.narration || '').split(/\s+/).filter(Boolean).length;
+      if (authoredCues.length > words) errors.push(`${tag}: ${authoredCues.length} cues for ${words} words`);
+      // a cue per word is a karaoke machine, not an explanation
+      if (Number(beat.duration_s) / authoredCues.length < 0.55) {
+        warnings.push(`${tag}: ${authoredCues.length} cues in ${beat.duration_s} s is fast even for a reel`);
+      }
+    }
   }
 
   // ---- no two beats may make the same claim ------------------------------
@@ -629,6 +759,10 @@ function compileEpisode(rawEpisode, allBeats) {
   for (const beat of beats) {
     const plan = plans.get(beat.beat_no);
     const beatShots = shotsForBeat(beat, plan);
+    const beatFrames = beatShots.reduce((sum, s) => sum + s.frames, 0);
+    const authoredCues = (CUES[episode.episode_id] || {})[beat.beat_no] || [];
+    const beatCues = resolveCues(authoredCues, beat.narration, beatFrames, 3);
+    const beatStartFrame = cursor;
     const firstOfStage = !stageSeen.has(plan.stage);
     if (plan.stage !== 'title') stageSeen.add(plan.stage);
 
@@ -673,7 +807,19 @@ function compileEpisode(rawEpisode, allBeats) {
         subjects: s.subjects,
         subjectOptions: (SUBJECT_OPTIONS[episode.episode_id] || {})[beat.beat_no] || {},
         focus: s.focus,
-        pose: s.placement === 'off' || s.placement === 'absent' ? null : s.pose,
+        // the beat's sentence, as frames: the picture advances on these, so a
+        // cut in the middle of a cue resumes the demonstration rather than
+        // restarting it (see src/stage/reel/cues.js)
+        cues: beatCues,
+        cueBeats: { start: beatStartFrame, frames: beatFrames, narration: beat.narration },
+        pose: s.placement === 'off' || s.placement === 'absent'
+          ? null
+          // a shot that is explaining an object needs a hand out toward it; the
+          // reaction close-up keeps the performance pose its expression asked for
+          : (beatCues.length && s.subjects.length && !EXTENDED_POSES.has(s.pose)
+            && !POSE_IS_THE_POINT.has(`${episode.episode_id}:${beat.beat_no}`)
+            ? (i % 2 ? 'explaining' : 'pointing')
+            : s.pose),
         transition: s.transition,
         vo: s.captionText,
         mouth: voice,

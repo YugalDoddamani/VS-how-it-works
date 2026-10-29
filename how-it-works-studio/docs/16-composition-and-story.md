@@ -156,6 +156,20 @@ card and the last shot — where it orients or signs off — and nowhere else.
 A caption has to be *readable*: ≤ 26 words, ≤ 120 characters, and `words / 4 + 0.6`
 seconds no longer than the run of shots that show it.
 
+## 5b · What the picture is pointing at
+
+Two numbers are compiled onto every shot and every painter may use them:
+
+- `cues` — the beat's sentence as frames (see docs/06). The painter draws the
+  state the narration has reached, so the demonstration advances on the word.
+- the `focus(x,y,r)` callback — the painter says where the current element sits;
+  the frame rings it, letters a note above it, and carries a short reach from
+  her hand toward it.
+
+An insert without a focus point is a still life; a focus point with the wrong
+camera is a ring around something the viewer cannot see. The pair is what makes
+a shot an explanation.
+
 ## 6 · The story spine
 
 Every episode walks the same four stages. `title` is a chapter card: allowed, and
