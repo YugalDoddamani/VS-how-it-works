@@ -29,6 +29,7 @@ import { roundRect, poly, chip, paperCard } from './iso.js';
 import { backdrop, label, easeOut, prog } from './page.js';
 import { CAMERAS, layoutShot, cameraTransform, SAFE } from './composition.js';
 import { captionTop } from './chrome.js';
+import { cueAt } from './cues.js';
 import { framingFor } from './nao.js';
 
 const W = 1080;
@@ -256,6 +257,158 @@ function wrapText(ctx, text, maxWidth, max = 2) {
   }
   if (lines.length < max && line) lines.push(line);
   return lines;
+}
+
+// ---------------------------------------------------------------------------
+// 0107 helpers: one journey, drawn at different sizes
+// ---------------------------------------------------------------------------
+
+const URL_TEXT = 'nao.explains/cat';
+
+/** Which cue the beat has reached. A shot without cues is a finished state. */
+const stepOf = (o) => (o.cue ? o.cue.index : 0);
+
+/**
+ * How far a state that begins on cue `i` has arrived: 0 before it, easing to 1
+ * during the first half of it, 1 after. This is the whole trick behind the
+ * 0107 pictures - the state change happens *on the word*, not on the cut.
+ */
+const since = (o, i) => {
+  const step = stepOf(o);
+  if (step > i) return 1;
+  if (step < i) return 0;
+  return o.cue ? Math.min(1, o.cue.p / 0.5) : 1;
+};
+
+/** A browser window: dots, a URL pill, and room for a page underneath. */
+function browserCard(ctx, x, y, w, h, { url = URL_TEXT, compact = false } = {}) {
+  const barH = Math.min(compact ? 46 : 58, h * 0.15);
+  paperCard(ctx, x, y, w, h, { r: 22 });
+  ctx.save();
+  ctx.beginPath();
+  roundRect(ctx, x, y, w, barH + 20, 22);
+  ctx.clip();
+  ctx.fillStyle = mix(P.surfaceSoft, 0.12);
+  ctx.fillRect(x, y, w, barH);
+  ctx.restore();
+
+  [0, 1, 2].forEach((i) => {
+    ctx.beginPath();
+    ctx.arc(x + 22 + i * 16, y + barH / 2, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = alpha(P.ink, 0.16 - i * 0.03);
+    ctx.fill();
+  });
+  const pillX = x + 82;
+  const pillW = w - 100;
+  roundRect(ctx, pillX, y + barH * 0.26, pillW, barH * 0.48, barH * 0.24);
+  ctx.fillStyle = alpha(P.ink, 0.05);
+  ctx.fill();
+  label(ctx, url, pillX + 16, y + barH * 0.66, {
+    size: Math.min(17, barH * 0.34), color: alpha(P.ink, 0.5), weight: 600, align: 'left',
+  });
+  return barH;
+}
+
+/**
+ * The page itself: a hero tile, two lines, three thumbnails.
+ *
+ * `build` is how much of it the browser has assembled - the reveal is a clip
+ * from the top, because that is the order a page paints in. `missing` names the
+ * tile that never arrived, and it is drawn as the broken-image glyph the viewer
+ * has seen a thousand times, which is the point of the caveat beat.
+ */
+function pageBlocks(ctx, x, y, w, h, { build = 1, missing = null } = {}) {
+  const heroH = h * 0.44;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, Math.max(2, h * build));
+  ctx.clip();
+
+  // a nav strip: the first thing a browser paints, and the cue that this blank
+  // rectangle is a web page rather than an empty window
+  const navH = Math.max(14, h * 0.07);
+  roundRect(ctx, x, y, w, navH, navH / 2);
+  ctx.fillStyle = alpha(P.ink, 0.06);
+  ctx.fill();
+  [0.1, 0.24, 0.38].forEach((frac) => {
+    roundRect(ctx, x + w * frac, y + navH * 0.28, w * 0.08, navH * 0.44, navH * 0.22);
+    ctx.fillStyle = alpha(P.ink, 0.1);
+    ctx.fill();
+  });
+
+  const top = y + navH + Math.max(10, h * 0.05);
+  if (missing === 'hero') {
+    roundRect(ctx, x, top, w, heroH, 14);
+    ctx.fillStyle = alpha(P.stop, 0.05);
+    ctx.fill();
+    ctx.setLineDash([10, 8]);
+    ctx.strokeStyle = alpha(P.stop, 0.45);
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    const gx = x + w / 2;
+    const gy = top + heroH / 2;
+    const gs = Math.min(heroH * 0.44, 62);
+    ctx.strokeStyle = alpha(P.stop, 0.65);
+    ctx.lineWidth = 3;
+    ctx.strokeRect(gx - gs / 2, gy - gs * 0.36, gs, gs * 0.72);
+    ctx.beginPath();
+    ctx.moveTo(gx - gs / 2, gy + gs * 0.36);
+    ctx.lineTo(gx - gs * 0.1, gy - gs * 0.04);
+    ctx.lineTo(gx + gs * 0.12, gy + gs * 0.2);
+    ctx.lineTo(gx + gs * 0.34, gy - gs * 0.08);
+    ctx.lineTo(gx + gs / 2, gy + gs * 0.36);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(gx + gs * 0.24, gy - gs * 0.16, 4, 0, Math.PI * 2);
+    ctx.fillStyle = alpha(P.stop, 0.65);
+    ctx.fill();
+  } else {
+    roundRect(ctx, x, top, w, heroH, 14);
+    ctx.fillStyle = mix(P.accent, 0.78);
+    ctx.fill();
+    ctx.save();
+    ctx.beginPath();
+    roundRect(ctx, x, top, w, heroH, 14);
+    ctx.clip();
+    ctx.fillStyle = alpha(P.surface, 0.42);
+    ctx.beginPath();
+    ctx.arc(x + w * 0.78, top + heroH * 0.34, heroH * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+    // a horizon line, so the tile reads as a picture and not a slab
+    ctx.fillStyle = alpha(P.surface, 0.3);
+    ctx.beginPath();
+    ctx.moveTo(x, top + heroH);
+    ctx.lineTo(x + w * 0.3, top + heroH * 0.52);
+    ctx.lineTo(x + w * 0.52, top + heroH);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.34, top + heroH);
+    ctx.lineTo(x + w * 0.62, top + heroH * 0.62);
+    ctx.lineTo(x + w * 0.9, top + heroH);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // two lines of copy
+  [0.74, 0.46].forEach((frac, i) => {
+    roundRect(ctx, x, top + heroH + 18 + i * 16, w * frac, 9, 4.5);
+    ctx.fillStyle = alpha(P.ink, 0.12);
+    ctx.fill();
+  });
+
+  // three thumbnails
+  const thY = top + heroH + 54;
+  const thH = Math.max(24, Math.min(h - (heroH + 60 + navH), h * 0.24));
+  const thW = (w - 24) / 3;
+  for (let i = 0; i < 3; i++) {
+    roundRect(ctx, x + i * (thW + 12), thY, thW, thH, 10);
+    ctx.fillStyle = mix(i === 1 ? P.link : P.accent, 0.84);
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
 // ---------------------------------------------------------------------------
@@ -975,599 +1128,977 @@ const SUBJECTS = {
   // seen at different sizes: an address bar, a directory, an address card, a
   // wire, a padlock, a request and the page it becomes.
 
+  // ---------------------------------------------------------------------------
+  // 0107 - what happens when you type a URL?
+  // ---------------------------------------------------------------------------
+  //
+  // These are not backdrops. Every one of them is a short demonstration that
+  // advances on the beat's cues (src/stage/reel/cues.js): the picture changes
+  // state on the word that names the thing, and it *keeps* that state across the
+  // cuts inside a beat, so a three-shot beat is one continuous explanation seen
+  // from three angles instead of the same loop starting over.
+  //
+  // Each painter also reports where its current element sits - `o.focus(x,y,r)` -
+  // which is how the frame knows what to ring and what she is pointing at.
+
   'url-bar': {
     role: 'demonstrate',
-    about: 'the address bar, with a URL being typed into it',
+    about: 'the address bar: a URL is typed, Enter is pressed, a page arrives',
     draw(ctx, b, o) {
-      const text = String(o.options.text || 'nao.explains/cat');
-      const w = Math.min(b.w * 0.98, 800);
-      const h = Math.max(96, Math.min(b.h * 0.34, 140));
-      const x = b.x + (b.w - w) / 2;
-      const y = b.y + b.h * 0.42 - h / 2;
-      const typed = Math.round(Math.min(1, prog(o.t, 0.03, 0.4)) * text.length);
+      const text = String(o.options.text || URL_TEXT);
+      const step = stepOf(o);
+      const base = b.y + b.h;
 
-      shadow(ctx, x + w / 2, y + h + 14, w * 0.4, 18, 0.08);
+      // ---- the pill --------------------------------------------------------
+      const w = Math.min(b.w * 0.97, 800);
+      const h = Math.min(Math.max(96, b.h * 0.2), 132);
+      const x = b.x + (b.w - w) / 2;
+      const y = b.y + b.h * 0.06;
+
+      shadow(ctx, x + w / 2, y + h + 12, w * 0.4, 16, 0.07);
       roundRect(ctx, x, y, w, h, h / 2);
       ctx.fillStyle = P.surface;
       ctx.fill();
-      ctx.strokeStyle = alpha(P.ink, 0.14);
+      ctx.strokeStyle = alpha(P.ink, 0.16);
       ctx.lineWidth = 2.5;
       ctx.stroke();
 
-      // the little globe: this is a web address, not a search box
-      const gx = x + h * 0.66;
+      // globe
+      const gx = x + h * 0.62;
       const gy = y + h / 2;
       ctx.save();
-      ctx.strokeStyle = alpha(P.link, 0.8);
+      ctx.strokeStyle = alpha(P.link, 0.85);
       ctx.lineWidth = 2.6;
       ctx.beginPath();
-      ctx.arc(gx, gy, h * 0.21, 0, Math.PI * 2);
+      ctx.arc(gx, gy, h * 0.2, 0, Math.PI * 2);
       ctx.stroke();
       ctx.beginPath();
-      ctx.ellipse(gx, gy, h * 0.09, h * 0.21, 0, 0, Math.PI * 2);
+      ctx.ellipse(gx, gy, h * 0.085, h * 0.2, 0, 0, Math.PI * 2);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(gx - h * 0.21, gy);
-      ctx.lineTo(gx + h * 0.21, gy);
+      ctx.moveTo(gx - h * 0.2, gy);
+      ctx.lineTo(gx + h * 0.2, gy);
       ctx.stroke();
       ctx.restore();
 
-      // the Enter key, and it gets pressed - measured first, because the text
-      // has to live in what is left of the pill
-      const kw = Math.min(150, w * 0.2);
-      const kh = h * 0.62;
-      const kx = x + w - kw - h * 0.24;
+      // the Enter key, measured first so the URL shrinks to fit beside it
+      const kw = Math.min(148, w * 0.2);
+      const kh = h * 0.6;
+      const kx = x + w - kw - h * 0.26;
       const ky = y + (h - kh) / 2;
-
-      const tx0 = gx + h * 0.34;
+      const tx0 = gx + h * 0.3;
       const room = kx - tx0 - h * 0.24;
-      let size = Math.min(40, h * 0.33);
+      const typedFrac = step >= 1 ? 1 : Math.max(0.06, o.cue ? o.cue.p : 1);
+      const shown = text.slice(0, Math.max(1, Math.round(text.length * typedFrac)));
+
+      let size = Math.min(38, h * 0.32);
       ctx.save();
       ctx.font = `600 ${size}px ${FONT_SANS}`;
-      while (size > 16 && ctx.measureText(text).width > room) {
+      while (size > 15 && ctx.measureText(text).width > room) {
         size -= 2;
         ctx.font = `600 ${size}px ${FONT_SANS}`;
       }
-      const shown = text.slice(0, typed);
       ctx.fillStyle = P.ink;
       ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
       ctx.fillText(shown, tx0, gy + size * 0.34);
-      if (Math.floor(o.t * 3.4) % 2 === 0 || typed < text.length) {
-        ctx.fillStyle = alpha(P.accent, 0.85);
+      // caret: solid while typing, blinking once the words are in
+      const caretOn = step < 1 || Math.floor(o.frame / 9) % 2 === 0;
+      if (caretOn) {
+        ctx.fillStyle = alpha(P.accent, 0.9);
         ctx.fillRect(tx0 + ctx.measureText(shown).width + 3, gy - size * 0.55, 3, size * 1.1);
       }
       ctx.restore();
-      const press = prog(o.t, 0.42, 0.52);
+
+      const pressed = since(o, 1);
       ctx.save();
-      roundRect(ctx, kx, ky + press * 4, kw, kh, kh * 0.32);
-      ctx.fillStyle = press > 0 ? mix(P.accent, 0.82) : P.surfaceSoft;
+      roundRect(ctx, kx, ky + pressed * 4, kw, kh, kh * 0.3);
+      ctx.fillStyle = pressed > 0.35 ? mix(P.accent, 0.82) : P.surfaceSoft;
       ctx.fill();
-      ctx.strokeStyle = alpha(P.ink, 0.12);
+      ctx.strokeStyle = alpha(P.ink, 0.14);
       ctx.lineWidth = 2;
       ctx.stroke();
-      ctx.font = `700 ${Math.min(24, kh * 0.42)}px ${FONT_SANS}`;
-      ctx.fillStyle = press > 0 ? alpha(P.ink, 0.85) : P.inkSoft;
+      ctx.font = `700 ${Math.min(23, kh * 0.4)}px ${FONT_SANS}`;
+      ctx.fillStyle = pressed > 0.35 ? alpha(P.ink, 0.9) : P.inkSoft;
       ctx.textAlign = 'center';
-      ctx.fillText('ENTER', kx + kw / 2, ky + kh * 0.62 + press * 4);
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText('ENTER', kx + kw / 2, ky + kh * 0.6 + pressed * 4);
       ctx.restore();
 
-      label(ctx, o.options.caption || 'one line, six words', b.x + b.w / 2, y - 24, {
-        size: 24, color: alpha(P.ink, 0.45), weight: 700, spacing: 2,
-      });
+      // ---- what Enter buys: the page ---------------------------------------
+      // The window is on screen from the first frame - an empty browser is what
+      // the viewer is looking at while the URL is typed - and the page is poured
+      // into it once Enter is pressed.
+      const pageIn = since(o, 2);
+      const winW = Math.min(b.w * 0.92, 690);
+      const winY = y + h + Math.max(26, b.h * 0.08);
+      const winH = Math.max(140, base - winY - 8);
+      const winX = b.x + (b.w - winW) / 2;
+      const barH = browserCard(ctx, winX, winY, winW, winH, { url: text, compact: true });
+
+      if (pageIn > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.25 + 0.75 * pageIn;
+        pageBlocks(ctx, winX + winW * 0.06, winY + barH + winH * 0.06, winW * 0.88, winH * 0.78, {
+          build: Math.max(0.04, pageIn),
+        });
+        ctx.restore();
+      } else {
+        // before the page, a progress rail inside the empty window
+        const railY = winY + barH + winH * 0.12;
+        roundRect(ctx, winX + winW * 0.08, railY, winW * 0.84, 8, 4);
+        ctx.fillStyle = alpha(P.ink, 0.07);
+        ctx.fill();
+        const run = (o.frame % 44) / 44;
+        roundRect(ctx, winX + winW * 0.08 + winW * 0.84 * run * 0.7, railY, winW * 0.2, 8, 4);
+        ctx.fillStyle = alpha(P.accent, 0.55);
+        ctx.fill();
+      }
+
+      // ---- the route the rest of the film walks ----------------------------
+      const route = since(o, 3);
+      if (route > 0) {
+        const steps = ['FIND', 'CONNECT', 'REQUEST', 'RENDER'];
+        const ry = base - 16;
+        const rw = Math.min(b.w * 0.9, 620);
+        const rx = b.x + (b.w - rw) / 2;
+        ctx.save();
+        ctx.globalAlpha = route;
+        ctx.strokeStyle = alpha(P.accent, 0.35);
+        ctx.lineWidth = 3;
+        ctx.setLineDash([8, 10]);
+        ctx.beginPath();
+        ctx.moveTo(rx, ry);
+        ctx.lineTo(rx + rw, ry);
+        ctx.stroke();
+        ctx.restore();
+        steps.forEach((s, i) => {
+          const sx = rx + (rw / (steps.length - 1)) * i;
+          ctx.save();
+          ctx.globalAlpha = route;
+          ctx.beginPath();
+          ctx.arc(sx, ry, 7, 0, Math.PI * 2);
+          ctx.fillStyle = mix(P.accent, 0.4);
+          ctx.fill();
+          label(ctx, s, sx, ry - 18, { size: 17, color: alpha(P.ink, 0.45), weight: 700, spacing: 1.5 });
+          ctx.restore();
+        });
+      }
+
+      // ---- what she is talking about right now -----------------------------
+      if (step <= 0) o.focus(tx0 + room * 0.5, gy, Math.min(96, room * 0.5));
+      else if (step === 1) o.focus(kx + kw / 2, ky + kh / 2, 62);
+      else o.focus(winX + winW / 2, winY + winH * 0.46, Math.min(132, winW * 0.22));
     },
   },
 
   'page-stage': {
     role: 'transform',
-    about: 'the browser window, empty and then built out of the files',
+    about: 'the browser window: empty, then built out of the files that arrived',
     draw(ctx, b, o) {
-      const w = Math.min(b.w * 0.98, 760);
-      const h = Math.min(b.h * 0.94, 620);
-      const x = b.x + (b.w - w) / 2;
-      const y = b.y + b.h * 0.96 - h;
-      const open = easeOut(prog(o.t, 0.02, 0.24));
+      const step = stepOf(o);
       const broken = Boolean(o.options.broken);
+      const w = Math.min(b.w * 0.97, 700);
+      const h = b.h * 0.96;
+      const x = b.x + (b.w - w) / 2;
+      const y = b.y + b.h - h;
+      const barH = Math.min(58, h * 0.14);
+      const open = easeOut(Math.min(1, (o.frame - (o.shot?.start || 0)) / 8));
 
       ctx.save();
-      ctx.globalAlpha = 0.35 + 0.65 * open;
-      ctx.translate(x + w / 2, y + h);
-      ctx.scale(0.94 + 0.06 * open, 0.94 + 0.06 * open);
-      ctx.translate(-(x + w / 2), -(y + h));
-      shadow(ctx, x + w / 2, y + h + 10, w * 0.42, 18, 0.09);
-      paperCard(ctx, x, y, w, h, { r: 26 });
+      ctx.globalAlpha = 0.25 + 0.75 * open;
+      browserCard(ctx, x, y, w, h, { url: o.options.url || URL_TEXT });
 
-      // the window's own chrome: three dots and a small address field
-      const barH = Math.min(64, h * 0.13);
-      ctx.save();
-      roundRect(ctx, x, y, w, barH, 26);
-      ctx.clip();
-      ctx.fillStyle = mix(P.surfaceSoft, 0.1);
-      ctx.fillRect(x, y, w, barH);
-      ctx.restore();
-      [0, 1, 2].forEach((i) => {
-        ctx.beginPath();
-        ctx.arc(x + 30 + i * 22, y + barH / 2, 6, 0, Math.PI * 2);
-        ctx.fillStyle = alpha(P.ink, 0.14 - i * 0.03);
-        ctx.fill();
-      });
-      roundRect(ctx, x + 104, y + barH * 0.28, w * 0.52, barH * 0.44, barH * 0.22);
-      ctx.fillStyle = alpha(P.ink, 0.05);
-      ctx.fill();
-      label(ctx, o.options.url || 'nao.explains/cat', x + 120, y + barH * 0.62, {
-        size: Math.min(20, barH * 0.34), color: alpha(P.ink, 0.5), weight: 600, align: 'left',
-      });
+      const cx0 = x + w * 0.06;
+      const cw = w * 0.88;
+      const cy0 = y + barH + h * 0.05;
+      const chh = h - barH - h * 0.12;
 
-      // the page itself: a hero, two lines, three thumbnails
-      const px = x + w * 0.06;
-      const pw = w * 0.88;
-      const py = y + barH + h * 0.07;
-      const ph = h - barH - h * 0.16;
-      const assemble = Boolean(o.options.assemble);
-      const step = (i) => (assemble ? easeOut(prog(o.t, 0.1 + i * 0.09, 0.26 + i * 0.09)) : 1);
+      // On the render beat the page assembles as the sentence walks through the
+      // files; on the failure beat it arrives complete with one tile missing.
+      const build = broken ? 1 : Math.max(0.22, Math.min(1, (step + (o.cue ? o.cue.p : 1)) / 3.2));
+      const missing = broken ? 'hero' : null;
+      pageBlocks(ctx, cx0, cy0, cw, chh, { build, missing });
 
-      const heroH = ph * 0.44;
-      const heroP = step(0);
-      if (heroP > 0) {
-        ctx.save();
-        ctx.globalAlpha *= heroP;
-        roundRect(ctx, px, py, pw, heroH, 14);
-        if (broken && o.options.missing === 'hero') {
-          ctx.fillStyle = alpha(P.stop, 0.06);
-          ctx.fill();
-          ctx.setLineDash([10, 8]);
-          ctx.strokeStyle = alpha(P.stop, 0.4);
-          ctx.lineWidth = 2.5;
-          ctx.stroke();
-          ctx.setLineDash([]);
-          // the broken-image glyph
-          const gx = px + pw / 2;
-          const gy = py + heroH / 2;
-          const gs = Math.min(heroH * 0.42, 64);
-          ctx.strokeStyle = alpha(P.stop, 0.65);
-          ctx.lineWidth = 3;
-          ctx.strokeRect(gx - gs / 2, gy - gs * 0.36, gs, gs * 0.72);
-          ctx.beginPath();
-          ctx.moveTo(gx - gs / 2, gy + gs * 0.36);
-          ctx.lineTo(gx - gs * 0.1, gy - gs * 0.04);
-          ctx.lineTo(gx + gs * 0.12, gy + gs * 0.2);
-          ctx.lineTo(gx + gs * 0.34, gy - gs * 0.08);
-          ctx.lineTo(gx + gs / 2, gy + gs * 0.36);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(gx + gs * 0.24, gy - gs * 0.16, 4, 0, Math.PI * 2);
-          ctx.fillStyle = alpha(P.stop, 0.65);
-          ctx.fill();
-          label(ctx, o.options.missingName || 'hero.jpg did not load', gx, gy + gs * 0.72 + 22, {
-            size: Math.min(21, heroH * 0.12), color: alpha(P.stop, 0.8), weight: 600,
-          });
-        } else {
-          ctx.fillStyle = mix(P.accent, 0.78);
-          ctx.fill();
-          // a tiny horizon, so the tile reads as a picture and not a slab
+      if (broken) {
+        // the server answered fine (tick on the title bar) and one file did not
+        // (a cross in the tile that never arrived). The words for both are the
+        // cue tags, drawn by the frame - a painter that writes its own labels
+        // ends up saying the same thing twice.
+        const ok = since(o, 1);
+        const failed = since(o, 2);
+        if (ok > 0) {
           ctx.save();
-          ctx.beginPath();
-          roundRect(ctx, px, py, pw, heroH, 14);
-          ctx.clip();
-          ctx.fillStyle = alpha(P.surface, 0.4);
-          ctx.beginPath();
-          ctx.arc(px + pw * 0.78, py + heroH * 0.34, heroH * 0.16, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.globalAlpha = ok;
+          tick(ctx, x + w - 46, y + barH * 0.5, 20, alpha(P.good, 1), 4.5);
           ctx.restore();
         }
-        ctx.restore();
-      }
-      [1, 2].forEach((i) => {
-        const p = step(i);
-        if (p <= 0) return;
-        ctx.save();
-        ctx.globalAlpha *= p;
-        const ly = py + heroH + h * 0.06 + (i - 1) * h * 0.055;
-        roundRect(ctx, px, ly, pw * (i === 1 ? 0.82 : 0.6), h * 0.026, 8);
-        ctx.fillStyle = alpha(P.ink, 0.12);
-        ctx.fill();
-        ctx.restore();
-      });
-      const tiles = 3;
-      for (let i = 0; i < tiles; i++) {
-        const p = step(3 + i);
-        if (p <= 0) continue;
-        ctx.save();
-        ctx.globalAlpha *= p;
-        const tw = (pw - 16 * (tiles - 1)) / tiles;
-        const ty = py + ph - h * 0.2;
-        const tx = px + i * (tw + 16);
-        roundRect(ctx, tx, ty, tw, h * 0.16, 10);
-        ctx.fillStyle = i === 1 ? mix(P.link, 0.8) : alpha(P.ink, 0.07);
-        ctx.fill();
-        ctx.restore();
+        if (failed > 0) {
+          ctx.save();
+          ctx.globalAlpha = failed;
+          cross(ctx, x + w * 0.5 + Math.min(96, w * 0.18), cy0 + chh * 0.3, 28, alpha(P.stop, 0.9), 5);
+          ctx.restore();
+        }
       }
       ctx.restore();
+
+      if (!broken) {
+        if (step <= 0) o.focus(x + w * 0.12, cy0 + chh * 0.06, 70);
+        else if (step === 1) o.focus(x + w * 0.5, cy0 + chh * 0.28, Math.min(170, cw * 0.34));
+        else o.focus(x + w * 0.5, cy0 + chh * 0.5, Math.min(210, cw * 0.42));
+      } else if (step <= 0) {
+        o.focus(x + w * 0.5, cy0 + chh * 0.28, Math.min(170, cw * 0.36));
+      } else if (step === 1) {
+        o.focus(x + w - 46, y + barH * 0.5, 62);
+      } else {
+        o.focus(x + w * 0.5, cy0 + chh * 0.28, Math.min(170, cw * 0.36));
+      }
     },
   },
 
   'dns-directory': {
     role: 'demonstrate',
-    about: 'the address book: a name goes in, an IP address comes out',
+    about: 'DNS: a name goes in, the matching row is found, an address comes out',
     draw(ctx, b, o) {
-      const w = Math.min(b.w * 0.96, 700);
+      const step = stepOf(o);
       const rows = (o.options.rows || [
         ['nao.explains', '203.0.113.7'],
         ['wikipedia.org', '198.51.100.4'],
         ['a-shop.example', '192.0.2.61'],
         ['news.example', '198.51.100.23'],
       ]).slice(0, 4);
-      const rowH = Math.min(78, b.h * 0.16);
-      const h = rowH * rows.length + 96;
+      const hit = Math.max(0, Math.min(rows.length - 1, Number(o.options.hit ?? 0)));
+      const w = Math.min(b.w * 0.99, 820);
+      const rowH = Math.min(74, (b.h - 130) / rows.length);
+      const headH = Math.max(56, rowH * 0.82);
+      const h = headH + rowH * rows.length + 22;
       const x = b.x + (b.w - w) / 2;
-      const y = b.y + b.h * 0.94 - h;
+      const y = b.y + b.h - h;
 
-      shadow(ctx, x + w / 2, y + h + 10, w * 0.42, 18, 0.08);
+      shadow(ctx, x + w / 2, y + h + 10, w * 0.42, 16, 0.08);
       paperCard(ctx, x, y, w, h, { r: 22 });
 
-      // header: the book's title, and a magnifier that is doing the looking
-      label(ctx, 'DNS', x + 32, y + 46, { size: 26, color: alpha(P.accent, 0.95), weight: 700, align: 'left', spacing: 3 });
-      label(ctx, 'the address book', x + 104, y + 46, { size: 22, color: alpha(P.ink, 0.4), weight: 600, align: 'left' });
-      const found = prog(o.t, 0.34, 0.5);
-      const mx = x + w - 56 - (1 - found) * 26;
+      // ---- the query: what the browser is holding --------------------------
+      const qY = y + headH * 0.5;
+      label(ctx, 'DNS', x + 26, qY + 9, { size: 24, color: alpha(P.accent, 0.95), weight: 700, align: 'left', spacing: 3 });
+      const typed = rows[hit][0];
+      const showTyped = step >= 1 ? typed : typed.slice(0, Math.max(1, Math.round(typed.length * (o.cue ? o.cue.p : 1))));
       ctx.save();
-      ctx.strokeStyle = alpha(P.ink, 0.4);
-      ctx.lineWidth = 4;
+      ctx.font = `600 22px ${FONT_SANS}`;
+      ctx.fillStyle = alpha(P.ink, 0.72);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(`${showTyped}${step >= 1 ? '' : '|'}`, x + 92, qY + 8);
+      ctx.restore();
+
+      // the magnifier: parked in the header while it reads, then it settles on
+      // the row it found. It never sits over a value.
+      const found = since(o, 1);
+      const mx = x + w - 40 + found * 6;
+      const my = y + headH * 0.5 - 6;
+      ctx.save();
+      ctx.globalAlpha = 0.75;
+      ctx.strokeStyle = alpha(found > 0.5 ? P.good : P.ink, 0.5);
+      ctx.lineWidth = 3.5;
       ctx.beginPath();
-      ctx.arc(mx, y + 40, 14, 0, Math.PI * 2);
+      ctx.arc(mx, my, 11, 0, Math.PI * 2);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(mx + 10, y + 50);
-      ctx.lineTo(mx + 22, y + 62);
+      ctx.moveTo(mx + 8, my + 8);
+      ctx.lineTo(mx + 17, my + 17);
       ctx.stroke();
       ctx.restore();
 
-      const hit = Math.max(0, Math.min(rows.length - 1, Number(o.options.hit ?? 0)));
+      // ---- the rows --------------------------------------------------------
       rows.forEach(([name, ip], i) => {
-        const ry = y + 76 + i * rowH;
+        const ry = y + headH + rowH * (i + 0.5);
         const isHit = i === hit;
-        const lit = isHit ? easeOut(prog(o.t, 0.3, 0.46)) : 0;
+        const lit = isHit ? since(o, 1) : 0;
         if (lit > 0) {
           ctx.save();
-          ctx.globalAlpha = 0.9 * lit;
-          roundRect(ctx, x + 16, ry - rowH * 0.42, w - 32, rowH * 0.84, 12);
-          ctx.fillStyle = mix(P.accent, 0.9);
+          ctx.globalAlpha = 0.85 * lit;
+          roundRect(ctx, x + 12, ry - rowH * 0.44, w - 24, rowH * 0.88, 12);
+          ctx.fillStyle = mix(P.accent, 0.88);
           ctx.fill();
           ctx.restore();
         }
         ctx.save();
-        ctx.font = `600 ${Math.min(26, rowH * 0.36)}px ${FONT_SANS}`;
-        ctx.fillStyle = isHit && lit > 0.4 ? P.ink : alpha(P.ink, 0.72);
+        ctx.font = `600 ${Math.min(25, rowH * 0.36)}px ${FONT_SANS}`;
+        ctx.fillStyle = lit > 0.4 ? P.ink : alpha(P.ink, 0.7);
         ctx.textAlign = 'left';
-        ctx.fillText(name, x + 34, ry + 8);
-        ctx.font = `500 ${Math.min(24, rowH * 0.32)}px ${FONT_SANS}`;
+        ctx.fillText(name, x + 32, ry + 8);
+        ctx.font = `500 ${Math.min(23, rowH * 0.33)}px ${FONT_SANS}`;
         ctx.fillStyle = alpha(P.link, 0.95);
         ctx.textAlign = 'right';
-        ctx.fillText(ip, x + w - (isHit && lit > 0.5 ? 62 : 34), ry + 8);
+        ctx.fillText(ip, x + w - 30, ry + 8);
         ctx.restore();
         ctx.save();
-        ctx.strokeStyle = alpha(P.ink, 0.08);
+        ctx.strokeStyle = alpha(P.ink, 0.07);
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(x + 28, ry + rowH * 0.44);
-        ctx.lineTo(x + w - 28, ry + rowH * 0.44);
+        ctx.moveTo(x + 24, ry + rowH * 0.45);
+        ctx.lineTo(x + w - 24, ry + rowH * 0.45);
         ctx.stroke();
         ctx.restore();
-        if (isHit && lit > 0.5) {
-          tick(ctx, x + w - 30, ry - rowH * 0.24, 22, alpha(P.good, lit), 4);
-        }
       });
+
+      // ---- the answer leaves the book --------------------------------------
+      const out = since(o, 2);
+      if (out > 0) {
+        const ip = rows[hit][1];
+        const bx = x + w / 2;
+        const by = y - 54 - (1 - out) * 22;
+        ctx.save();
+        ctx.globalAlpha = out;
+        const cw = chip(ctx, bx - 96, by, ip, { accent: true, size: 22 });
+        void cw;
+        // and a line from the row to the badge: the value came from *there*
+        ctx.strokeStyle = alpha(P.accent, 0.4);
+        ctx.lineWidth = 3;
+        ctx.setLineDash([7, 9]);
+        ctx.beginPath();
+        ctx.moveTo(x + w - 90, y + headH + rowH * (hit + 0.5));
+        ctx.lineTo(bx + 6, by + 30);
+        ctx.stroke();
+        ctx.restore();
+        o.focus(bx, by + 18, 96);
+      } else if (step >= 1) {
+        o.focus(x + w * 0.5, y + headH + rowH * (hit + 0.5), Math.min(120, w * 0.16));
+      } else {
+        o.focus(x + 92 + 90, y + headH * 0.5, 90);
+      }
     },
   },
 
   'address-card': {
     role: 'compare',
-    about: 'the answer DNS gives back: a name resolved to an address',
+    about: 'a contact: a name, the number it resolves to, and the call that follows',
     draw(ctx, b, o) {
-      const w = Math.min(b.w * 0.92, 620);
-      const h = Math.min(b.h * 0.72, 400);
+      const step = stepOf(o);
+      const name = o.options.name || 'nao.explains';
+      const ip = o.options.ip || '203.0.113.7';
+      const w = Math.min(b.w * 0.95, 640);
+      const h = b.h * 0.9;
       const x = b.x + (b.w - w) / 2;
-      const y = b.y + b.h * 0.9 - h;
-      const pop = easeOut(prog(o.t, 0.04, 0.26));
+      const y = b.y + b.h - h;
+      const pop = easeOut(Math.min(1, (o.frame - (o.shot?.start || 0)) / 9));
+
       ctx.save();
-      ctx.globalAlpha = 0.35 + 0.65 * pop;
-      ctx.translate(x + w / 2, y + h / 2);
-      ctx.rotate(-0.02 + 0.012 * Math.sin(o.t * Math.PI * 2));
-      ctx.translate(-(x + w / 2), -(y + h / 2));
-      shadow(ctx, x + w / 2, y + h + 8, w * 0.4, 16, 0.08);
+      ctx.globalAlpha = 0.3 + 0.7 * pop;
+      ctx.translate(0, (1 - pop) * 16);
+      shadow(ctx, x + w / 2, y + h + 10, w * 0.42, 16, 0.08);
       paperCard(ctx, x, y, w, h, { r: 20 });
-      const kSize = Math.max(14, Math.min(22, w * 0.045, h * 0.075));
-      label(ctx, o.options.kicker || 'the answer', x + w / 2, y + h * 0.14, {
-        size: kSize, color: alpha(P.ink, 0.42), weight: 700, spacing: 2,
-      });
-      // name, arrow down, address
+
+      // header: this is an address book, not a business card
+      label(ctx, 'CONTACTS', x + 26, y + 38, { size: 18, color: alpha(P.ink, 0.4), weight: 700, align: 'left', spacing: 3 });
+      const found = since(o, 1);
+      if (found > 0) {
+        ctx.save();
+        ctx.globalAlpha = found;
+        chip(ctx, x + w - 132, y + 20, 'found', { size: 17, ink: mix(P.good, -0.25), border: alpha(P.good, 0.4) });
+        ctx.restore();
+      }
+
+      // the search line
+      const qy = y + h * 0.2;
+      roundRect(ctx, x + 22, qy - 26, w - 44, 48, 24);
+      ctx.fillStyle = alpha(P.ink, 0.045);
+      ctx.fill();
+      const typed = name.slice(0, Math.max(2, Math.round(name.length * (step <= 0 ? (o.cue ? o.cue.p : 1) : 1))));
+      label(ctx, typed, x + 44, qy + 7, { size: 22, color: alpha(P.ink, 0.7), weight: 600, align: 'left' });
+
+      // the contact itself: avatar, name, number
+      const avatarX = x + 22 + Math.min(58, w * 0.11);
+      const avatarY = y + h * 0.44;
+      const ar = Math.min(34, w * 0.06);
       ctx.save();
-      ctx.font = `600 ${Math.min(34, w * 0.075, h * 0.1)}px ${FONT_SANS}`;
-      ctx.fillStyle = alpha(P.ink, 0.75);
-      ctx.textAlign = 'center';
-      ctx.fillText(o.options.name || 'nao.explains', x + w / 2, y + h * 0.32);
+      ctx.beginPath();
+      ctx.arc(avatarX + ar, avatarY, ar, 0, Math.PI * 2);
+      ctx.fillStyle = mix(P.accent, 0.8);
+      ctx.fill();
+      ctx.fillStyle = alpha(P.surface, 0.95);
+      ctx.beginPath();
+      ctx.arc(avatarX + ar, avatarY - ar * 0.24, ar * 0.34, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(avatarX + ar, avatarY + ar * 0.52, ar * 0.56, Math.PI, 0);
+      ctx.fill();
       ctx.restore();
-      arrow(ctx, [x + w / 2, y + h * 0.36], [x + w / 2, y + h * 0.5], {
-        colour: alpha(P.ink, 0.26), width: 4, head: 12, progress: easeOut(prog(o.t, 0.16, 0.36)),
-      });
+
+      label(ctx, name, avatarX + ar * 2 + 20, avatarY - 4, { size: Math.min(30, w * 0.062), color: alpha(P.ink, 0.9), weight: 700, align: 'left' });
+
+      const num = since(o, 1);
       ctx.save();
-      const ipSize = Math.min(52, w * 0.115, h * 0.17);
-      ctx.font = `700 ${ipSize}px ${FONT_SERIF}`;
-      ctx.fillStyle = P.ink;
+      ctx.globalAlpha = Math.max(0.14, num);
+      label(ctx, ip, avatarX + ar * 2 + 20, avatarY + 34, {
+        size: Math.min(27, w * 0.055), color: alpha(P.link, 0.95), weight: 600, align: 'left',
+      });
+      ctx.restore();
+
+      // the call: the whole point of looking a contact up
+      const callIn = since(o, 2);
+      const btnW = Math.min(190, w * 0.42);
+      const btnH = 62;
+      const bx = x + 22;
+      const by = y + h - btnH - 26;
+      ctx.save();
+      roundRect(ctx, bx, by, btnW, btnH, btnH / 2);
+      ctx.fillStyle = callIn > 0.3 ? mix(P.good, 0.55) : mix(P.ink, 0.9);
+      ctx.fill();
+      ctx.fillStyle = alpha(P.surface, 0.98);
+      ctx.font = `700 22px ${FONT_SANS}`;
       ctx.textAlign = 'center';
-      ctx.fillText(o.options.ip || '203.0.113.7', x + w / 2, y + h * 0.68);
-      const subSize = Math.max(13, Math.min(23, w * 0.05, h * 0.072));
-      ctx.font = `500 ${subSize}px ${FONT_SANS}`;
-      ctx.fillStyle = alpha(P.ink, 0.45);
-      wrapText(ctx, o.options.sub || 'the real place on the network', w * 0.86, 2)
-        .forEach((line, li, all) => ctx.fillText(line, x + w / 2, y + h * 0.82 + (li - (all.length - 1) / 2) * (subSize * 1.3)));
+      ctx.textBaseline = 'middle';
+      ctx.fillText('CALL', bx + btnW * 0.46, by + btnH / 2 + 1);
+      // handset glyph
+      ctx.save();
+      ctx.translate(bx + btnW - 40, by + btnH / 2);
+      ctx.rotate(-0.5);
+      roundRect(ctx, -12, -6, 24, 12, 6);
+      ctx.fill();
       ctx.restore();
-      const done = easeOut(prog(o.t, 0.4, 0.56));
-      if (done > 0) tick(ctx, x + w - 52, y + h - 44, 32, alpha(P.good, done), 6);
       ctx.restore();
+
+      // ring waves once the call goes out
+      if (callIn > 0) {
+        ctx.save();
+        for (let i = 0; i < 3; i++) {
+          const p = ((o.frame / 26 + i / 3) % 1);
+          ctx.globalAlpha = callIn * (1 - p) * 0.55;
+          ctx.strokeStyle = alpha(P.good, 0.9);
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(bx + btnW - 40, by + btnH / 2, 22 + p * 34, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // "before calling" is the analogy's hinge: the number is what gets dialled
+      if (callIn > 0.5) {
+        ctx.save();
+        ctx.globalAlpha = (callIn - 0.5) * 2;
+        tick(ctx, x + w - 54, y + h - 52, 26, alpha(P.good, 0.95), 5);
+        ctx.restore();
+      }
+      ctx.restore();
+
+      if (step <= 0) o.focus(x + w * 0.5, qy, 96);
+      else if (step === 1) o.focus(avatarX + ar * 2 + 90, avatarY + 10, 110);
+      else o.focus(bx + btnW * 0.5, by + btnH * 0.5, 78);
     },
   },
 
   'link-path': {
     role: 'demonstrate',
-    about: 'a wire between your machine and the server, with data on it',
+    about: 'two machines and the cable between them: opening it, then sealing it',
     draw(ctx, b, o) {
-      // Two plinths and a road between them. Drawn horizontally unless the box
-      // is genuinely tall, because the shot is about the distance, not the height.
-      const vertical = b.h > b.w * 1.5;
-      const inset = Math.min(b.w, b.h) * 0.1;
-      const a = vertical
-        ? { x: b.x + b.w * 0.5, y: b.y + b.h * 0.9 }
-        : { x: b.x + inset + 70, y: b.y + b.h * 0.84 };
-      const c = vertical
-        ? { x: b.x + b.w * 0.5, y: b.y + b.h * 0.1 }
-        : { x: b.x + b.w - inset - 70, y: b.y + b.h * 0.84 };
-      const blockW = Math.min(vertical ? b.w * 0.5 : b.w * 0.27, 240);
-      const blockH = Math.min(b.h * 0.44, blockW * 1.05);
+      const step = stepOf(o);
+      const pad = Math.min(58, b.w * 0.08);
+      const nodeW = Math.min(226, b.w * 0.25);
+      const nodeH = Math.min(340, b.h * 0.62);
+      const base = b.y + b.h;
+      const leftX = b.x + pad + nodeW / 2;
+      const rightX = b.x + b.w - pad - nodeW / 2;
+      const nodeBase = base - 26;
+      const wireY = nodeBase - nodeH * 0.5;
 
-      shadow(ctx, a.x, a.y + 6, blockW * 0.9, 16, 0.08);
-      crate(ctx, a.x, a.y, blockW, blockH, P.isoLeft);
-      label(ctx, o.options.near || 'you', a.x, a.y - blockH - 22, {
-        size: Math.min(24, blockW * 0.2), color: alpha(P.ink, 0.6), weight: 700, spacing: 1,
+      // the two ends
+      shadow(ctx, leftX, nodeBase + 8, nodeW * 0.8, 12, 0.07);
+      crate(ctx, leftX, nodeBase, nodeW, nodeH, P.accent);
+      label(ctx, o.options.near || 'you', leftX, nodeBase - nodeH - 34, {
+        size: 20, color: alpha(P.ink, 0.5), weight: 700, spacing: 2,
       });
-      shadow(ctx, c.x, c.y + 6, blockW * 0.9, 16, 0.08);
-      crate(ctx, c.x, c.y, blockW, blockH, P.darkRack || P.isoRight);
-      label(ctx, o.options.far || 'the server', c.x, c.y - blockH - 22, {
-        size: Math.min(24, blockW * 0.2), color: alpha(P.ink, 0.6), weight: 700, spacing: 1,
+      const serverLit = since(o, 2);
+      shadow(ctx, rightX, nodeBase + 8, nodeW * 0.8, 12, 0.07);
+      crate(ctx, rightX, nodeBase, nodeW, nodeH, mix(P.link, 0.1 + 0.3 * serverLit));
+      label(ctx, o.options.far || 'the server', rightX, nodeBase - nodeH - 34, {
+        size: 20, color: alpha(P.ink, 0.5), weight: 700, spacing: 2,
       });
 
-      // the road is drawn on, then packets run along it
-      const draw = easeOut(prog(o.t, 0.06, 0.4));
-      const lineY = a.y - blockH * 0.5;
-      const lineY2 = c.y - blockH * 0.5;
+      // the cable: it is drawn, then joined in the middle
+      const drawn = since(o, 0);
+      const joined = since(o, 1);
+      const a = { x: leftX + nodeW * 0.42, y: wireY };
+      const c = { x: rightX - nodeW * 0.42, y: wireY };
+      const midX = (a.x + c.x) / 2;
+      const leftEnd = { x: a.x + (midX - a.x) * Math.min(1, drawn * 1.15), y: wireY };
+      const rightEnd = { x: c.x - (c.x - midX) * Math.min(1, Math.max(0, drawn - 0.35) * 1.7), y: wireY };
+
       ctx.save();
-      ctx.strokeStyle = alpha(P.ink, 0.24);
-      ctx.lineWidth = 6;
+      ctx.strokeStyle = alpha(P.ink, 0.3);
+      ctx.lineWidth = 9;
       ctx.lineCap = 'round';
-      ctx.setLineDash([16, 14]);
-      ctx.lineDashOffset = -o.t * 90;
       ctx.beginPath();
-      if (vertical) {
-        ctx.moveTo(a.x, a.y - blockH - 8);
-        ctx.lineTo(c.x, c.y + blockH + 8);
-      } else {
-        ctx.moveTo(a.x + blockW * 0.75, lineY);
-        ctx.lineTo(a.x + blockW * 0.75 + (c.x - blockW * 0.75 - (a.x + blockW * 0.75)) * draw, lineY2);
-      }
+      ctx.moveTo(a.x, a.y);
+      ctx.quadraticCurveTo((a.x + leftEnd.x) / 2, wireY + 26, leftEnd.x, leftEnd.y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(c.x, c.y);
+      ctx.quadraticCurveTo((c.x + rightEnd.x) / 2, wireY + 26, rightEnd.x, rightEnd.y);
       ctx.stroke();
       ctx.restore();
 
-      // packets: three small squares travelling the wire
-      for (let i = 0; i < 3; i++) {
-        const p = ((o.t * 1.4 + i * 0.33) % 1);
-        const px = vertical ? a.x : a.x + blockW * 0.75 + (c.x - blockW * 0.75 - (a.x + blockW * 0.75)) * p;
-        const py = vertical ? a.y - blockH - 8 + (c.y + blockH + 8 - (a.y - blockH - 8)) * p : lineY + (lineY2 - lineY) * p;
-        if (!vertical && p > draw) continue;
+      // the plugs: two halves that meet only when the connection is agreed
+      const plugGap = 26 * (1 - joined);
+      [-1, 1].forEach((side) => {
+        const px = midX + side * (10 + plugGap);
         ctx.save();
-        ctx.globalAlpha = 0.85;
-        roundRect(ctx, px - 11, py - 11, 22, 22, 6);
-        ctx.fillStyle = mix(P.accent, 0.3);
+        roundRect(ctx, side < 0 ? px - 26 : px, wireY - 15, 26, 30, 6);
+        ctx.fillStyle = joined > 0.6 ? mix(P.good, 0.5) : mix(P.ink, 0.12);
+        ctx.fill();
+        ctx.strokeStyle = alpha(P.ink, 0.3);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      if (joined > 0) {
+        // a pulse crossing the join, so the wire is obviously live
+        ctx.save();
+        const p = (o.frame % 46) / 46;
+        const px = a.x + (c.x - a.x) * p;
+        ctx.globalAlpha = joined * 0.9;
+        ctx.beginPath();
+        ctx.arc(px, wireY, 8, 0, Math.PI * 2);
+        ctx.fillStyle = mix(P.accent, 0.2);
+        ctx.fill();
+        ctx.restore();
+        if (joined > 0.5) {
+          chip(ctx, midX - 52, wireY - 74, 'TCP', { accent: joined > 0.8, size: 18 });
+        }
+      }
+
+      // the server answers: a light comes on at the far end
+      if (serverLit > 0) {
+        ctx.save();
+        ctx.globalAlpha = serverLit;
+        ctx.beginPath();
+        ctx.arc(rightX, nodeBase - nodeH - 58, 9, 0, Math.PI * 2);
+        ctx.fillStyle = mix(P.good, 0.2);
         ctx.fill();
         ctx.restore();
       }
 
-      if (o.options.secure) {
-        const done = easeOut(prog(o.t, 0.34, 0.5));
-        if (done > 0) {
-          ctx.save();
-          ctx.globalAlpha = done;
-          const cx = vertical ? b.x + b.w * 0.5 : (a.x + c.x) / 2;
-          const cy = vertical ? (a.y + c.y) / 2 : lineY - 34;
-          chip(ctx, cx - 66, cy - 22, 'TLS', { accent: true, size: 22 });
-          ctx.restore();
-        }
-      }
+      if (step <= 0) o.focus(leftEnd.x, wireY, 72);
+      else if (step === 1) o.focus(midX, wireY, 82);
+      else o.focus(rightX, nodeBase - nodeH * 0.5, 96);
     },
   },
 
   'https-lock': {
     role: 'demonstrate',
-    about: 'the padlock: the same wire, with everything on it encrypted',
+    about: 'the lock chamber: plain text goes in, sealed packets come out, a snooper gets nothing',
     draw(ctx, b, o) {
-      const s = Math.min(b.w * 0.7, b.h * 0.62, 340);
-      const cx = b.x + b.w / 2;
-      const cy = b.y + b.h * 0.52;
-      const closed = easeOut(prog(o.t, 0.12, 0.4));
-      label(ctx, 'HTTPS', cx, cy - s * 0.78, {
-        size: Math.min(34, s * 0.14), color: alpha(P.accent, 0.95), weight: 700, spacing: 4,
-      });
+      const step = stepOf(o);
+      const base = b.y + b.h;
+      const pad = Math.min(48, b.w * 0.07);
+      const nodeW = Math.min(188, b.w * 0.2);
+      const nodeH = Math.min(290, b.h * 0.53);
+      const leftX = b.x + pad + nodeW / 2;
+      const rightX = b.x + b.w - pad - nodeW / 2;
+      const nodeBase = base - 34;
+      const wireY = nodeBase - nodeH * 0.55;
 
-      // body
-      shadow(ctx, cx, cy + s * 0.5, s * 0.5, s * 0.1, 0.1);
-      roundRect(ctx, cx - s * 0.42, cy - s * 0.08, s * 0.84, s * 0.6, s * 0.1);
-      ctx.fillStyle = mix(P.good, 0.6);
+      shadow(ctx, leftX, nodeBase + 8, nodeW * 0.8, 12, 0.07);
+      crate(ctx, leftX, nodeBase, nodeW, nodeH, P.accent);
+      label(ctx, 'you', leftX, nodeBase - nodeH - 30, { size: 19, color: alpha(P.ink, 0.5), weight: 700, spacing: 2 });
+      shadow(ctx, rightX, nodeBase + 8, nodeW * 0.8, 12, 0.07);
+      crate(ctx, rightX, nodeBase, nodeW, nodeH, P.link);
+      label(ctx, 'the server', rightX, nodeBase - nodeH - 30, { size: 19, color: alpha(P.ink, 0.5), weight: 700, spacing: 2 });
+
+      // the wire
+      ctx.save();
+      ctx.strokeStyle = alpha(P.ink, 0.28);
+      ctx.lineWidth = 8;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(leftX + nodeW * 0.42, wireY);
+      ctx.lineTo(rightX - nodeW * 0.42, wireY);
+      ctx.stroke();
+      ctx.restore();
+
+      // ---- the chamber: where the padlock lives ----------------------------
+      const chamberW = Math.min(240, (rightX - leftX) * 0.44);
+      const chamberH = Math.min(290, b.h * 0.53);
+      const cx = (leftX + rightX) / 2;
+      const closed = since(o, 1);
+      const lockY = wireY - chamberH * 0.5 - 6;
+
+      ctx.save();
+      roundRect(ctx, cx - chamberW / 2, lockY, chamberW, chamberH, 20);
+      ctx.fillStyle = alpha(P.surface, 0.85);
+      ctx.fill();
+      ctx.strokeStyle = alpha(P.good, 0.35 + 0.45 * closed);
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.restore();
+
+      // the padlock, drawn at the chamber's scale
+      const s = Math.min(chamberW * 0.52, chamberH * 0.5);
+      const lx = cx;
+      const ly = lockY + chamberH * 0.54;
+      ctx.save();
+      roundRect(ctx, lx - s * 0.44, ly - s * 0.06, s * 0.88, s * 0.62, s * 0.12);
+      ctx.fillStyle = mix(P.good, 0.55);
       ctx.fill();
       ctx.strokeStyle = mix(P.good, -0.2);
       ctx.lineWidth = 3;
       ctx.stroke();
-
-      // shackle: it comes down as the connection is secured
-      ctx.save();
       ctx.strokeStyle = mix(P.good, -0.15);
-      ctx.lineWidth = Math.max(10, s * 0.075);
+      ctx.lineWidth = Math.max(8, s * 0.14);
       ctx.lineCap = 'round';
       ctx.beginPath();
-      const sh = s * (0.34 - 0.06 * (1 - closed));
-      ctx.arc(cx, cy - s * 0.1 - (1 - closed) * s * 0.12, sh, Math.PI, 0);
+      ctx.arc(lx, ly - s * 0.1 - (1 - closed) * s * 0.16, s * (0.3 - 0.05 * (1 - closed)), Math.PI, 0);
       ctx.stroke();
       ctx.restore();
 
-      // keyhole
-      ctx.beginPath();
-      ctx.arc(cx, cy + s * 0.16, s * 0.055, 0, Math.PI * 2);
-      ctx.fillStyle = alpha(P.surface, 0.95);
-      ctx.fill();
-      roundRect(ctx, cx - s * 0.022, cy + s * 0.16, s * 0.044, s * 0.14, s * 0.02);
-      ctx.fill();
-
-      // the packets on the wire are wrapped while they pass through
-      const bandY = cy + s * 0.66;
-      ctx.save();
-      ctx.strokeStyle = alpha(P.good, 0.35);
-      ctx.lineWidth = 3;
-      ctx.setLineDash([10, 10]);
-      ctx.lineDashOffset = -o.t * 80;
-      ctx.beginPath();
-      ctx.moveTo(b.x + b.w * 0.1, bandY);
-      ctx.lineTo(b.x + b.w * 0.9, bandY);
-      ctx.stroke();
-      ctx.restore();
-      for (let i = 0; i < 3; i++) {
-        const p = (o.t * 1.2 + i * 0.34) % 1;
-        const px = b.x + b.w * 0.1 + p * b.w * 0.8;
+      // ---- the traffic -----------------------------------------------------
+      // before the lock: readable little notes. after it: sealed blocks.
+      const inside = since(o, 1);
+      const n = 4;
+      for (let i = 0; i < n; i++) {
+        const p = ((o.frame / 62 + i / n) % 1);
+        const px = leftX + nodeW * 0.42 + (rightX - leftX - nodeW * 0.84) * p;
+        const through = px > cx - chamberW * 0.2 && px < cx + chamberW * 0.2;
+        const sealed = p > 0.5 && inside > 0.2;
         ctx.save();
-        ctx.globalAlpha = 0.5 + 0.5 * Math.sin(p * Math.PI);
-        roundRect(ctx, px - 10, bandY - 10, 20, 20, 5);
-        ctx.fillStyle = alpha(P.good, 0.55);
-        ctx.fill();
+        ctx.globalAlpha = through ? 0.25 : 0.95;
+        if (sealed) {
+          roundRect(ctx, px - 11, wireY - 11, 22, 22, 4);
+          ctx.fillStyle = mix(P.good, 0.15);
+          ctx.fill();
+          // a tiny bar across it: nothing to read
+          ctx.fillStyle = alpha(P.surface, 0.7);
+          ctx.fillRect(px - 6, wireY - 2, 12, 3);
+        } else {
+          roundRect(ctx, px - 13, wireY - 10, 26, 20, 4);
+          ctx.fillStyle = alpha(P.surface, 0.95);
+          ctx.fill();
+          ctx.strokeStyle = alpha(P.ink, 0.2);
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.fillStyle = alpha(P.ink, 0.35);
+          ctx.fillRect(px - 8, wireY - 5, 16, 2);
+          ctx.fillRect(px - 8, wireY, 10, 2);
+        }
         ctx.restore();
       }
 
-      if (closed > 0.6) {
-        label(ctx, o.options.caption || 'nobody in the middle can read it', cx, cy + s * 0.78, {
-          size: Math.min(23, s * 0.1), color: alpha(P.ink, 0.45), weight: 600,
-        });
+      // ---- the snooper ----------------------------------------------------
+      const sneak = since(o, 2);
+      if (sneak > 0) {
+        const sx = cx;
+        const sy = wireY + Math.max(74, chamberH * 0.62);
+        ctx.save();
+        ctx.globalAlpha = sneak;
+        // a masked figure reaching up from below the line
+        ctx.strokeStyle = alpha(P.ink, 0.35);
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy + 60);
+        ctx.lineTo(sx, sy + 16);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(sx, sy - 4, 15, 0, Math.PI * 2);
+        ctx.fillStyle = alpha(P.ink, 0.16);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = alpha(P.ink, 0.3);
+        ctx.fillRect(sx - 15, sy - 10, 30, 7);
+        // and what he gets: a scramble, crossed out
+        const gx = sx + Math.max(64, chamberW * 0.62);
+        chip(ctx, gx, sy - 8, '????', { fill: mix(P.stop, 0.08), ink: mix(P.stop, -0.15), size: 18 });
+        cross(ctx, gx + 20, sy + 44, 26, alpha(P.stop, 0.85 * sneak), 5);
+        ctx.restore();
       }
+
+      if (step <= 0) o.focus(leftX + nodeW * 1.4, wireY, 70);
+      else if (step === 1) o.focus(cx, ly - s * 0.1, Math.max(84, chamberW * 0.72));
+      else o.focus(cx + Math.max(64, chamberW * 0.62) + 20, wireY + Math.max(74, chamberH * 0.62) + 4, 70);
     },
   },
 
   'request-envelope': {
     role: 'transform',
-    about: 'the request: one envelope, addressed to the server',
+    about: 'one request: an envelope addressed to the server, then the server opens it',
     draw(ctx, b, o) {
-      const w = Math.min(b.w * 0.66, 420);
-      const h = Math.min(b.h * 0.5, 280);
-      const cx = b.x + b.w / 2;
-      const cy = b.y + b.h * 0.5;
-      const fly = easeOut(prog(o.t, 0.06, 0.44));
-      const x = cx - w / 2 + fly * Math.min(b.w * 0.12, 70);
-      const y = cy - h / 2;
+      const step = stepOf(o);
+      const base = b.y + b.h;
+      const pad = Math.min(46, b.w * 0.06);
+      const nodeW = Math.min(184, b.w * 0.2);
+      const nodeH = Math.min(284, b.h * 0.52);
+      const leftX = b.x + pad + nodeW / 2;
+      const rightX = b.x + b.w - pad - nodeW / 2;
+      const nodeBase = base - 40;
+      const wireY = nodeBase - nodeH * 0.55;
 
-      // the address it is going to, up in the corner - only when the shot does
-      // not already carry a labelled link, or the server is named twice
-      if (o.options.to) {
-        label(ctx, o.options.to, b.x + b.w * 0.78, b.y + b.h * 0.12, {
-          size: 22, color: alpha(P.ink, 0.42), weight: 700, spacing: 1,
-        });
+      shadow(ctx, leftX, nodeBase + 8, nodeW * 0.8, 12, 0.07);
+      crate(ctx, leftX, nodeBase, nodeW, nodeH, P.accent);
+      label(ctx, o.options.near || 'you', leftX, nodeBase - nodeH - 28, { size: 18, color: alpha(P.ink, 0.5), weight: 700, spacing: 2 });
+
+      const arrived = since(o, 2);
+      shadow(ctx, rightX, nodeBase + 8, nodeW * 0.8, 12, 0.07);
+      crate(ctx, rightX, nodeBase, nodeW, nodeH, mix(P.link, 0.1 + 0.25 * arrived));
+      label(ctx, o.options.far || 'the server', rightX, nodeBase - nodeH - 28, { size: 18, color: alpha(P.ink, 0.5), weight: 700, spacing: 2 });
+
+      ctx.save();
+      ctx.strokeStyle = alpha(P.ink, 0.26);
+      ctx.lineWidth = 8;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(leftX + nodeW * 0.42, wireY);
+      ctx.lineTo(rightX - nodeW * 0.42, wireY);
+      ctx.stroke();
+      ctx.restore();
+
+      // the envelope travels the wire on the sentence
+      const travel = since(o, 1);
+      const aX = leftX + nodeW * 0.5;
+      const bX = rightX - nodeW * 0.5;
+      const ex = aX + (bX - aX) * travel;
+      const ew = Math.min(280, (bX - aX) * 0.5);
+      const eh = ew * 0.64;
+      const ey = wireY - eh * 0.5 - 8;
+
+      ctx.save();
+      ctx.translate(ex, ey + eh / 2);
+      ctx.rotate(-0.02 + 0.02 * Math.sin(o.frame / 26));
+      ctx.translate(-ex, -(ey + eh / 2));
+      shadow(ctx, ex, ey + eh + 8, ew * 0.4, 12, 0.09);
+      roundRect(ctx, ex - ew / 2, ey, ew, eh, 12);
+      ctx.fillStyle = mix(P.surfaceSoft, 0.14);
+      ctx.fill();
+      ctx.strokeStyle = alpha(P.ink, 0.2);
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(ex - ew / 2 + 2, ey + 2);
+      ctx.lineTo(ex, ey + eh * 0.56);
+      ctx.lineTo(ex + ew / 2 - 2, ey + 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // the message, written on it: this is the sentence, in a file
+      label(ctx, o.options.label || 'GET /cat', ex, ey + eh * 0.84, {
+        size: Math.min(26, ew * 0.14), color: alpha(P.ink, 0.85), weight: 700,
+      });
+      label(ctx, 'REQUEST', aX + (bX - aX) * 0.5, wireY - eh * 0.86, {
+        size: 20, color: alpha(P.accent, 0.9), weight: 700, spacing: 3,
+      });
+
+      // the server door: it opens and the page comes out
+      if (arrived > 0) {
+        ctx.save();
+        ctx.globalAlpha = arrived;
+        const dw = nodeW * 0.9;
+        const dh = nodeH * 0.62;
+        const dx = rightX - dw / 2;
+        const dy = nodeBase - dh;
+        roundRect(ctx, dx, dy, dw, dh, 8);
+        ctx.fillStyle = alpha(P.ink, 0.55);
+        ctx.fill();
+        // a page glyph peeking out
+        const pw = dw * 0.52;
+        const ph = dh * 0.66;
+        paperCard(ctx, rightX - pw / 2, dy - ph * 0.35 * arrived, pw, ph, { r: 6 });
+        ctx.fillStyle = alpha(P.accent, 0.5);
+        ctx.fillRect(rightX - pw * 0.36, dy + ph * 0.18 - ph * 0.35 * arrived, pw * 0.72, ph * 0.2);
+        ctx.restore();
+        tick(ctx, rightX + nodeW * 0.6, nodeBase - nodeH - 46, 24, alpha(P.good, arrived), 5);
       }
 
-      ctx.save();
-      ctx.translate(x + w / 2, y + h / 2);
-      ctx.rotate(-0.03 + 0.02 * Math.sin(o.t * Math.PI * 2));
-      ctx.translate(-(x + w / 2), -(y + h / 2));
-      shadow(ctx, x + w / 2, y + h + 4, w * 0.42, 14, 0.09);
-      roundRect(ctx, x, y, w, h, 14);
-      ctx.fillStyle = mix(P.surfaceSoft, 0.12);
-      ctx.fill();
-      ctx.strokeStyle = alpha(P.ink, 0.16);
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-      // flap
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(x + 2, y + 2);
-      ctx.lineTo(x + w / 2, y + h * 0.56);
-      ctx.lineTo(x + w - 2, y + 2);
-      ctx.strokeStyle = alpha(P.ink, 0.16);
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-      ctx.restore();
-      // the message
-      ctx.save();
-      ctx.font = `700 ${Math.min(40, w * 0.105)}px ${FONT_SERIF}`;
-      ctx.fillStyle = P.ink;
-      ctx.textAlign = 'center';
-      ctx.fillText(o.options.label || 'GET /page', x + w / 2, y + h * 0.78);
-      ctx.restore();
-      ctx.restore();
-
-      // and the little arrow that says which way it goes
-      arrow(ctx, [x + w + 12, cy], [b.x + b.w * 0.92, cy], {
-        colour: alpha(P.accent, 0.7), width: 4, head: 13, progress: prog(o.t, 0.18, 0.5),
-      });
-      label(ctx, 'REQUEST', b.x + b.w * 0.5, y - 22, {
-        size: 22, color: alpha(P.accent, 0.9), weight: 700, spacing: 3,
-      });
+      if (step <= 0) o.focus(ex, ey + eh * 0.5, 76);
+      else if (step === 1) o.focus(ex, ey + eh * 0.5, 84);
+      else o.focus(rightX, nodeBase - nodeH * 0.6, 88);
     },
   },
 
   'file-cards': {
     role: 'demonstrate',
-    about: 'the files that come back: HTML, CSS, JavaScript, images',
+    about: 'the reply: HTML, CSS, JavaScript, images and links arrive one at a time',
     draw(ctx, b, o) {
+      const step = stepOf(o);
+      const palette = [P.accent, P.link, P.good, P.stop, P.inkSoft];
       const defaults = [
-        ['HTML', 'the words', P.accent],
-        ['CSS', 'the look', P.link],
-        ['JS', 'the behaviour', P.good],
-        ['IMG', 'the pictures', P.stop],
+        ['HTML', 'the words'],
+        ['CSS', 'the look'],
+        ['JS', 'the behaviour'],
+        ['IMG', 'the pictures'],
+        ['LINKS', 'more files'],
       ];
-      const files = (o.options.files || defaults).slice(0, 4)
-        .map(([tag, sub, tone], i) => [tag, sub, tone || defaults[i % defaults.length][2]]);
-      // Four cards in a fan: each one lands, then the whole stack settles.
-      const cw = Math.min(b.w * 0.46, 340);
-      const chh = Math.min(b.h * 0.42, 260);
-      const cx = b.x + b.w * 0.5;
-      const baseY = b.y + b.h * 0.9;
+      const files = (o.options.files || defaults).slice(0, 5).map(([tag, sub], i) => [
+        tag, sub, palette[i % palette.length],
+      ]);
+
+      const base = b.y + b.h;
+      const srvW = Math.min(150, b.w * 0.2);
+      const srvH = Math.min(190, b.h * 0.4);
+      const srvX = b.x + srvW * 0.72;
+      const trayX = b.x + b.w * 0.36;
+      const trayW = b.x + b.w - trayX;
+
+      // ---- the server, with its door open on the reply --------------------
+      shadow(ctx, srvX, base - 10, srvW * 0.8, 12, 0.07);
+      crate(ctx, srvX, base - 16, srvW, srvH, P.link);
+      label(ctx, 'the server', srvX, base - srvH - 46, { size: 19, color: alpha(P.ink, 0.45), weight: 700, spacing: 2 });
+      const open = since(o, 0);
+      if (open > 0) {
+        ctx.save();
+        ctx.globalAlpha = open;
+        const dw = srvW * 0.72;
+        const dh = srvH * 0.62;
+        roundRect(ctx, srvX - dw / 2, base - 18 - dh, dw, dh, 8);
+        ctx.fillStyle = alpha(P.ink, 0.45);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // ---- the tray: five slots, named before they are filled -------------
+      // A list of five words is a list; showing the five slots while the voice
+      // names them is how the viewer sees that the page is a bundle.
+      const rowH = Math.min(78, (b.h - 24) / files.length - 10);
+      const rowGap = 10;
+      const cardW = Math.min(trayW - 8, 460);
+      const topY = b.y + Math.max(6, (b.h - (rowH + rowGap) * files.length + rowGap) * 0.35);
+
       files.forEach(([tag, sub, tone], i) => {
-        const p = easeOut(prog(o.t, 0.04 + i * 0.09, 0.2 + i * 0.09));
-        if (p <= 0) return;
-        const spread = (i - (files.length - 1) / 2);
-        const x = cx - cw / 2 + spread * cw * 0.42;
-        const y = baseY - chh - Math.abs(spread) * chh * 0.14 - (1 - p) * 60;
+        const y = topY + i * (rowH + rowGap);
+        const x = trayX;
+        const p = since(o, i + 1);
+
+        // the empty slot
         ctx.save();
-        ctx.globalAlpha = 0.25 + 0.75 * p;
-        ctx.translate(x + cw / 2, y + chh);
-        ctx.rotate(spread * 0.05 + 0.01 * Math.sin(o.t * Math.PI * 2 + i));
-        ctx.translate(-(x + cw / 2), -(y + chh));
-        shadow(ctx, x + cw / 2, y + chh + 6, cw * 0.36, 12, 0.07);
-        paperCard(ctx, x, y, cw, chh, { r: 16 });
-        ctx.save();
-        roundRect(ctx, x, y, cw, chh * 0.2, 16);
-        ctx.clip();
-        ctx.fillStyle = mix(tone, 0.82);
-        ctx.fillRect(x, y, cw, chh * 0.2);
+        roundRect(ctx, x, y, cardW, rowH, 12);
+        ctx.fillStyle = p > 0 ? alpha(P.surface, 0.9) : alpha(P.ink, 0.03);
+        ctx.fill();
+        ctx.strokeStyle = p > 0 ? alpha(tone, 0.5) : alpha(P.ink, 0.12);
+        ctx.lineWidth = 2;
+        if (p <= 0) ctx.setLineDash([7, 7]);
+        ctx.stroke();
+        ctx.setLineDash([]);
         ctx.restore();
-        label(ctx, tag, x + cw / 2, y + chh * 0.14, {
-          size: Math.min(24, cw * 0.09), color: alpha(P.surface, 0.98), weight: 700, spacing: 2,
-        });
-        label(ctx, sub, x + cw / 2, y + chh * 0.52, {
-          size: Math.min(30, cw * 0.105), color: alpha(P.ink, 0.8), weight: 600,
-        });
-        // a couple of lines, so the card reads as a file and not a label
-        [0, 1].forEach((r) => {
-          roundRect(ctx, x + cw * 0.12, y + chh * 0.68 + r * chh * 0.1, cw * (r ? 0.5 : 0.74), chh * 0.045, 6);
-          ctx.fillStyle = alpha(P.ink, 0.1);
+
+        // the card itself, arriving from the door
+        if (p > 0) {
+          const drop = (1 - p) * -26;
+          const slide = (1 - p) * -34;
+          ctx.save();
+          ctx.globalAlpha = 0.25 + 0.75 * p;
+          ctx.translate(slide, drop);
+          shadow(ctx, x + cardW / 2, y + rowH + 5, cardW * 0.34, 10, 0.06);
+          paperCard(ctx, x, y, cardW, rowH, { r: 12 });
+          roundRect(ctx, x, y, cardW * 0.085, rowH, 12);
+          ctx.fillStyle = mix(tone, 0.72);
           ctx.fill();
+          label(ctx, tag, x + cardW * 0.15, y + rowH * 0.45, {
+            size: Math.min(24, rowH * 0.36), color: alpha(P.ink, 0.9), weight: 700, align: 'left', spacing: 1,
+          });
+          label(ctx, sub, x + cardW * 0.15, y + rowH * 0.8, {
+            size: Math.min(18, rowH * 0.26), color: alpha(P.ink, 0.45), weight: 600, align: 'left',
+          });
+          ctx.restore();
+
+          if (p < 1) {
+            ctx.save();
+            ctx.globalAlpha = p;
+            ctx.strokeStyle = alpha(tone, 0.4);
+            ctx.lineWidth = 3;
+            ctx.setLineDash([6, 8]);
+            ctx.beginPath();
+            ctx.moveTo(srvX + srvW * 0.4, base - 20 - srvH * 0.45);
+            ctx.quadraticCurveTo(srvX + srvW * 1.2, y + rowH / 2, x, y + rowH / 2);
+            ctx.stroke();
+            ctx.restore();
+          }
+        } else {
+          // the slot says what is coming, in grey
+          label(ctx, tag, x + cardW * 0.15, y + rowH * 0.45, {
+            size: Math.min(22, rowH * 0.34), color: alpha(P.ink, 0.22), weight: 700, align: 'left', spacing: 1,
+          });
+        }
+      });
+
+      const shown = Math.min(files.length, step);
+      if (shown > 0) {
+        const y = topY + (shown - 1) * (rowH + rowGap);
+        o.focus(trayX + cardW / 2, y + rowH / 2, Math.min(96, rowH * 0.68));
+      } else {
+        o.focus(srvX, base - 16 - srvH * 0.5, 80);
+      }
+    },
+  },
+
+  'route-steps': {
+    role: 'demonstrate',
+    about: 'the whole journey as five stations, lit in the order the recap says them',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const items = (o.options.items || ['FIND', 'CONNECT', 'REQUEST', 'RECEIVE', 'RENDER']).slice(0, 5);
+      const n = items.length;
+      const base = b.y + b.h;
+      const pad = Math.min(56, b.w * 0.09);
+      const usable = b.w - pad * 2;
+      const gap = usable / (n - 1);
+      const nodeBase = base - Math.max(70, b.h * 0.22);
+      const nodeW = Math.min(96, gap * 0.62);
+      const nodeH = Math.min(104, b.h * 0.2);
+
+      // The stations light in the order the sentence says them. The beat may
+      // have fewer cues than stations (the sign-off names the route in three
+      // words), so the count is normalised rather than assumed equal.
+      const count = o.cue ? Math.max(1, o.cue.count) : n;
+      const covered = ((step + (o.cue ? o.cue.p : 1)) / count) * n;
+      const lit = (i) => Math.max(0, Math.min(1, covered - i));
+
+      // the route
+      const drawn = Math.max(0.02, Math.min(1, covered / n));
+      ctx.save();
+      ctx.strokeStyle = alpha(P.ink, 0.16);
+      ctx.lineWidth = 7;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(b.x + pad, nodeBase);
+      ctx.lineTo(b.x + pad + usable, nodeBase);
+      ctx.stroke();
+      ctx.strokeStyle = alpha(P.accent, 0.65);
+      ctx.lineWidth = 7;
+      ctx.beginPath();
+      ctx.moveTo(b.x + pad, nodeBase);
+      ctx.lineTo(b.x + pad + usable * drawn, nodeBase);
+      ctx.stroke();
+      ctx.restore();
+
+      items.forEach((item, i) => {
+        const x = b.x + pad + gap * i;
+        const on = lit(i);
+        shadow(ctx, x, nodeBase + 8, nodeW * 0.7, 10, 0.06);
+        crate(ctx, x, nodeBase, nodeW, nodeH, on > 0.2 ? P.accent : P.isoLeft);
+        label(ctx, String(i + 1), x - nodeW * 0.2, nodeBase - nodeH * 0.5, {
+          size: nodeW * 0.3, color: alpha(P.surface, 0.95), weight: 700,
         });
+        label(ctx, item, x, nodeBase - nodeH - 20, {
+          size: Math.min(19, gap * 0.34), color: on > 0.2 ? alpha(P.accent, 0.95) : alpha(P.ink, 0.4),
+          weight: 700, spacing: 1.5,
+        });
+      });
+
+      // the parcel: it is handed station to station as the recap is spoken
+      const t = Math.min(1, covered / n);
+      const px = b.x + pad + usable * t;
+      const py = nodeBase - nodeH * 0.5 - 46;
+      if (step >= 0) {
+        ctx.save();
+        roundRect(ctx, px - 16, py - 16, 32, 32, 8);
+        ctx.fillStyle = mix(P.accent, 0.2);
+        ctx.fill();
+        ctx.strokeStyle = alpha(P.accent, 0.6);
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
         ctx.restore();
-      });
-      label(ctx, o.options.caption || 'the pieces of one page', b.x + b.w / 2, b.y + 26, {
-        size: 24, color: alpha(P.ink, 0.45), weight: 700, spacing: 2,
-      });
+      }
+
+      o.focus(b.x + pad + gap * Math.min(n - 1, Math.floor(Math.min(n - 1, covered))), nodeBase - nodeH * 0.5, Math.min(96, gap * 0.5));
     },
   },
 
@@ -2465,17 +2996,19 @@ export const SCENES = {
   ep_ai_outro: { subjects: ['versus'], kicker: 'next time' },
 
   // 0107 - what happens when you type a URL
-  ep_url_hook: { subjects: ['url-bar', 'page-stage'], kicker: 'one line' },
-  ep_url_dns: { subjects: ['dns-directory', 'address-card'], kicker: 'find the address' },
-  ep_url_address: { subjects: ['address-card', 'dns-directory'], kicker: 'the address' },
+  // one hero object per beat: the 0107 pictures are demonstrations, and a
+  // demonstration with a second prop beside it is a diagram
+  ep_url_hook: { subjects: ['url-bar'], kicker: 'one line' },
+  ep_url_dns: { subjects: ['dns-directory'], kicker: 'find the address' },
+  ep_url_address: { subjects: ['address-card'], kicker: 'the address' },
   ep_url_connect: { subjects: ['link-path'], kicker: 'connect' },
-  ep_url_https: { subjects: ['https-lock', 'link-path'], kicker: 'https' },
-  ep_url_request: { subjects: ['request-envelope', 'link-path'], kicker: 'request' },
-  ep_url_response: { subjects: ['file-cards', 'request-envelope'], kicker: 'response' },
-  ep_url_render: { subjects: ['page-stage', 'file-cards', 'cat-pillow'], kicker: 'render' },
-  ep_url_broken: { subjects: ['page-stage', 'file-cards'], kicker: 'looks broken' },
-  ep_url_recap: { subjects: ['steps-row'], kicker: 'the short version' },
-  ep_url_outro: { subjects: ['steps-row'], kicker: 'next time' },
+  ep_url_https: { subjects: ['https-lock'], kicker: 'https' },
+  ep_url_request: { subjects: ['request-envelope'], kicker: 'request' },
+  ep_url_response: { subjects: ['file-cards'], kicker: 'response' },
+  ep_url_render: { subjects: ['page-stage'], kicker: 'render' },
+  ep_url_broken: { subjects: ['page-stage'], kicker: 'looks broken' },
+  ep_url_recap: { subjects: ['route-steps'], kicker: 'the short version' },
+  ep_url_outro: { subjects: ['route-steps'], kicker: 'next time' },
 };
 
 // ---------------------------------------------------------------------------
@@ -2498,25 +3031,59 @@ function paintScene(ctx, shot, frame, t) {
   // frame it has to clear her head; when she is not, the bench drops toward the
   // caption and the objects get the room that she was using. That single number
   // is what makes an insert feel like a close-up instead of a diagram in the
-  // top half of the picture.
-  const benchY = framing ? BENCH_Y : Math.min(1180, captionTopY - 150);
+  // top half of the picture - and because the bench is also the surface the
+  // subjects stand on, it has to be decided before either is drawn, or every
+  // prop in a cropped shot hovers a hundred pixels above its own table.
+  // A close-up of her leaves no room above her head for objects, so the bench
+  // stays where the set puts it; an insert or a wide shot gets the bench dropped
+  // to just under its object region, so nothing floats.
+  const hasObjectRegion = !framing || framing.top - SAFE.headerBottom > 260;
+  const benchY = hasObjectRegion
+    ? Math.min(BENCH_Y, framing ? framing.top - 26 : Math.min(1180, captionTopY - 150))
+    : BENCH_Y;
   const ground = benchY - 6;
 
-  // the set, through the shot's camera
+  // The paper is the world and takes the camera; the bench and the kicker do
+  // not. They are the *stage*: if they drifted with the lens, a cropped shot
+  // would draw its bench higher than the objects standing on it, and every prop
+  // in the film would float above the bench by a different amount.
   const cam = cameraTransform(shot, t);
   ctx.save();
   ctx.translate(cam.anchorX, cam.anchorY);
   ctx.scale(cam.scale, cam.scale);
   ctx.translate(-cam.anchorX, -cam.anchorY);
   backdrop(ctx, { warm: shot.warm ?? 0.95, t });
+  ctx.restore();
   benchSlab(ctx, { y: benchY, depth: 1980 - benchY });
   kicker(ctx, shot.kicker || scene.kicker);
-  ctx.restore();
 
   const layout = layoutShot(shot, { captionTop: captionTopY, framing, groundY: ground });
   shot.__layout = layout; // read back by the visual checker, never by the picture
 
-  const subjects = (shot.subjects && shot.subjects.length
+  // ---- the sentence the shot is inside -----------------------------------
+  //
+  // A shot knows which words of the beat it covers, and the picture up to that
+  // word. `beatT` is progress through the *beat*, not through the shot: that is
+  // what stops a three-shot beat from drawing the same demonstration three
+  // times from the top. `cue` is the state the narration has reached, and the
+  // painter draws that state - so a cut is a change of angle on one continuous
+  // demonstration instead of a new loop.
+  const beatInfo = shot.cueBeats || { start: shot.start, frames: shot.frames };
+  const beatT = Math.max(0, Math.min(1, (frame - beatInfo.start) / Math.max(1, beatInfo.frames)));
+  const cue = cueAt(shot.cues, frame, beatInfo.start);
+
+  // Painters report where the thing they are currently demonstrating sits, so
+  // the frame can ring it and she can point at it. The first report wins: the
+  // focal subject runs first and it is the one the sentence is about.
+  let focus = null;
+  const reportFocus = (x, y, r) => {
+    if (!focus) focus = { x, y, r: Math.max(46, r || 90) };
+  };
+
+  // An empty list is a decision - a close-up of her has no props - while a
+  // missing list means "whatever the scene draws by default". Conflating the two
+  // is how a reaction shot silently gets a prop box it can never fill.
+  const subjects = (Array.isArray(shot.subjects)
     ? shot.subjects
     : scene.subjects.map((id) => ({ id, role: SUBJECTS[id]?.role }))
   ).filter((s) => SUBJECTS[s.id]);
@@ -2543,30 +3110,145 @@ function paintScene(ctx, shot, frame, t) {
     });
   }
 
+  // A close-up of her is not an excuse to leave the bench empty: the beat's own
+  // object stays on screen above her head, so the explanation never stops for a
+  // face. The band is measured off her framing, so the two cannot collide.
+  if (!subjects.length && shot.composition === 'character-reaction' && framing && framing.top - SAFE.headerBottom > 260) {
+    const banner = {
+      x: SAFE.marginX + 12,
+      y: SAFE.headerBottom + 14,
+      w: W - (SAFE.marginX + 12) * 2,
+      h: Math.max(150, Math.min(300, framing.top - SAFE.headerBottom - 56)),
+    };
+    const ids = (scene.subjects.length ? scene.subjects : [shot.focalSubject]).filter((id) => SUBJECTS[id]);
+    ids.slice(0, 1).forEach((id) => {
+      const def = SUBJECTS[id];
+      if (!def) return;
+      ctx.save();
+      ctx.globalAlpha = 0.92;
+      def.draw(ctx, banner, {
+        shot,
+        frame,
+        t,
+        beatT,
+        cue,
+        role: def.role,
+        ground: banner.y + banner.h,
+        options: (shot.subjectOptions && shot.subjectOptions[id]) || {},
+        focus: reportFocus,
+      });
+      ctx.restore();
+    });
+  }
+
   let supportIndex = 0;
   subjects.forEach((s, subjectIndex) => {
     const def = SUBJECTS[s.id];
     if (!def) return;
     const box = s.role === 'focal' ? layout.focal : layout.support[supportIndex++];
     if (!box || !box.w || !box.h) return;
-    // Every subject arrives: a short rise and fade at the top of the shot, one
-    // beat apart per object. Without it a cut lands on a finished diagram and
-    // the shot looks like a slide; with it the picture is still being built
-    // when the sentence starts.
-    const enter = easeOut(prog(t, 0.01 + subjectIndex * 0.04, 0.14 + subjectIndex * 0.04));
+    // The subject fades up once, at the top of the beat - never per shot. A
+    // prop that re-arrives on every cut is the tell that a beat is really three
+    // unrelated pictures.
+    const entry = shot.start - beatInfo.start;
+    const arrived = easeOut(prog(frame - beatInfo.start, entry, entry + 12));
     ctx.save();
-    ctx.translate(0, (1 - enter) * 26);
-    if (enter < 1) ctx.globalAlpha = 0.55 + 0.45 * enter;
+    ctx.translate(0, (1 - arrived) * 14);
+    if (arrived < 1) ctx.globalAlpha = 0.55 + 0.45 * arrived;
     def.draw(ctx, box, {
       shot,
       frame,
       t,
+      beatT,
+      cue,
       role: def.role,
       ground,
       options: (shot.subjectOptions && shot.subjectOptions[s.id]) || {},
+      focus: reportFocus,
     });
     ctx.restore();
   });
+
+  // Where the sentence has reached, ringed, with the words the prop stands for.
+  shot.__focus = focus && cue ? { ...focus, tag: cue.tag || '' } : null;
+  shot.__cue = cue || null;
+  if (focus && cue) drawFocus(ctx, focus, cue, frame);
+}
+
+/**
+ * The ring around whatever the sentence is talking about, and the two or three
+ * words that name it.
+ *
+ * Without it the props are scenery: the viewer has to work out which of the
+ * things on the bench the voice means. The ring answers that in one glance, and
+ * it moves when the sentence moves, so the picture is seen to be following the
+ * explanation rather than running beside it.
+ */
+function drawFocus(ctx, focus, cue, frame) {
+  const { x, y } = focus;
+  // keep room above the ring for its note, and never let the ring climb into
+  // the header strip
+  const r = Math.max(40, Math.min(focus.r, y - (SAFE.headerBottom + 64)));
+  const pulse = 0.5 + 0.5 * Math.sin((frame / 30) * Math.PI * 1.4);
+
+  ctx.save();
+  const glow = ctx.createRadialGradient(x, y, r * 0.2, x, y, r * 1.5);
+  glow.addColorStop(0, alpha(P.accent, 0.1 + 0.04 * pulse));
+  glow.addColorStop(1, alpha(P.accent, 0));
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(x, y, r * 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.strokeStyle = alpha(P.accent, 0.55 + 0.2 * pulse);
+  ctx.lineWidth = 3.5;
+  ctx.setLineDash([13, 11]);
+  ctx.lineDashOffset = -(frame * 1.6) % 24;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  // four corner ticks: the ring reads as a lens, not as a bubble
+  ctx.save();
+  ctx.strokeStyle = alpha(P.accent, 0.8);
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 4; i++) {
+    const a = Math.PI / 4 + i * (Math.PI / 2);
+    const r0 = r * 1.06;
+    const r1 = r * 1.2;
+    ctx.beginPath();
+    ctx.moveTo(x + Math.cos(a) * r0, y + Math.sin(a) * r0);
+    ctx.lineTo(x + Math.cos(a) * r1, y + Math.sin(a) * r1);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  if (!cue.tag) return;
+  // the name of the thing, lettered above the ring like a note on the paper -
+  // no pill, because a filled chip over a drawing reads as UI, and this is an
+  // explanation, not a dashboard
+  ctx.save();
+  const size = 21;
+  const text = String(cue.tag).toUpperCase();
+  ctx.font = `700 ${size}px ${FONT_SANS}`;
+  ctx.textBaseline = 'alphabetic';
+  const tw = ctx.measureText(text).width + 34;
+  // above the ring, but never in the header strip: a note that overlaps the top
+  // edge of its object still reads, a note that lands in the middle of it does not
+  const ty = Math.max(SAFE.headerBottom + 26, y - r - 30);
+  const tx = Math.max(SAFE.marginX + 8, Math.min(W - SAFE.marginX - tw, x - tw / 2));
+  label(ctx, text, tx + tw / 2, ty, { size, color: alpha(P.accent, 0.95), weight: 700, spacing: 2.5 });
+  ctx.strokeStyle = alpha(P.accent, 0.45);
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(tx + 10, ty + 9);
+  ctx.lineTo(tx + tw - 10, ty + 9);
+  ctx.stroke();
+  ctx.restore();
 }
 
 /** Every episode world, as a painter the stage can call by id. */
