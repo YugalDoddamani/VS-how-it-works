@@ -42,13 +42,13 @@
 
 | Claim id | Beat | Claim | Source | Kind | Checked |
 | --- | --- | --- | --- | --- | --- |
-| 0108-c1 | 1 | Cloudflare and Docker are both used in web projects and are commonly compared. | [What is Docker? (Docker Docs)](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-docker/) | primary | 2026-10-30 |
+| 0108-c1 | 1 | Containers are how a web app's components are packaged and run in isolation. | [What is a container? (Docker Docs)](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/) | primary | 2026-10-30 |
 | 0108-c2 | 3 | A Docker image packages an application together with everything it needs to run. | [What is a container? (Docker Docs)](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/) | primary | 2026-10-30 |
 | 0108-c3 | 4 | An image is the packaged artefact; a container is that image running. | [What is an image? (Docker Docs)](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/) | primary | 2026-10-30 |
-| 0108-c4 | 5 | Cloudflare sits between visitors and an origin server. | [How Cloudflare works (Cloudflare Learning Center)](https://www.cloudflare.com/learning/) | primary | 2026-10-30 |
+| 0108-c4 | 5 | Cloudflare sits between visitors and an origin server. | [What is a WAF? (Cloudflare Learning Center)](https://www.cloudflare.com/learning/ddos/glossary/web-application-firewall-waf/) | primary | 2026-10-30 |
 | 0108-c5 | 6 | A CDN keeps copies of content closer to users, and Cloudflare can also filter malicious traffic. | [What is a CDN? (Cloudflare Learning Center)](https://www.cloudflare.com/learning/cdn/what-is-a-cdn/) | primary | 2026-10-30 |
-| 0108-c6 | 6 | Cloudflare offers traffic filtering against attacks and unwanted traffic. | [What is a WAF? (Cloudflare Learning Center)](https://www.cloudflare.com/learning/security/what-is-web-application-firewall/) | primary | 2026-10-30 |
-| 0108-c7 | 10 | Cloudflare is a network and security layer, not the host of your application. | [Cloudflare Learning Center](https://www.cloudflare.com/learning/) | primary | 2026-10-30 |
+| 0108-c6 | 6 | Cloudflare offers traffic filtering against attacks and unwanted traffic. | [What is a WAF? (Cloudflare Learning Center)](https://www.cloudflare.com/learning/ddos/glossary/web-application-firewall-waf/) | primary | 2026-10-30 |
+| 0108-c7 | 10 | Cloudflare is a network and security layer, not the host of your application. | [What is a CDN? (Cloudflare Learning Center)](https://www.cloudflare.com/learning/cdn/what-is-a-cdn/) | primary | 2026-10-30 |
 | 0108-c8 | 10 | Docker isolates an application; security of the application is still the operator's job. | [Docker security (Docker Docs)](https://docs.docker.com/engine/security/) | primary | 2026-10-30 |
 
 Quotes are stored in the `Sources` tab: they are the sentence that supports the
