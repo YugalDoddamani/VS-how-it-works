@@ -24,13 +24,13 @@ Length: 216 characters.
 Cloudflare and Docker are not competing answers to the same question. Docker puts the app and everything it needs in one box; Cloudflare sits in front of the site and handles the traffic. A box is not a road network.
 
 Sources:
-- Cloudflare and Docker are both used in web projects and are commonly compared. (What is Docker? (Docker Docs)) https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-docker/ checked 2026-10-30
+- Containers are how a web app's components are packaged and run in isolation. (What is a container? (Docker Docs)) https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/ checked 2026-10-30
 - A Docker image packages an application together with everything it needs to run. (What is a container? (Docker Docs)) https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/ checked 2026-10-30
 - An image is the packaged artefact; a container is that image running. (What is an image? (Docker Docs)) https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/ checked 2026-10-30
-- Cloudflare sits between visitors and an origin server. (How Cloudflare works (Cloudflare Learning Center)) https://www.cloudflare.com/learning/ checked 2026-10-30
+- Cloudflare sits between visitors and an origin server. (What is a WAF? (Cloudflare Learning Center)) https://www.cloudflare.com/learning/ddos/glossary/web-application-firewall-waf/ checked 2026-10-30
 - A CDN keeps copies of content closer to users, and Cloudflare can also filter malicious traffic. (What is a CDN? (Cloudflare Learning Center)) https://www.cloudflare.com/learning/cdn/what-is-a-cdn/ checked 2026-10-30
-- Cloudflare offers traffic filtering against attacks and unwanted traffic. (What is a WAF? (Cloudflare Learning Center)) https://www.cloudflare.com/learning/security/what-is-web-application-firewall/ checked 2026-10-30
-- Cloudflare is a network and security layer, not the host of your application. (Cloudflare Learning Center) https://www.cloudflare.com/learning/ checked 2026-10-30
+- Cloudflare offers traffic filtering against attacks and unwanted traffic. (What is a WAF? (Cloudflare Learning Center)) https://www.cloudflare.com/learning/ddos/glossary/web-application-firewall-waf/ checked 2026-10-30
+- Cloudflare is a network and security layer, not the host of your application. (What is a CDN? (Cloudflare Learning Center)) https://www.cloudflare.com/learning/cdn/what-is-a-cdn/ checked 2026-10-30
 - Docker isolates an application; security of the application is still the operator's job. (Docker security (Docker Docs)) https://docs.docker.com/engine/security/ checked 2026-10-30
 ```
 
@@ -50,13 +50,13 @@ Illustrated explainer. Not a real person.
 
 ## Sources (list these in the post)
 
-- **Cloudflare and Docker are both used in web projects and are commonly compared.** — [What is Docker? (Docker Docs)](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-docker/) — checked 2026-10-30 (primary)
+- **Containers are how a web app's components are packaged and run in isolation.** — [What is a container? (Docker Docs)](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/) — checked 2026-10-30 (primary)
 - **A Docker image packages an application together with everything it needs to run.** — [What is a container? (Docker Docs)](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/) — checked 2026-10-30 (primary)
 - **An image is the packaged artefact; a container is that image running.** — [What is an image? (Docker Docs)](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/) — checked 2026-10-30 (primary)
-- **Cloudflare sits between visitors and an origin server.** — [How Cloudflare works (Cloudflare Learning Center)](https://www.cloudflare.com/learning/) — checked 2026-10-30 (primary)
+- **Cloudflare sits between visitors and an origin server.** — [What is a WAF? (Cloudflare Learning Center)](https://www.cloudflare.com/learning/ddos/glossary/web-application-firewall-waf/) — checked 2026-10-30 (primary)
 - **A CDN keeps copies of content closer to users, and Cloudflare can also filter malicious traffic.** — [What is a CDN? (Cloudflare Learning Center)](https://www.cloudflare.com/learning/cdn/what-is-a-cdn/) — checked 2026-10-30 (primary)
-- **Cloudflare offers traffic filtering against attacks and unwanted traffic.** — [What is a WAF? (Cloudflare Learning Center)](https://www.cloudflare.com/learning/security/what-is-web-application-firewall/) — checked 2026-10-30 (primary)
-- **Cloudflare is a network and security layer, not the host of your application.** — [Cloudflare Learning Center](https://www.cloudflare.com/learning/) — checked 2026-10-30 (primary)
+- **Cloudflare offers traffic filtering against attacks and unwanted traffic.** — [What is a WAF? (Cloudflare Learning Center)](https://www.cloudflare.com/learning/ddos/glossary/web-application-firewall-waf/) — checked 2026-10-30 (primary)
+- **Cloudflare is a network and security layer, not the host of your application.** — [What is a CDN? (Cloudflare Learning Center)](https://www.cloudflare.com/learning/cdn/what-is-a-cdn/) — checked 2026-10-30 (primary)
 - **Docker isolates an application; security of the application is still the operator's job.** — [Docker security (Docker Docs)](https://docs.docker.com/engine/security/) — checked 2026-10-30 (primary)
 
 ## Before posting
