@@ -9,7 +9,7 @@
 | What the viewer gets | Awe, then competence. Big numbers, small honest caveats. |
 | The look | Huge isometric warehouses, racks, aisles, sodium light. The biggest sets in the channel. |
 | Reels | 1 |
-| Long-form episodes | 1 |
+| Long-form episodes | 3 |
 
 ## Roster
 
@@ -24,6 +24,8 @@
 | Episode | Question | Length | Folder |
 | --- | --- | --- | --- |
 | 0101 Where your photos actually live | Where do your photos actually go when you back them up? | 76 s | [`0101-where-your-photos-actually-live/`](episodes/0101-where-your-photos-actually-live/) |
+| 0107 What happens when you type a URL? | What actually happens when you type a URL and press Enter? | 54 s | [`0107-what-happens-when-you-type-a-url/`](episodes/0107-what-happens-when-you-type-a-url/) |
+| 0108 Cloudflare or Docker? | Are Cloudflare and Docker the same kind of thing? | 54 s | [`0108-cloudflare-vs-docker/`](episodes/0108-cloudflare-vs-docker/) |
 
 ## How this series should sound
 

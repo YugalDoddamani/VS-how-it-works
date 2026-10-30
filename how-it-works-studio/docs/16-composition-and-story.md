@@ -170,6 +170,30 @@ An insert without a focus point is a still life; a focus point with the wrong
 camera is a ring around something the viewer cannot see. The pair is what makes
 a shot an explanation.
 
+## 5c · Two things on the bench
+
+A comparison beat has a failure mode that a single-subject beat cannot have: the
+viewer decides which object the sentence is about, and picks wrong half the time.
+0108 (Cloudflare and Docker) settled it with three rules, and they are the house
+style now.
+
+- **One ring, one subject at a time, chosen by the cue.** A painter that draws a
+  pair passes `focusAt` - one entry per cue, naming the object the sentence is on
+  - and reports the focus for that one. The ring re-points on the word, so the
+  picture is seen to follow the sentence instead of holding two candidates.
+- **Objects are named under themselves, on a pill, on the bench edge.** A label
+  floating above a box competes with the cue note above the ring; a label on the
+  bench face is unreadable. `namePill()` puts it at the object's base, where a
+  caption would go in a photograph.
+- **A card that titles itself gets a quiet focus.** `focus(x, y, r, quiet,
+  noNote)` keeps the ring for pointing and drops the note, because a note over a
+  card edge is a second title competing with the first. A card that titles itself
+  is the one case where the ring alone is the clearer mark.
+
+The cat cushion is not decoration: a caveat beat needs something to stand the two
+cards *on*, and the channel's own prop doing that job says "these can sit
+together" without a caption saying it.
+
 ## 6 · The story spine
 
 Every episode walks the same four stages. `title` is a chapter card: allowed, and

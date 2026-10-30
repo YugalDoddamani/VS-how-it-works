@@ -262,7 +262,7 @@ whose value is a *habit* of being understood.
 
 | Slot | Use |
 | --- | --- |
-| Weekly episode | the slate in `series/<series>/episodes/` (0101–0107 are written) |
+| Weekly episode | the slate in `series/<series>/episodes/` (0101–0108 are written) |
 | Alternate weeks | a 15-second "one thing" cut from an existing episode — the single best sentence, re-hooked |
 | Never | posting twice in a day, or a "part 2" with no part 1 shipped |
 

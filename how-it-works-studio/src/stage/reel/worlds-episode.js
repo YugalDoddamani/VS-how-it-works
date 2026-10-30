@@ -280,6 +280,332 @@ const since = (o, i) => {
   return o.cue ? Math.min(1, o.cue.p / 0.5) : 1;
 };
 
+// ---------------------------------------------------------------------------
+// 0108 helpers: the packaged app, the road it travels, and the layer in front
+// ---------------------------------------------------------------------------
+
+/**
+ * A cardboard box of software. The tape seam runs across the top face, and the
+ * shipping label is the thing that turns "a box" into "this box".
+ */
+function parcelBox(ctx, cx, baseY, w, h, { tone = P.accent, name = '' } = {}) {
+  crate(ctx, cx, baseY, w, h, tone);
+  const d = w * 0.42;
+  const top = baseY - h;
+  ctx.save();
+  ctx.strokeStyle = alpha(P.surface, 0.8);
+  ctx.lineWidth = Math.max(4, w * 0.045);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx, top - d * 0.42);
+  ctx.lineTo(cx, top + d * 0.42);
+  ctx.stroke();
+  ctx.restore();
+
+  if (!name) return;
+  const lw = w * 0.4;
+  const lh = h * 0.17;
+  const lx = cx + w * 0.16;
+  const ly = baseY - h * 0.6;
+  ctx.save();
+  roundRect(ctx, lx - lw / 2, ly - lh / 2, lw, lh, 4);
+  ctx.fillStyle = alpha(P.surface, 0.94);
+  ctx.fill();
+  ctx.restore();
+  label(ctx, name, lx, ly + lh * 0.28, {
+    size: Math.max(11, Math.min(17, lw * 0.24)), color: alpha(P.ink, 0.72), weight: 700,
+  });
+}
+
+/**
+ * A folded map sheet with one route on it, drawn up to `drawn`. A map is the
+ * right drawing for "the network": the roads are the service, not the cargo.
+ */
+function mapSheet(ctx, x, y, w, h, { drawn = 0 } = {}) {
+  paperCard(ctx, x, y, w, h, { r: 14 });
+  ctx.save();
+  ctx.strokeStyle = alpha(P.ink, 0.07);
+  ctx.lineWidth = 2;
+  for (let i = 1; i < 3; i++) {
+    const fx = x + (w / 3) * i;
+    ctx.beginPath();
+    ctx.moveTo(fx, y + 8);
+    ctx.lineTo(fx, y + h - 8);
+    ctx.stroke();
+  }
+  // a couple of blocks, so the sheet reads as a map and not as a receipt
+  for (let i = 0; i < 5; i++) {
+    const bw = w * (0.1 + 0.06 * ((i * 7) % 3));
+    roundRect(ctx, x + w * (0.1 + 0.16 * i), y + h * (0.2 + 0.12 * (i % 3)), bw, h * 0.09, 4);
+    ctx.fillStyle = alpha(P.ink, 0.05);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  const a = [x + w * 0.17, y + h * 0.78];
+  const m = [x + w * 0.48, y + h * 0.52];
+  const c = [x + w * 0.83, y + h * 0.26];
+  const len1 = Math.hypot(m[0] - a[0], m[1] - a[1]);
+  const len2 = Math.hypot(c[0] - m[0], c[1] - m[1]);
+  const p = Math.max(0, Math.min(1, drawn));
+  const reach = (len1 + len2) * p;
+
+  ctx.save();
+  ctx.strokeStyle = alpha(P.ink, 0.13);
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(a[0], a[1]);
+  ctx.lineTo(m[0], m[1]);
+  ctx.lineTo(c[0], c[1]);
+  ctx.stroke();
+  ctx.restore();
+
+  if (p > 0) {
+    ctx.save();
+    ctx.strokeStyle = alpha(P.accent, 0.9);
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(a[0], a[1]);
+    if (reach <= len1) {
+      const k = len1 ? reach / len1 : 0;
+      ctx.lineTo(a[0] + (m[0] - a[0]) * k, a[1] + (m[1] - a[1]) * k);
+    } else {
+      ctx.lineTo(m[0], m[1]);
+      const k = len2 ? (reach - len1) / len2 : 0;
+      ctx.lineTo(m[0] + (c[0] - m[0]) * k, m[1] + (c[1] - m[1]) * k);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // the two ends: where a visitor is, and where the site is
+  const dot = (pt, on) => {
+    ctx.beginPath();
+    ctx.arc(pt[0], pt[1], 9, 0, Math.PI * 2);
+    ctx.fillStyle = on > 0 ? mix(P.accent, 0.3) : alpha(P.ink, 0.18);
+    ctx.fill();
+  };
+  dot(a, 1);
+  dot(c, p);
+  if (p > 0.55) {
+    // the edge the route runs through
+    const ex = m[0];
+    const ey = m[1];
+    ctx.save();
+    ctx.translate(ex, ey);
+    poly(ctx, [[0, -17], [15, -8], [15, 9], [0, 18], [-15, 9], [-15, -8]], mix(P.link, 0.35), alpha(P.link, 0.75), 2.5);
+    ctx.restore();
+  }
+  label(ctx, 'you', a[0], a[1] + 30, { size: 15, color: alpha(P.ink, 0.45), weight: 700, spacing: 1 });
+  label(ctx, 'the site', c[0], c[1] - 22, { size: 15, color: alpha(P.ink, 0.45), weight: 700, spacing: 1 });
+}
+
+/**
+ * A box you can see into. `crate` draws a solid block, which is right for a
+ * server but wrong for a package being packed: the sentence is about what goes
+ * inside, so the opening has to be visible.
+ */
+function containerBox(ctx, cx, baseY, w, h, { tone = P.accent, open = 1 } = {}) {
+  const d = w * 0.42;
+  const top = baseY - h;
+  // the two walls
+  poly(ctx, [[cx - w / 2, top], [cx, top + d * 0.5], [cx, baseY + d * 0.5], [cx - w / 2, baseY]], mix(tone, 0.18), mix(tone, -0.3), 2);
+  poly(ctx, [[cx + w / 2, top], [cx, top + d * 0.5], [cx, baseY + d * 0.5], [cx + w / 2, baseY]], mix(tone, -0.08), mix(tone, -0.3), 2);
+  // the opening: a dark diamond with a rim, so it reads as a hole
+  const rim = [[cx, top - d * 0.5], [cx + w / 2, top], [cx, top + d * 0.5], [cx - w / 2, top]];
+  poly(ctx, rim, mix(tone, 0.55), mix(tone, -0.25), 2);
+  const inset = 0.82;
+  poly(
+    ctx,
+    rim.map(([x, y]) => [cx + (x - cx) * inset, top + (y - top) * inset]),
+    open > 0 ? mix(P.ink, 0.34) : mix(tone, 0.4),
+    mix(tone, -0.35),
+    2
+  );
+}
+
+/** The name of a thing, on a small pill, at the base of the thing. */
+function namePill(ctx, cx, y, text, { tone = P.inkSoft, size = 17 } = {}) {
+  ctx.save();
+  ctx.font = `700 ${size}px ${FONT_SANS}`;
+  const w = ctx.measureText(text).width + 26;
+  const h = size + 15;
+  roundRect(ctx, cx - w / 2, y, w, h, h / 2);
+  ctx.fillStyle = alpha(P.surface, 0.92);
+  ctx.fill();
+  ctx.strokeStyle = alpha(P.line, 0.9);
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+  label(ctx, text, cx, y + h * 0.72, { size, color: alpha(tone, 0.95), weight: 700, spacing: 1.2 });
+}
+
+/** A small iso cube, for a card's icon. */
+function boxGlyph(ctx, cx, cy, s, tone) {
+  const w = s * 0.5;
+  const h = s * 0.4;
+  poly(ctx, [[cx, cy - h], [cx + w, cy - h * 0.45], [cx, cy + h * 0.1], [cx - w, cy - h * 0.45]], mix(tone, 0.5), mix(tone, -0.2), 2);
+  poly(ctx, [[cx - w, cy - h * 0.45], [cx, cy + h * 0.1], [cx, cy + h], [cx - w, cy + h * 0.45]], mix(tone, 0.1), mix(tone, -0.3), 2);
+  poly(ctx, [[cx + w, cy - h * 0.45], [cx, cy + h * 0.1], [cx, cy + h], [cx + w, cy + h * 0.45]], mix(tone, -0.1), mix(tone, -0.3), 2);
+}
+
+/** A shield, for the layer that stands in front. */
+function shieldGlyph(ctx, cx, cy, s, tone) {
+  const w = s * 0.44;
+  const h = s * 0.52;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - h);
+  ctx.lineTo(cx + w, cy - h * 0.55);
+  ctx.lineTo(cx + w * 0.82, cy + h * 0.3);
+  ctx.lineTo(cx, cy + h);
+  ctx.lineTo(cx - w * 0.82, cy + h * 0.3);
+  ctx.lineTo(cx - w, cy - h * 0.55);
+  ctx.closePath();
+  ctx.fillStyle = mix(tone, 0.42);
+  ctx.fill();
+  ctx.strokeStyle = mix(tone, -0.25);
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx - w * 0.3, cy);
+  ctx.lineTo(cx - w * 0.05, cy + h * 0.3);
+  ctx.lineTo(cx + w * 0.42, cy - h * 0.35);
+  ctx.strokeStyle = alpha(P.surface, 0.9);
+  ctx.lineWidth = Math.max(3, s * 0.1);
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** The network as one hex, for a card's icon. */
+function edgeGlyph(ctx, cx, cy, s, tone) {
+  const r = s * 0.52;
+  ctx.save();
+  poly(
+    ctx,
+    [0, 1, 2, 3, 4, 5].map((i) => {
+      const a = -Math.PI / 2 + (i * Math.PI) / 3;
+      return [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+    }),
+    mix(tone, 0.42),
+    mix(tone, -0.25),
+    2.5
+  );
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.34, 0, Math.PI * 2);
+  ctx.fillStyle = alpha(P.surface, 0.92);
+  ctx.fill();
+  ctx.restore();
+}
+
+/** The channel's cat cushion, in profile: a soft stand for something else. */
+function catCushion(ctx, cx, baseY, w) {
+  const h = Math.min(w * 0.42, 74);
+  ctx.save();
+  shadow(ctx, cx, baseY + 4, w * 0.42, 12, 0.07);
+  // the body
+  roundRect(ctx, cx - w / 2, baseY - h, w, h, h * 0.5);
+  ctx.fillStyle = mix(P.isoLeft, 0.28);
+  ctx.fill();
+  ctx.strokeStyle = alpha(P.isoEdge, 0.8);
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  // the ears
+  [-1, 1].forEach((side) => {
+    poly(
+      ctx,
+      [
+        [cx + side * w * 0.2, baseY - h * 0.92],
+        [cx + side * w * 0.38, baseY - h * 1.42],
+        [cx + side * w * 0.44, baseY - h * 0.86],
+      ],
+      mix(P.isoLeft, 0.18),
+      alpha(P.isoEdge, 0.8),
+      2
+    );
+  });
+  // the face, asleep: two closed eyes and a small smile
+  ctx.strokeStyle = alpha(P.ink, 0.5);
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  [-1, 1].forEach((side) => {
+    ctx.beginPath();
+    ctx.arc(cx + side * w * 0.13, baseY - h * 0.52, w * 0.045, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.stroke();
+  });
+  ctx.beginPath();
+  ctx.arc(cx, baseY - h * 0.38, w * 0.05, 0.15 * Math.PI, 0.85 * Math.PI);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** A person at the smallest size that still reads as one: head, shoulders. */
+function visitor(ctx, cx, baseY, s, tone) {
+  const head = s * 0.3;
+  ctx.save();
+  shadow(ctx, cx, baseY + 4, s * 0.4, s * 0.1, 0.07);
+  ctx.beginPath();
+  ctx.moveTo(cx - s * 0.42, baseY);
+  ctx.quadraticCurveTo(cx - s * 0.36, baseY - s * 0.62, cx, baseY - s * 0.62);
+  ctx.quadraticCurveTo(cx + s * 0.36, baseY - s * 0.62, cx + s * 0.42, baseY);
+  ctx.closePath();
+  ctx.fillStyle = mix(tone, 0.05);
+  ctx.fill();
+  ctx.strokeStyle = mix(tone, -0.35);
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, baseY - s * 0.85, head, 0, Math.PI * 2);
+  ctx.fillStyle = mix(tone, 0.55);
+  ctx.fill();
+  ctx.strokeStyle = mix(tone, -0.3);
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
+ * The edge: a tall hex tile standing between visitors and the site. `lit` fades
+ * it in when the sentence first names it, and `shield` brings the shield mark
+ * out on the face that meets the visitors.
+ */
+function edgeTile(ctx, cx, cy, w, h, { lit = 1, shield = 0 } = {}) {
+  const ry = h * 0.5;
+  const rx = Math.min(w * 0.5, ry * 0.92);
+  ctx.save();
+  ctx.globalAlpha = 0.25 + 0.75 * Math.max(0, Math.min(1, lit));
+  shadow(ctx, cx, cy + ry + 8, rx * 1.1, 12, 0.08);
+  poly(
+    ctx,
+    [
+      [cx, cy - ry],
+      [cx + rx, cy - ry * 0.45],
+      [cx + rx, cy + ry * 0.45],
+      [cx, cy + ry],
+      [cx - rx, cy + ry * 0.45],
+      [cx - rx, cy - ry * 0.45],
+    ],
+    mix(P.link, 0.34),
+    mix(P.link, -0.3),
+    3
+  );
+  // a ring of small pips: the layer is made of many machines, not one
+  for (let i = 0; i < 6; i++) {
+    const a = (i * Math.PI) / 3 - Math.PI / 2;
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(a) * rx * 0.5, cy + Math.sin(a) * ry * 0.42, Math.max(2.5, ry * 0.05), 0, Math.PI * 2);
+    ctx.fillStyle = alpha(P.surface, 0.8);
+    ctx.fill();
+  }
+  shieldGlyph(ctx, cx, cy, Math.min(rx * 1.2, ry) * 0.72, shield > 0 ? P.good : P.link);
+  ctx.restore();
+}
+
 /** A browser window: dots, a URL pill, and room for a page underneath. */
 function browserCard(ctx, x, y, w, h, { url = URL_TEXT, compact = false } = {}) {
   const barH = Math.min(compact ? 46 : 58, h * 0.15);
@@ -2945,6 +3271,596 @@ const SUBJECTS = {
       });
     },
   },
+
+  // -------------------------------------------------------------------------
+  // 0108 - Cloudflare and Docker: one project, two different jobs
+  // -------------------------------------------------------------------------
+  //
+  // The film is a comparison, so every picture here holds both halves of the
+  // misconception at once and then separates them on the word that separates
+  // them: a box that is packed and a network that delivers, a package and a
+  // process, a site and the layer in front of it.
+  //
+  // Which half the ring is on is data, not a guess: a shot passes `focusAt` (one
+  // entry per cue) or `focusOrder`, and the cue index picks from it, so the ring
+  // lands on the thing the sentence has just named.
+
+  'road-and-box': {
+    role: 'compare',
+    about: 'a shipping box and a road network on one bench: the thing that is packed, and the thing that delivers it',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const mapOn = since(o, o.options.mapFrom ?? 1);
+      const order = o.options.focusOrder || ['map', 'box'];
+      const base = b.y + b.h * 0.88;
+
+      // ---- left: the box ---------------------------------------------------
+      const bw = Math.min(b.w * 0.27, 230);
+      const bh = Math.min(b.h * 0.44, 185);
+      const bx = b.x + b.w * 0.22;
+      shadow(ctx, bx, base + 6, bw * 0.7, 14, 0.07);
+      parcelBox(ctx, bx, base, bw, bh, { tone: P.accent, name: 'my-app' });
+      namePill(ctx, bx, base + 16, 'docker', { tone: P.accent, size: 17 });
+
+      // ---- right: the map --------------------------------------------------
+      const mw = Math.min(b.w * 0.42, 340);
+      const mh = mw * 0.66;
+      const mx = b.x + b.w * 0.46;
+      const my = base - mh - 54;
+      mapSheet(ctx, mx, my, mw, mh, { drawn: mapOn });
+      namePill(ctx, mx + mw / 2, base + 16, 'cloudflare', { tone: P.link, size: 17 });
+
+      const want = order[Math.min(step, order.length - 1)];
+      if (want === 'box') o.focus(bx, base - bh * 0.5, Math.min(122, bw * 0.68));
+      else o.focus(mx + mw * 0.5, my + mh * 0.52, Math.min(122, mh * 0.46));
+    },
+  },
+
+  'pack-box': {
+    role: 'transform',
+    about: 'an app going into an open box - its code, its libraries, its settings - and the lid coming down',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const items = (o.options.items || [
+        ['CODE', 'the app'],
+        ['LIBS', 'libraries'],
+        ['CONFIG', 'settings'],
+      ]).slice(0, 3);
+
+      const base = b.y + b.h * 0.94;
+      const bw = Math.min(b.w * 0.52, 380);
+      const bh = Math.min(b.h * 0.36, 185);
+      const cx = b.x + b.w / 2;
+      const d = bw * 0.42;
+      const topY = base - bh - d * 0.5;
+
+      // the box, open: the interior is the thing you can see into
+      shadow(ctx, cx, base + 6, bw * 0.62, 16, 0.08);
+      containerBox(ctx, cx, base, bw, bh, { tone: P.accent, open: 1 });
+      label(ctx, o.options.name || 'the app', cx, base - bh * 0.2, {
+        size: Math.min(23, bw * 0.065), color: alpha(P.surface, 0.95), weight: 700, spacing: 2,
+      });
+
+      // the pieces, named before they go in: three cards in a row over the box
+      const chipW = Math.min(150, b.w * 0.17);
+      const chipH = Math.min(62, b.h * 0.14);
+      const rowY = Math.max(b.y + 4, topY - chipH - 26);
+      const chips = [0, 1, 2].map((i) => {
+        const homeX = b.x + b.w * 0.58 - (chipW * 3 + 16 * 2) / 2 + i * (chipW + 16);
+        const drop = since(o, i + 1);
+        return {
+          x: homeX + (cx - chipW / 2 - homeX) * drop,
+          y: rowY + (base - bh * 0.62 - rowY) * drop,
+          w: chipW,
+          h: chipH,
+          drop,
+        };
+      });
+
+      // the last piece in closes the lid: the box is sealed on the words
+      const sealed = since(o, items.length + 1);
+      // draw the far chips first so the near one overlaps it, like a stack
+      chips.forEach((c, i) => {
+        if (c.drop >= 1) return;
+        const [tag, sub] = items[i];
+        ctx.save();
+        ctx.globalAlpha = (1 - c.drop * 0.85) * (0.55 + 0.45 * since(o, 0));
+        ctx.translate(c.x + c.w / 2, c.y + c.h / 2);
+        ctx.rotate((1 - c.drop) * (i - 1) * 0.05);
+        ctx.translate(-c.w / 2, -c.h / 2);
+        shadow(ctx, c.w * 0.5, c.h + 4, c.w * 0.4, 9, 0.06);
+        paperCard(ctx, 0, 0, c.w, c.h, { r: 12 });
+        label(ctx, tag, c.w * 0.5, c.h * 0.4, {
+          size: Math.min(20, c.h * 0.34), color: alpha(P.accent, 0.95), weight: 700, spacing: 1.5,
+        });
+        label(ctx, sub, c.w * 0.5, c.h * 0.74, {
+          size: Math.min(16, c.h * 0.26), color: alpha(P.ink, 0.45), weight: 600,
+        });
+        ctx.restore();
+      });
+
+      // what is in the box: a growing stack of paper seen through the opening,
+      // which is what "packed" looks like from above
+      let rows = 0;
+      items.forEach((_, i) => { if (since(o, i + 1) >= 1) rows += 1; });
+      for (let i = 0; i < rows; i++) {
+        const bwid = bw * (0.3 - i * 0.03);
+        const yy = topY + d * 0.16 + i * Math.min(20, d * 0.16);
+        ctx.save();
+        roundRect(ctx, cx - bwid / 2, yy - 8, bwid, 12, 3);
+        ctx.fillStyle = alpha(P.surface, 0.72 - i * 0.08);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // the lid, down and shut: one step, not a fade, because a box with a
+      // half-closed lid reads as a mistake
+      if (sealed > 0.5) {
+        ctx.save();
+        const lw = bw * 1.04;
+        poly(
+          ctx,
+          [[cx, topY - d * 0.06], [cx + lw / 2, topY + d * 0.42], [cx, topY + d * 0.9], [cx - lw / 2, topY + d * 0.42]],
+          mix(P.accent, 0.5),
+          mix(P.accent, -0.22),
+          2
+        );
+        // the tape seam across the closed lid
+        ctx.strokeStyle = alpha(P.surface, 0.8);
+        ctx.lineWidth = Math.max(4, bw * 0.03);
+        ctx.beginPath();
+        ctx.moveTo(cx - lw * 0.5, topY + d * 0.42);
+        ctx.lineTo(cx + lw * 0.5, topY + d * 0.42);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      const ring = sealed > 0 ? { x: cx, y: topY + d * 0.3, r: Math.min(120, bw * 0.42) } : { x: cx, y: base - bh * 0.55, r: Math.min(126, bw * 0.44) };
+      o.focus(ring.x, ring.y, ring.r);
+    },
+  },
+
+  'container-run': {
+    role: 'transform',
+    about: 'the same box twice: once as a packaged image, once as a process that is running',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const base = b.y + b.h * 0.84;
+      const bw = Math.min(b.w * 0.28, 225);
+      const bh = Math.min(b.h * 0.38, 170);
+      const lx = b.x + b.w * 0.24;
+      const rx = b.x + b.w * 0.74;
+      const running = since(o, 2);
+
+      // left: the image - the box with the label on it
+      shadow(ctx, lx, base + 6, bw * 0.7, 14, 0.07);
+      parcelBox(ctx, lx, base, bw, bh, { tone: P.accent, name: 'my-app' });
+      namePill(ctx, lx, base + 14, 'an image', { tone: P.inkSoft, size: 17 });
+
+      // the arrow, and the play control sitting on it
+      const from = [lx + bw * 0.58, base - bh * 0.5];
+      const to = [rx - bw * 0.6, base - bh * 0.5];
+      arrow(ctx, from, to, { progress: 0.3 + 0.7 * running, colour: alpha(P.accent, 0.5), width: 6 });
+      const mid = [(from[0] + to[0]) / 2, from[1]];
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(mid[0], mid[1], 26, 0, Math.PI * 2);
+      ctx.fillStyle = running > 0.5 ? mix(P.good, 0.12) : P.surface;
+      ctx.fill();
+      ctx.strokeStyle = running > 0.5 ? alpha(P.good, 0.9) : alpha(P.ink, 0.25);
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(mid[0] - 6, mid[1] - 11);
+      ctx.lineTo(mid[0] + 11, mid[1]);
+      ctx.lineTo(mid[0] - 6, mid[1] + 11);
+      ctx.closePath();
+      ctx.fillStyle = running > 0.5 ? alpha(P.surface, 0.95) : alpha(P.ink, 0.5);
+      ctx.fill();
+      ctx.restore();
+
+      // right: the container - the same box, now running. The box is faint until
+      // it is started; its name is not, because a label you cannot read is not a
+      // label - it is a smudge with a job
+      ctx.save();
+      ctx.globalAlpha = 0.14 + 0.86 * running;
+      shadow(ctx, rx, base + 6, bw * 0.7, 14, 0.07);
+      parcelBox(ctx, rx, base, bw, bh, { tone: mix(P.good, 0.08) });
+      if (running > 0) {
+        ctx.save();
+        ctx.globalAlpha = running * 0.75;
+        ctx.strokeStyle = alpha(P.good, 0.55);
+        ctx.lineWidth = 3;
+        ctx.setLineDash([11, 9]);
+        roundRect(ctx, rx - bw * 0.8, base - bh - 42, bw * 1.6, bh + 92, 26);
+        ctx.stroke();
+        ctx.restore();
+        const pulse = 0.5 + 0.5 * Math.sin(o.frame / 7);
+        ctx.beginPath();
+        ctx.arc(rx + bw * 0.4, base - bh - 14, 8, 0, Math.PI * 2);
+        ctx.fillStyle = alpha(P.good, 0.4 + 0.5 * pulse);
+        ctx.fill();
+        label(ctx, 'running', rx, base - bh - 34, {
+          size: 17, color: alpha(P.good, 0.85), weight: 700, spacing: 2,
+        });
+      }
+      ctx.restore();
+      ctx.save();
+      ctx.globalAlpha = 0.55 + 0.45 * running;
+      namePill(ctx, rx, base + 14, 'a container', { tone: P.inkSoft, size: 17 });
+      ctx.restore();
+
+      o.focus(step <= 1 ? lx : step === 2 ? mid[0] : rx, base - bh * 0.5, Math.min(120, bw * 0.62));
+    },
+  },
+
+  'edge-network': {
+    role: 'demonstrate',
+    about: 'visitors, the layer standing in front of the site, and the site behind it',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const base = b.y + b.h * 0.9;
+      const vs = Math.min(b.h * 0.2, 74);
+      const vx = b.x + b.w * 0.06;
+      const ew = Math.min(b.w * 0.2, 200);
+      const eh = Math.min(b.h * 0.42, 210);
+      const edgeX = b.x + b.w * 0.47;
+      const edgeCy = base - eh * 0.5;
+      const sw = Math.min(b.w * 0.16, 160);
+      const sh = Math.min(b.h * 0.34, 180);
+      const siteX = b.x + b.w * 0.9;
+      const toEdge = since(o, 2);
+      const toSite = since(o, 3);
+
+      // the site, behind everything
+      shadow(ctx, siteX, base + 6, sw * 0.7, 12, 0.07);
+      crate(ctx, siteX, base, sw, sh, P.link);
+      namePill(ctx, siteX, base + 14, 'your site', { tone: P.link, size: 17 });
+
+      // visitors, one behind the other
+      for (let i = 0; i < 3; i++) {
+        visitor(ctx, vx + i * vs * 0.2, base - 4 - i * vs * 1.02, vs, i === 1 ? mix(P.accent, 0.2) : mix(P.isoLeft, 0.1));
+      }
+      label(ctx, 'visitors', vx + vs * 0.2, base - vs * 3.3, {
+        size: 18, color: alpha(P.ink, 0.45), weight: 700, spacing: 2,
+      });
+
+      // the two routes, drawn in the order the sentence gives them
+      for (let i = 0; i < 3; i++) {
+        arrow(
+          ctx,
+          [vx + vs * 0.62, base - 8 - i * vs * 1.02 - vs * 0.42],
+          [edgeX - ew * 0.6, edgeCy],
+          { colour: alpha(P.accent, 0.45), width: 5, head: 12, progress: toEdge }
+        );
+      }
+      arrow(
+        ctx,
+        [edgeX + ew * 0.55, edgeCy],
+        [siteX - sw * 0.55, base - sh * 0.5],
+        { colour: alpha(P.ink, 0.32), width: 5, head: 12, progress: toSite }
+      );
+
+      // the edge itself, with the shield facing the visitors
+      edgeTile(ctx, edgeX, edgeCy, ew, eh, { lit: since(o, 0), shield: toEdge });
+      namePill(ctx, edgeX, base + 14, 'cloudflare', { tone: P.link, size: 17 });
+
+      if (step <= 2) o.focus(edgeX, edgeCy, Math.min(ew, eh) * 0.6);
+      else o.focus(siteX, base - sh * 0.5, Math.min(sw, sh) * 0.62);
+    },
+  },
+
+  'edge-cache': {
+    role: 'demonstrate',
+    about: 'the route taken, a copy of the page kept beside each visitor, and a parcel that never gets through',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const base = b.y + b.h * 0.92;
+      const vs = Math.min(b.h * 0.16, 62);
+      const vx = b.x + b.w * 0.07;
+      const copyX = b.x + b.w * 0.29;
+      const copyW = Math.min(b.w * 0.15, 136);
+      const copyH = copyW * 0.74;
+      const ew = Math.min(b.w * 0.19, 190);
+      const eh = Math.min(b.h * 0.34, 185);
+      const edgeX = b.x + b.w * 0.57;
+      const edgeCy = base - eh * 0.5 - 6;
+      const sw = Math.min(b.w * 0.15, 152);
+      const sh = Math.min(b.h * 0.3, 165);
+      const siteX = b.x + b.w * 0.85;
+      const fast = since(o, 0);
+      const cached = since(o, 2);
+      const blocked = since(o, 4);
+
+      // the site, far right
+      shadow(ctx, siteX, base + 6, sw * 0.7, 12, 0.07);
+      crate(ctx, siteX, base, sw, sh, P.link);
+      namePill(ctx, siteX, base + 14, 'your site', { tone: P.link, size: 16 });
+
+      // two visitors, with the copy of the page the edge left beside each
+      const rowsY = [base - 8, base - 8 - vs * 1.9];
+      rowsY.forEach((y, i) => {
+        visitor(ctx, vx, y, vs, mix(P.isoLeft, 0.1));
+        const cy = y - copyH - vs * 0.15;
+        ctx.save();
+        ctx.globalAlpha = 0.12 + 0.88 * cached;
+        ctx.translate(0, (1 - cached) * -14);
+        shadow(ctx, copyX + copyW / 2, cy + copyH + 5, copyW * 0.4, 9, 0.06);
+        paperCard(ctx, copyX, cy, copyW, copyH, { r: 10 });
+        roundRect(ctx, copyX + copyW * 0.12, cy + copyH * 0.15, copyW * 0.44, copyH * 0.13, 3);
+        ctx.fillStyle = alpha(P.accent, 0.5);
+        ctx.fill();
+        roundRect(ctx, copyX + copyW * 0.12, cy + copyH * 0.42, copyW * 0.72, copyH * 0.1, 3);
+        ctx.fillStyle = alpha(P.ink, 0.16);
+        ctx.fill();
+        roundRect(ctx, copyX + copyW * 0.12, cy + copyH * 0.62, copyW * 0.56, copyH * 0.1, 3);
+        ctx.fillStyle = alpha(P.ink, 0.1);
+        ctx.fill();
+        tick(ctx, copyX + copyW * 0.86, cy + copyH * 0.9, Math.min(20, copyW * 0.16), P.good, 4);
+        label(ctx, 'copy', copyX + copyW / 2, cy - 10, {
+          size: 15, color: alpha(P.good, 0.9), weight: 700, spacing: 1.5,
+        });
+        ctx.restore();
+        // the copy sits between the visitor and the edge: that is what "near" means
+        if (i === 1) {
+          ctx.save();
+          ctx.strokeStyle = alpha(P.good, 0.5 * cached);
+          ctx.lineWidth = 3;
+          ctx.setLineDash([8, 9]);
+          ctx.beginPath();
+          ctx.moveTo(vx + vs * 0.55, y - vs * 0.5);
+          ctx.lineTo(copyX - 6, cy + copyH * 0.5);
+          ctx.stroke();
+          ctx.restore();
+        }
+      });
+
+      // the fast route: the edge to the nearest copy
+      arrow(
+        ctx,
+        [edgeX - ew * 0.52, edgeCy],
+        [copyX + copyW * 0.5, copyH * 0.5 + rowsY[1] - copyH - vs * 0.15 + copyH * 0.4],
+        { colour: alpha(P.accent, 0.7), width: 6, head: 13, progress: fast }
+      );
+
+      // the edge, and the parcel it stops
+      edgeTile(ctx, edgeX, edgeCy, ew, eh, { lit: 1, shield: blocked });
+      namePill(ctx, edgeX, base + 14, 'cloudflare', { tone: P.link, size: 16 });
+
+      if (blocked > 0) {
+        // it comes from the site and stops short of the layer: a request that is
+        // turned away at the door, not one that reached the shield
+        const startX = siteX - sw * 0.55;
+        const endX = edgeX + ew * 0.56 + 26;
+        const badX = startX + (endX - startX) * blocked;
+        ctx.save();
+        ctx.globalAlpha = blocked;
+        ctx.translate(badX, edgeCy + eh * 0.2);
+        ctx.rotate(-0.16);
+        roundRect(ctx, -22, -22, 44, 44, 6);
+        ctx.fillStyle = mix(P.ink, 0.55);
+        ctx.fill();
+        ctx.strokeStyle = alpha(P.stop, 0.85);
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.restore();
+        cross(ctx, edgeX + ew * 0.4, edgeCy - eh * 0.38, 16, P.stop, 5);
+      }
+
+      if (blocked > 0.15) o.focus(edgeX, edgeCy, Math.min(ew, eh) * 0.6);
+      else if (cached > 0.2) o.focus(copyX + copyW / 2, rowsY[0] - copyH * 0.62, Math.min(copyW, copyH) * 0.78);
+    },
+  },
+
+  'stack-tower': {
+    role: 'transform',
+    about: 'the packed app standing on a server, with the delivery layer drawn in front of it',
+    draw(ctx, b, o) {
+      const base = b.y + b.h * 0.94;
+      const sw = Math.min(b.w * 0.34, 265);
+      const sh = Math.min(b.h * 0.3, 190);
+      const cx = b.x + b.w * 0.58;
+      const packed = since(o, 0);
+      const stacked = since(o, 2);
+      const edged = since(o, 4);
+
+      // the server
+      shadow(ctx, cx, base + 6, sw * 0.66, 14, 0.07);
+      crate(ctx, cx, base, sw, sh, P.link);
+      namePill(ctx, cx, base + 14, 'a server', { tone: P.link, size: 17 });
+
+      // the container: packed first, then lowered onto the server's top face
+      const cw = sw * 0.56;
+      const chh = sh * 0.62;
+      const onTop = base - sh;
+      const restY = onTop + chh * 0.14;
+      const floatY = restY - Math.min(200, b.h * 0.34) * (1 - stacked);
+      ctx.save();
+      ctx.globalAlpha = 0.2 + 0.8 * packed;
+      parcelBox(ctx, cx, floatY, cw, chh, { tone: P.accent, name: 'my-app' });
+      label(ctx, 'container', cx + cw * 0.66, floatY - chh * 0.1, {
+        size: 17, color: alpha(P.accent, 0.9), weight: 700, align: 'left', spacing: 1.5,
+      });
+      ctx.restore();
+
+      // the edge: drawn in front of the server once the app is running
+      if (edged > 0) {
+        const ew = Math.min(b.w * 0.2, 190);
+        const eh = Math.min(b.h * 0.3, 195);
+        const ex = cx - sw * 0.92 - ew * 0.2;
+        const ey = base - eh * 0.5 - 6;
+        ctx.save();
+        ctx.globalAlpha = edged;
+        ctx.translate(0, (1 - edged) * 22);
+        for (let i = 0; i < 2; i++) {
+          arrow(
+            ctx,
+            [b.x + 8, base - 50 - i * 84],
+            [ex - ew * 0.52, ey - 20 + i * 40],
+            { colour: alpha(P.accent, 0.4), width: 4, head: 10, progress: edged }
+          );
+        }
+        edgeTile(ctx, ex, ey, ew, eh, { lit: edged, shield: edged });
+        namePill(ctx, ex, base + 14, 'in front', { tone: P.accent, size: 16 });
+        ctx.restore();
+        o.focus(ex, ey, Math.min(ew, eh) * 0.62);
+      } else {
+        o.focus(cx, floatY - chh * 0.5, Math.min(112, cw * 0.7));
+      }
+    },
+  },
+
+  'closing-card': {
+    role: 'label',
+    about: 'the sign-off card: the pair as one stack, and the question the next film rides on',
+    draw(ctx, b, o) {
+      const cfg = o.options || {};
+      const cw = Math.min(b.w, 640);
+      const chh = Math.min(b.h, 330, Math.max(230, cw * 0.46));
+      const x = b.x + (b.w - cw) / 2;
+      const y = b.y + b.h - chh;
+      // the card is sized by the box it was given, so the type has to be too:
+      // a title scaled off width alone climbs out of a short card
+      const k = Math.max(0.72, Math.min(1, cw / 580, chh / 320));
+      shadow(ctx, x + cw / 2, y + chh + 10, cw * 0.4, 16, 0.08);
+      paperCard(ctx, x, y, cw, chh, { r: 26 });
+
+      // the kicker the card runs on - the film's own words, not a repeat of the
+      // shot's: "different jobs" is the point, "next time" is the chrome
+      label(ctx, (cfg.kicker || 'different jobs').toUpperCase(), x + 34 * k, y + 44 * k, {
+        size: 19 * k, color: alpha(P.accent, 0.92), weight: 700, align: 'left', spacing: 2.5,
+      });
+      ctx.save();
+      ctx.font = `600 ${Math.min(50, cw * 0.085) * k}px ${FONT_SERIF}`;
+      ctx.fillStyle = P.ink;
+      ctx.textAlign = 'left';
+      ctx.fillText(cfg.title || 'Cloudflare or Docker?', x + 34 * k, y + 108 * k);
+      ctx.restore();
+
+      // the two names, added rather than opposed: a plus, because this is the
+      // beat where the pair stops being a choice
+      let cx = x + 34 * k;
+      const rowY = y + chh - 52 * k;
+      const parts = cfg.parts || ['DOCKER', 'CLOUDFLARE'];
+      parts.forEach((part, i) => {
+        ctx.save();
+        ctx.font = `700 ${Math.min(19 * k, 20)}px ${FONT_SANS}`;
+        const w = ctx.measureText(part).width + 30 * k;
+        const h = Math.min(40 * k, 42);
+        roundRect(ctx, cx, rowY - h * 0.72, w, h, h / 2);
+        ctx.fillStyle = i === 0 ? alpha(P.accent, 0.16) : alpha(P.link, 0.14);
+        ctx.fill();
+        ctx.restore();
+        label(ctx, part, cx + w / 2, rowY - h * 0.72 + h * 0.68, {
+          size: Math.min(19 * k, 20), color: i === 0 ? alpha(P.accent, 0.95) : alpha(P.link, 0.95),
+          weight: 700, spacing: 1.5,
+        });
+        cx += w + 16 * k;
+        if (i < parts.length - 1) {
+          label(ctx, '+', cx + 4 * k, rowY + 2 * k, {
+            size: Math.min(22 * k, 24), color: alpha(P.ink, 0.4), weight: 600,
+          });
+          cx += 26 * k;
+        }
+      });
+
+      label(ctx, cfg.note || 'one stack', x + cw - 34 * k, rowY, {
+        size: Math.min(19 * k, 21), color: alpha(P.ink, 0.45), weight: 600, align: 'right',
+      });
+
+      o.focus(x + cw * 0.5, y + chh * 0.5, Math.min(cw * 0.32, chh * 0.46), true);
+    },
+  },
+
+  'job-cards': {
+    role: 'compare',
+    about: 'two cards, one job each: the thing that is packed, and the thing that delivers it',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const cfg = o.options || {};
+      const a = cfg.a || { tag: 'DOCKER', sub: 'packs the app', tone: P.accent, icon: 'box' };
+      const c = cfg.b || { tag: 'CLOUDFLARE', sub: 'delivers the traffic', tone: P.link, icon: 'edge' };
+      const rows = cfg.layout === 'rows';
+      // the caveat beat props its cards on the cat cushion: the film's own
+      // running joke stands something up, so it is the cat that holds the two
+      // jobs here rather than a caption saying "you can use both"
+      const standH = cfg.stand ? Math.min(84, b.h * 0.2) : 0;
+      const gap = Math.min(b.w, b.h) * 0.07;
+      const cw = rows ? b.w * 0.94 : (b.w - gap) / 2;
+      const chh = rows ? (b.h - standH - gap) / 2 : (b.h - standH) * 0.86;
+      const top = rows ? b.y + (b.h - standH - (chh * 2 + gap)) / 2 : b.y + b.h * 0.07;
+      const focusAt = cfg.focusAt || [0, 1];
+
+      const boxes = [];
+      [a, c].forEach((card, i) => {
+        const x = rows ? b.x + (b.w - cw) / 2 : b.x + i * (cw + gap);
+        const y = rows ? top + i * (chh + gap) : top;
+        boxes.push({ x, y, w: cw, h: chh });
+        shadow(ctx, x + cw / 2, y + chh + 6, cw * 0.4, 14, 0.07);
+        paperCard(ctx, x, y, cw, chh, { r: 22 });
+
+        const iconY = y + chh * 0.26;
+        const iconSize = Math.min(46, cw * 0.14);
+        if (card.icon === 'edge') edgeGlyph(ctx, x + 20 + iconSize, iconY, iconSize, card.tone);
+        else if (card.icon === 'shield') shieldGlyph(ctx, x + 20 + iconSize, iconY, iconSize, card.tone);
+        else boxGlyph(ctx, x + 20 + iconSize, iconY, iconSize * 0.95, card.tone);
+
+        label(ctx, card.tag, x + cw - 22, iconY + 8, {
+          size: Math.min(23, cw * 0.082), color: alpha(card.tone, 0.95), weight: 700, align: 'right', spacing: 2,
+        });
+        ctx.save();
+        ctx.font = `600 ${Math.min(44, cw * 0.115)}px ${FONT_SERIF}`;
+        ctx.fillStyle = P.ink;
+        ctx.textAlign = 'center';
+        wrapText(ctx, card.sub, cw - 56, 2).forEach((line, li, all) => {
+          ctx.fillText(line, x + cw / 2, y + chh * 0.64 + (li - (all.length - 1) / 2) * 44);
+        });
+        ctx.restore();
+
+        if (card.mark === 'cross') cross(ctx, x + cw - 38, y + chh - 36, 19, P.stop, 5);
+        if (card.mark === 'tick') tick(ctx, x + cw - 38, y + chh - 36, 21, P.good, 5);
+      });
+
+      // the sign between them: these are not the same thing
+      if (cfg.mark) {
+        const midX = rows ? b.x + b.w / 2 : boxes[0].x + cw + gap / 2;
+        const midY = rows ? top + chh + gap / 2 : top + chh * 0.5;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(midX, midY, Math.min(36, gap * 1.4), 0, Math.PI * 2);
+        ctx.fillStyle = P.surface;
+        ctx.fill();
+        ctx.strokeStyle = alpha(P.ink, 0.2);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.font = `700 ${Math.min(40, gap * 1.5)}px ${FONT_SERIF}`;
+        ctx.fillStyle = alpha(P.ink, 0.55);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(cfg.mark, midX, midY + 2);
+        ctx.restore();
+      }
+
+      // the note goes above the cards when the cat is underneath: one object
+      // per band, and the cat has already called the floor
+      if (cfg.note) {
+        label(ctx, cfg.note, b.x + b.w / 2, cfg.stand ? Math.max(b.y + 18, top - 14) : top + (rows ? chh * 2 + gap + 34 : chh + 40), {
+          size: 19, color: alpha(P.ink, 0.45), weight: 700, spacing: 2,
+        });
+      }
+
+      // The ring goes on the card's mark, not on its middle: a circle drawn over
+      // the sentence the card is making hides the answer the ring is pointing at.
+      // the cat sits in the gap it was given, holding the cards up from below
+      if (cfg.stand) catCushion(ctx, b.x + b.w / 2, b.y + b.h + 6, Math.min(b.w * 0.46, 340));
+
+      const idx = Math.min(focusAt.length - 1, Math.max(0, step));
+      const which = Math.min(boxes.length - 1, focusAt[idx] || 0);
+      const ring = boxes[which] || boxes[0];
+      const mark = Math.min(46, ring.w * 0.14);
+      o.focus(ring.x + 20 + mark, ring.y + ring.h * 0.26, Math.max(46, mark * 0.95), false, true);
+    },
+  },
 };
 
 export const SUBJECT_IDS = Object.keys(SUBJECTS);
@@ -3009,6 +3925,22 @@ export const SCENES = {
   ep_url_broken: { subjects: ['page-stage'], kicker: 'looks broken' },
   ep_url_recap: { subjects: ['route-steps'], kicker: 'the short version' },
   ep_url_outro: { subjects: ['route-steps'], kicker: 'next time' },
+
+  // 0108 - cloudflare and docker
+  // Two objects at most, and the second one only exists to be separated from
+  // the first: a box beside a map, a package beside a process, two cards.
+  ep_dk_hook: { subjects: ['road-and-box'], kicker: 'two names' },
+  ep_dk_analogy: { subjects: ['road-and-box'], kicker: 'not alternatives' },
+  ep_dk_pack: { subjects: ['pack-box'], kicker: 'docker packs' },
+  ep_dk_image: { subjects: ['container-run'], kicker: 'image to container' },
+  ep_dk_edge: { subjects: ['edge-network'], kicker: 'in front' },
+  ep_dk_cache: { subjects: ['edge-cache'], kicker: 'route, cache, shield' },
+  ep_dk_stack: { subjects: ['stack-tower'], kicker: 'the stack' },
+  ep_dk_layers: { subjects: ['job-cards'], kicker: 'two layers' },
+  ep_dk_jobs: { subjects: ['job-cards'], kicker: 'not rivals' },
+  ep_dk_caveat: { subjects: ['job-cards'], kicker: 'the catch' },
+  ep_dk_recap: { subjects: ['job-cards'], kicker: 'the short version' },
+  ep_dk_outro: { subjects: ['closing-card'], kicker: 'the pair' },
 };
 
 // ---------------------------------------------------------------------------
@@ -3076,8 +4008,8 @@ function paintScene(ctx, shot, frame, t) {
   // the frame can ring it and she can point at it. The first report wins: the
   // focal subject runs first and it is the one the sentence is about.
   let focus = null;
-  const reportFocus = (x, y, r) => {
-    if (!focus) focus = { x, y, r: Math.max(46, r || 90) };
+  const reportFocus = (x, y, r, quiet = false, noNote = false) => {
+    if (!focus) focus = { x, y, r: Math.max(46, r || 90), quiet: Boolean(quiet), noNote: Boolean(noNote) };
   };
 
   // An empty list is a decision - a close-up of her has no props - while a
@@ -3172,7 +4104,10 @@ function paintScene(ctx, shot, frame, t) {
   // Where the sentence has reached, ringed, with the words the prop stands for.
   shot.__focus = focus && cue ? { ...focus, tag: cue.tag || '' } : null;
   shot.__cue = cue || null;
-  if (focus && cue) drawFocus(ctx, focus, cue, frame);
+  // A titled card rings itself badly: the ring and its note land on the words
+  // the card exists to show. A painter can therefore report a quiet focus -
+  // still a place to point at, never a circle drawn over its own text.
+  if (focus && cue && !focus.quiet) drawFocus(ctx, focus, cue, frame, focus.noNote);
 }
 
 /**
@@ -3184,7 +4119,7 @@ function paintScene(ctx, shot, frame, t) {
  * it moves when the sentence moves, so the picture is seen to be following the
  * explanation rather than running beside it.
  */
-function drawFocus(ctx, focus, cue, frame) {
+function drawFocus(ctx, focus, cue, frame, noNote = false) {
   const { x, y } = focus;
   // keep room above the ring for its note, and never let the ring climb into
   // the header strip
@@ -3227,7 +4162,7 @@ function drawFocus(ctx, focus, cue, frame) {
   }
   ctx.restore();
 
-  if (!cue.tag) return;
+  if (!cue.tag || noNote) return;
   // the name of the thing, lettered above the ring like a note on the paper -
   // no pill, because a filled chip over a drawing reads as UI, and this is an
   // explanation, not a dashboard

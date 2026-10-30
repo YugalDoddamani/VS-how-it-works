@@ -266,7 +266,7 @@ function drawReach(ctx, hand, focus, frame) {
   // A gesture has a length. Drawn all the way to a prop at the top of the frame
   // it stops being a gesture and becomes a plumb line through the picture, so it
   // reaches toward the object and stops.
-  const reach = Math.min(300, Math.max(120, dist * 0.55));
+  const reach = Math.min(720, Math.max(120, dist * 0.95));
   const stop = Math.min(Math.max(0.4, 1 - (focus.r * 1.2) / dist), reach / dist);
   const end = { x: hand.x + dx * stop, y: hand.y + dy * stop };
   const bow = Math.min(90, dist * 0.16) * (dx < 0 ? 1 : -1);
@@ -277,7 +277,7 @@ function drawReach(ctx, hand, focus, frame) {
 
   // it fades as it climbs, so the hand still reads before the line does
   ctx.save();
-  const fade = Math.max(0.22, 0.6 - dist / 1600);
+  const fade = Math.max(0.2, 0.62 - dist / 1500);
   ctx.strokeStyle = alpha(P.accent, fade);
   ctx.lineWidth = 3.5;
   ctx.lineCap = 'round';
