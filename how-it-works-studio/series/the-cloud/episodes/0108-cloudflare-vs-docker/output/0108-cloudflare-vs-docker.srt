@@ -1,0 +1,57 @@
+1
+00:00:00,000 --> 00:00:03,400
+CLOUDFLARE and DOCKER both
+show up in web projects.
+
+2
+00:00:03,400 --> 00:00:08,800
+Treating them as ALTERNATIVES is like comparing a road network with a shipping BOX.
+
+3
+00:00:08,800 --> 00:00:13,500
+Docker packs an app with the PIECES
+it needs: CODE, libraries, settings.
+
+4
+00:00:13,500 --> 00:00:17,900
+That package is an IMAGE. Run
+it, and it becomes a CONTAINER.
+
+5
+00:00:17,900 --> 00:00:22,300
+Cloudflare does a DIFFERENT job:
+it sits in FRONT of your site.
+
+6
+00:00:22,300 --> 00:00:27,700
+It can ROUTE visitors, keep copies of
+pages near them, and BLOCK bad traffic.
+
+7
+00:00:27,700 --> 00:00:34,100
+A team builds the app in Docker, runs it
+on a SERVER, and puts Cloudflare in FRONT.
+
+8
+00:00:34,100 --> 00:00:38,300
+Two LAYERS, two JOBS. The app is
+packed, the traffic is handled.
+
+9
+00:00:38,300 --> 00:00:43,000
+They are NOT COMPETITORS. Each
+does what the other does NOT.
+
+10
+00:00:43,000 --> 00:00:47,400
+Cloudflare doesn't HOST your
+app. Docker doesn't SECURE it.
+
+11
+00:00:47,400 --> 00:00:50,800
+Docker PACKAGES the app. Cloudflare
+delivers and PROTECTS it.
+
+12
+00:00:50,800 --> 00:00:54,000
+Different jobs. Sometimes, ONE STACK.

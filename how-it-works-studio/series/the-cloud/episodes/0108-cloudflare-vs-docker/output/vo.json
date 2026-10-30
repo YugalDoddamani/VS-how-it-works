@@ -1,0 +1,16 @@
+{
+ "voice": "voice-03",
+ "note": "spoken VO, one read per beat; the caveat and the recap are read as continuous lines so the film lands on a falling close rather than two clipped endings.",
+ "clips": [
+  { "file": "vo/g1.mp3",  "start": 0,    "end": 102,  "text": "Cloudflare and Docker both show up in web projects." },
+  { "file": "vo/g2.mp3",  "start": 102,  "end": 264,  "text": "Treating them as alternatives is like comparing a road network with a shipping box." },
+  { "file": "vo/g3.mp3",  "start": 264,  "end": 405,  "text": "Docker packs an app with the pieces it needs: code, libraries, settings." },
+  { "file": "vo/g4.mp3",  "start": 405,  "end": 537,  "text": "That package is an image. Run it, and it becomes a container." },
+  { "file": "vo/g5.mp3",  "start": 537,  "end": 669,  "text": "Cloudflare does a different job: it sits in front of your site." },
+  { "file": "vo/g6.mp3",  "start": 669,  "end": 831,  "text": "It can route visitors, keep copies of pages near them, and block bad traffic." },
+  { "file": "vo/g7.mp3",  "start": 831,  "end": 1023, "text": "A team builds the app in Docker, runs it on a server, and puts Cloudflare in front." },
+  { "file": "vo/g8.mp3",  "start": 1023, "end": 1149, "text": "Two layers, two jobs. The app is packed, the traffic is handled." },
+  { "file": "vo/g9.mp3",  "start": 1149, "end": 1422, "text": "They are not competitors. Each does what the other does not. Cloudflare doesn't host your app. Docker doesn't secure it." },
+  { "file": "vo/g10.mp3", "start": 1404, "end": 1620, "text": "Docker packages the app. Cloudflare delivers and protects it. Different jobs. Sometimes, one stack." }
+ ]
+}

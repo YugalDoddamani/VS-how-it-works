@@ -168,3 +168,11 @@ prop_id,link-path,Link path,"Two blocks and a road between them, with packets on
 prop_id,https-lock,HTTPS lock,"A padlock closing over the wire, with the packets went through it.",FALSE
 prop_id,request-envelope,Request envelope,"One envelope addressed to the server, labelled with the request.",FALSE
 prop_id,file-cards,File cards,"HTML, CSS, JS and IMG fanned out: the files one page needs.",FALSE
+prop_id,road-and-box,road and box,0108: a shipping box beside a folded road map,FALSE
+prop_id,pack-box,pack box,0108: the app pieces going into one box,FALSE
+prop_id,container-run,container running,"0108: the image, then the same image started",FALSE
+prop_id,edge-network,edge network,"0108: visitors, the layer in front, the site behind",FALSE
+prop_id,edge-cache,edge cache,"0108: a cached copy per visitor, and a blocked parcel",FALSE
+prop_id,stack-tower,stack tower,0108: the container on a server with the layer in front,FALSE
+prop_id,job-cards,job cards,"0108: two cards, one job each",FALSE
+prop_id,closing-card,closing card,0108: the sign-off card,FALSE

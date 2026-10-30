@@ -152,6 +152,52 @@ const SUBJECT_OPTIONS = {
     10: { 'route-steps': { items: ['FIND', 'CONNECT', 'REQUEST', 'RECEIVE', 'RENDER'] } },
     11: { 'route-steps': { items: ['FIND', 'CONNECT', 'REQUEST', 'RECEIVE', 'RENDER'] } },
   },
+  '0108': {
+    // b1-b2: the same pair on the bench, and which half the ring is on is the
+    // sentence's decision, not the painter's
+    1: { 'road-and-box': { mapFrom: 0, focusOrder: ['map', 'box'] } },
+    2: { 'road-and-box': { focusOrder: ['map', 'map', 'map', 'box'] } },
+    3: { 'pack-box': { name: 'the app' } },
+    4: { 'container-run': {} },
+    5: { 'edge-network': {} },
+    6: { 'edge-cache': {} },
+    7: { 'stack-tower': {} },
+    8: {
+      'job-cards': {
+        layout: 'rows',
+        a: { tag: 'DOCKER', sub: 'packs the app', tone: '#E8743B', icon: 'box' },
+        b: { tag: 'CLOUDFLARE', sub: 'handles the traffic', tone: '#4A7FB5', icon: 'edge' },
+        focusAt: [0, 1, 0, 1],
+      },
+    },
+    9: {
+      'job-cards': {
+        mark: '≠',
+        a: { tag: 'DOCKER', sub: 'packs the app', tone: '#E8743B', icon: 'box' },
+        b: { tag: 'CLOUDFLARE', sub: 'delivers the traffic', tone: '#4A7FB5', icon: 'edge' },
+        focusAt: [0, 0, 0, 1],
+      },
+    },
+    10: {
+      'job-cards': {
+        mark: '≠',
+        note: 'neither one is automatic',
+        stand: true,
+        a: { tag: 'CLOUDFLARE', sub: 'does not host your app', tone: '#4A7FB5', icon: 'edge', mark: 'cross' },
+        b: { tag: 'DOCKER', sub: 'does not add security', tone: '#E8743B', icon: 'box', mark: 'cross' },
+        focusAt: [0, 0, 1, 1],
+      },
+      'cat-pillow': { caption: 'the cat is holding these up' },
+    },
+    11: {
+      'job-cards': {
+        a: { tag: 'DOCKER', sub: 'packages the app', tone: '#E8743B', icon: 'box', mark: 'tick' },
+        b: { tag: 'CLOUDFLARE', sub: 'delivers and protects', tone: '#4A7FB5', icon: 'shield', mark: 'tick' },
+        focusAt: [0, 1, 1],
+      },
+    },
+    12: { 'closing-card': { kicker: 'different jobs', title: 'Cloudflare or Docker?', parts: ['DOCKER', 'CLOUDFLARE'], note: 'one stack, sometimes' } },
+  },
   '0102': {
     5: { 'rule-cards': { broken: true }, 'rule-machine': { broken: true } },
     10: { checkpoint: { failing: true } },
@@ -172,6 +218,82 @@ const SUBJECT_OPTIONS = {
  * fails instead of the picture going silent.
  */
 const CUES = {
+  '0108': {
+    // The film's whole job is to keep two things apart, so most of these cues
+    // are a change of *which* object the ring is on rather than a change of
+    // state: the picture re-points on the word.
+    1: [
+      { at: 'Cloudflare', tag: '' },
+      { at: 'Docker', tag: '' },
+    ],
+    2: [
+      { at: 'alternatives', tag: '' },
+      { at: 'comparing', tag: 'the network' },
+      { at: 'network', tag: '' },
+      { at: 'box', tag: 'the box' },
+    ],
+    3: [
+      { at: 'packs', tag: 'docker' },
+      { at: 'pieces', tag: 'the pieces' },
+      { at: 'code', tag: 'code' },
+      { at: 'libraries', tag: 'libraries' },
+      { at: 'settings', tag: 'settings' },
+    ],
+    4: [
+      { at: 'package', tag: '' },
+      { at: 'image', tag: 'an image' },
+      { at: 'Run', tag: '' },
+      { at: 'container', tag: 'running' },
+    ],
+    5: [
+      { at: 'Cloudflare', tag: '' },
+      { at: 'different', tag: 'a different job' },
+      { at: 'front', tag: 'in front' },
+      { at: 'site', tag: '' },
+    ],
+    6: [
+      { at: 'route', tag: 'the shortest route' },
+      { at: 'visitors', tag: '' },
+      { at: 'copies', tag: '' },
+      { at: 'near', tag: '' },
+      { at: 'block', tag: 'blocked' },
+    ],
+    7: [
+      { at: 'build', tag: 'one' },
+      { at: 'Docker', tag: '' },
+      { at: 'run', tag: 'two' },
+      { at: 'server', tag: '' },
+      { at: 'Cloudflare', tag: 'three' },
+      { at: 'front', tag: '' },
+    ],
+    8: [
+      { at: 'layers', tag: 'two layers' },
+      { at: 'jobs', tag: '' },
+      { at: 'packed', tag: '' },
+      { at: 'handled', tag: '' },
+    ],
+    9: [
+      { at: 'not', tag: 'not competitors' },
+      { at: 'competitors', tag: '' },
+      { at: 'Each', tag: 'docker' },
+      { at: 'other', tag: 'cloudflare' },
+    ],
+    10: [
+      { at: 'Cloudflare', tag: '' },
+      { at: 'host', tag: 'not a host' },
+      { at: 'Docker', tag: '' },
+      { at: 'secure', tag: 'not a guard' },
+    ],
+    11: [
+      { at: 'packages', tag: '' },
+      { at: 'Cloudflare', tag: '' },
+      { at: 'protects', tag: '' },
+    ],
+    12: [
+      { at: 'Different', tag: 'different jobs' },
+      { at: 'stack', tag: 'one stack' },
+    ],
+  },
   '0107': {
     // `tag` is the note written above the ring: only where the prop does not
     // already say it. A painter that labels its own object does not need a chip
@@ -250,7 +372,7 @@ const EXTENDED_POSES = new Set(['pointing', 'onefinger', 'explaining', 'gesture'
  * Beats whose authored pose is the point of the shot - the finger heart that
  * ends the film is not improved by being replaced with a pointing hand.
  */
-const POSE_IS_THE_POINT = new Set(['0107:11']);
+const POSE_IS_THE_POINT = new Set(['0107:11', '0108:12']);
 
 const EMPHASIS_WORDS = new Set([
   'not', 'never', 'one', 'two', 'three', 'four', 'loop', 'check', 'goal',
@@ -329,6 +451,11 @@ const EPISODE_WORLDS = {
     1: 'ep_url_hook', 2: 'ep_url_dns', 3: 'ep_url_address', 4: 'ep_url_connect',
     5: 'ep_url_https', 6: 'ep_url_request', 7: 'ep_url_response', 8: 'ep_url_render',
     9: 'ep_url_broken', 10: 'ep_url_recap', 11: 'ep_url_outro',
+  },
+  '0108': {
+    1: 'ep_dk_hook', 2: 'ep_dk_analogy', 3: 'ep_dk_pack', 4: 'ep_dk_image',
+    5: 'ep_dk_edge', 6: 'ep_dk_cache', 7: 'ep_dk_stack', 8: 'ep_dk_layers',
+    9: 'ep_dk_jobs', 10: 'ep_dk_caveat', 11: 'ep_dk_recap', 12: 'ep_dk_outro',
   },
   '0104': {
     1: 'ep_wifi_title', 2: 'ep_wifi_title', 3: 'ep_wifi_router', 4: 'ep_wifi_channels',
@@ -991,7 +1118,7 @@ function main() {
     }
   }
 
-  if (!compiled) throw new Error(`no episode matched ${wanted || '(all)'}`);
+  if (!compiled) { console.error(problems.join('\n')); throw new Error(`no episode matched ${wanted || '(all)'}`); }
   if (problems.length) {
     console.error(`\n${problems.length} episode(s) failed the plan check:\n${problems.join('\n')}`);
     process.exit(1);
