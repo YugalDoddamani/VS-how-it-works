@@ -24,7 +24,7 @@
  * subjects draw inside them.
  */
 
-import { P, alpha, mix, FONT_SANS, FONT_SERIF } from './palette.js';
+import { P, alpha, mix, FONT_SANS, FONT_SERIF, FONT_MONO } from './palette.js';
 import { roundRect, poly, chip, paperCard } from './iso.js';
 import { backdrop, label, easeOut, prog } from './page.js';
 import { CAMERAS, layoutShot, cameraTransform, SAFE } from './composition.js';
@@ -500,6 +500,117 @@ function edgeGlyph(ctx, cx, cy, s, tone) {
   ctx.arc(cx, cy, r * 0.34, 0, Math.PI * 2);
   ctx.fillStyle = alpha(P.surface, 0.92);
   ctx.fill();
+  ctx.restore();
+}
+
+/**
+ * A padlock, at whatever scale a card needs. The shackle closes by `closed`
+ * (0 = open, 1 = shut), which is the only thing that changes about it in a
+ * film: a lock that is already shut cannot be seen to do anything.
+ */
+function lockGlyph(ctx, cx, cy, s, tone, { closed = 1, body = true } = {}) {
+  const w = s * 0.86;
+  const h = s * 0.62;
+  if (body) {
+    roundRect(ctx, cx - w / 2, cy - h * 0.06, w, h, s * 0.12);
+    ctx.fillStyle = mix(tone, 0.5);
+    ctx.fill();
+    ctx.strokeStyle = mix(tone, -0.24);
+    ctx.lineWidth = Math.max(2, s * 0.035);
+    ctx.stroke();
+    // the keyhole: a dot and a slot, the smallest possible "lock"
+    ctx.beginPath();
+    ctx.arc(cx, cy + h * 0.28, s * 0.07, 0, Math.PI * 2);
+    ctx.fillStyle = alpha(P.ink, 0.42);
+    ctx.fill();
+    ctx.fillRect(cx - s * 0.026, cy + h * 0.3, s * 0.052, s * 0.16);
+  }
+  ctx.save();
+  ctx.strokeStyle = mix(tone, -0.12);
+  ctx.lineWidth = Math.max(4, s * 0.1);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  const lift = (1 - closed) * s * 0.14;
+  ctx.arc(cx, cy - h * 0.1 - lift, s * (0.28 - 0.04 * (1 - closed)), Math.PI, 0);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Card icons that are not a box: a button, a lock, a small shop. */
+function markGlyph(ctx, kind, cx, cy, s, tone) {
+  if (kind === 'shield') return shieldGlyph(ctx, cx, cy, s, tone);
+  if (kind === 'edge') return edgeGlyph(ctx, cx, cy, s, tone);
+  if (kind === 'lock') return lockGlyph(ctx, cx, cy, s, tone, { closed: 1 });
+  if (kind === 'button') {
+    const w = s * 0.86;
+    const h = s * 0.5;
+    ctx.save();
+    roundRect(ctx, cx - w / 2, cy - h / 2, w, h, h * 0.34);
+    ctx.fillStyle = mix(tone, 0.42);
+    ctx.fill();
+    ctx.strokeStyle = mix(tone, -0.24);
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    roundRect(ctx, cx - w * 0.28, cy - h * 0.12, w * 0.56, h * 0.16, h * 0.08);
+    ctx.fillStyle = alpha(P.surface, 0.85);
+    ctx.fill();
+    ctx.restore();
+    return;
+  }
+  if (kind === 'shop') {
+    const w = s * 0.8;
+    const h = s * 0.62;
+    ctx.save();
+    // the awning, which is what makes a rectangle read as a shopfront
+    ctx.beginPath();
+    ctx.moveTo(cx - w * 0.62, cy - h * 0.06);
+    ctx.lineTo(cx + w * 0.62, cy - h * 0.06);
+    ctx.lineTo(cx + w * 0.5, cy - h * 0.44);
+    ctx.lineTo(cx - w * 0.5, cy - h * 0.44);
+    ctx.closePath();
+    ctx.fillStyle = mix(tone, 0.4);
+    ctx.fill();
+    ctx.strokeStyle = mix(tone, -0.24);
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    roundRect(ctx, cx - w * 0.44, cy - h * 0.04, w * 0.88, h * 0.62, 4);
+    ctx.fillStyle = mix(tone, 0.62);
+    ctx.fill();
+    ctx.stroke();
+    // the door
+    ctx.fillStyle = alpha(P.ink, 0.32);
+    ctx.fillRect(cx - w * 0.1, cy + h * 0.1, w * 0.2, h * 0.48);
+    ctx.restore();
+    return;
+  }
+  boxGlyph(ctx, cx, cy, s * 0.95, tone);
+}
+
+/**
+ * A small database: a stack of discs. The one object in either film that has to
+ * read as "a place records live" at 90 px, which is why it is a cylinder and not
+ * a box - a box is a server, and the films need the two to be different.
+ */
+function dbStack(ctx, cx, baseY, w, h, tone = P.link) {
+  const ry = w * 0.17;
+  const top = baseY - h;
+  ctx.save();
+  roundRect(ctx, cx - w / 2, top, w, h, w * 0.14);
+  ctx.fillStyle = mix(tone, 0.34);
+  ctx.fill();
+  ctx.strokeStyle = alpha(P.ink, 0.2);
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  for (let i = 0; i < 3; i++) {
+    const y = top + ry * 1.35 + i * ((h - ry * 2.4) / 3);
+    ctx.beginPath();
+    ctx.ellipse(cx, y, w / 2 - 5, ry, 0, 0, Math.PI * 2);
+    ctx.fillStyle = mix(tone, 0.6 - i * 0.08);
+    ctx.fill();
+    ctx.strokeStyle = alpha(P.ink, 0.16);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -1995,15 +2106,40 @@ const SUBJECTS = {
         }
       }
 
-      // the server answers: a light comes on at the far end
-      if (serverLit > 0) {
-        ctx.save();
-        ctx.globalAlpha = serverLit;
-        ctx.beginPath();
-        ctx.arc(rightX, nodeBase - nodeH - 58, 9, 0, Math.PI * 2);
-        ctx.fillStyle = mix(P.good, 0.2);
-        ctx.fill();
-        ctx.restore();
+      // "exchange information": one message each way, in the shape of the rules
+      // they follow. Only when asked for, so the URL episode's cable is unchanged.
+      const cfg = o.options || {};
+      if (cfg.http) {
+        const out = since(o, 1);
+        const back = since(o, 2);
+        const t1 = (o.frame % 96) / 96;
+        const t2 = ((o.frame + 48) % 96) / 96;
+        const msg = (text, x, y, tone, a2) => {
+          if (a2 <= 0) return;
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, a2);
+          ctx.font = `700 20px ${FONT_MONO || 'monospace'}`;
+          const w = ctx.measureText(text).width + 28;
+          roundRect(ctx, x - w / 2, y - 20, w, 40, 9);
+          ctx.fillStyle = alpha(P.surface, 0.96);
+          ctx.fill();
+          ctx.strokeStyle = alpha(tone, 0.6);
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+          ctx.fillStyle = mix(tone, -0.12);
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(text, x, y + 1);
+          ctx.restore();
+        };
+        if (out > 0) msg(cfg.req || 'GET /page', a.x + (c.x - a.x) * t1, wireY - 62, P.accent, out);
+        if (back > 0) msg(cfg.res || '200 OK', c.x - (c.x - a.x) * t2, wireY + 64, P.link, back);
+        label(ctx, 'request', a.x + 26, wireY - 96, {
+          size: 14, color: alpha(P.accent, 0.7), weight: 700, align: 'left', spacing: 1.5,
+        });
+        label(ctx, 'response', c.x - 26, wireY + 98, {
+          size: 14, color: alpha(P.link, 0.8), weight: 700, align: 'right', spacing: 1.5,
+        });
       }
 
       if (step <= 0) o.focus(leftEnd.x, wireY, 72);
@@ -3801,12 +3937,19 @@ const SUBJECTS = {
 
         const iconY = y + chh * 0.26;
         const iconSize = Math.min(46, cw * 0.14);
-        if (card.icon === 'edge') edgeGlyph(ctx, x + 20 + iconSize, iconY, iconSize, card.tone);
-        else if (card.icon === 'shield') shieldGlyph(ctx, x + 20 + iconSize, iconY, iconSize, card.tone);
-        else boxGlyph(ctx, x + 20 + iconSize, iconY, iconSize * 0.95, card.tone);
+        markGlyph(ctx, card.icon || 'box', x + 20 + iconSize, iconY, iconSize, card.tone);
 
+        // the tag shares the icon's line, so it is sized to the room that is left
+        // rather than to the card: a long tag at the card's width runs backwards
+        // over the glyph it is naming
+        const tagRoom = cw - 22 - (iconSize * 2 + 44);
+        ctx.save();
+        ctx.font = `700 23px ${FONT_SANS}`;
+        const tagW = ctx.measureText(card.tag).width + String(card.tag).length * 2;
+        ctx.restore();
+        const tagSize = Math.max(13, Math.min(23, cw * 0.082, (23 * tagRoom) / Math.max(1, tagW)));
         label(ctx, card.tag, x + cw - 22, iconY + 8, {
-          size: Math.min(23, cw * 0.082), color: alpha(card.tone, 0.95), weight: 700, align: 'right', spacing: 2,
+          size: tagSize, color: alpha(card.tone, 0.95), weight: 700, align: 'right', spacing: 1.5,
         });
         ctx.save();
         ctx.font = `600 ${Math.min(44, cw * 0.115)}px ${FONT_SERIF}`;
@@ -3858,7 +4001,1304 @@ const SUBJECTS = {
       const which = Math.min(boxes.length - 1, focusAt[idx] || 0);
       const ring = boxes[which] || boxes[0];
       const mark = Math.min(46, ring.w * 0.14);
-      o.focus(ring.x + 20 + mark, ring.y + ring.h * 0.26, Math.max(46, mark * 0.95), false, true);
+      // the ring is drawn a little smaller than the glyph it circles, so it reads
+      // as a mark on the icon and not as a bubble around the card's label
+      o.focus(ring.x + 20 + mark, ring.y + ring.h * 0.26, Math.max(34, mark * 0.68), false, true);
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // 0109 - what happens when you click Sign Up
+  //
+  // The film's spine is a queue of checks, so each object here is a station on
+  // that queue rather than a diagram of the whole thing: the button and the
+  // route it opens, the gate the form reads, the questions on the server, the
+  // row in the table, the key that comes out the far end. The bad version - the
+  // button dropping straight into the database - is drawn once, in the hook,
+  // because a film that argues against a shortcut has to show it first.
+  // -------------------------------------------------------------------------
+
+  'signup-button': {
+    role: 'demonstrate',
+    about: 'the button on its plinth, and the road of checks it opens instead of a straight drop',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const cfg = o.options || {};
+      const shortcut = Boolean(cfg.shortcut);
+      const pressed = shortcut ? 1 : since(o, 0);
+      const route = shortcut ? 1 : since(o, 1);
+      const base = b.y + b.h;
+
+      // the box is 766x500 in an object detail, so the button is a third of the
+      // width and everything else has to fit beside it: a button drawn off b.h
+      // alone fills the frame and there is no road left to show.
+      const btnW = Math.min(b.w * 0.34, 268);
+      const btnH = btnW * 0.36;
+      const bx = b.x + b.w * (shortcut ? 0.22 : 0.17);
+      const plinthW = btnW * 0.66;
+      const plinthH = Math.min(b.h * 0.16, 74);
+      // a crate's top face rises d/2 above its own top edge, so the button sits
+      // on the face and not inside the block
+      const top = base - plinthH - plinthW * 0.21 - btnH;
+
+      shadow(ctx, bx, base + 4, btnW * 0.58, 14, 0.09);
+      crate(ctx, bx, base, plinthW, plinthH, mix(P.line, 0.28));
+
+      // the hatch under the button: it only exists once the button is pressed
+      if (pressed > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.3 + 0.55 * pressed;
+        roundRect(ctx, bx - btnW * 0.28, top + btnH * 0.66, btnW * 0.56, btnH * 0.3, 8);
+        ctx.fillStyle = alpha(P.ink, 0.32);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      const sink = pressed * btnH * 0.14;
+      ctx.save();
+      roundRect(ctx, bx - btnW / 2, top + sink, btnW, btnH, btnH * 0.3);
+      ctx.fillStyle = alpha(P.accent, 0.95);
+      ctx.fill();
+      ctx.strokeStyle = mix(P.accent, -0.3);
+      ctx.lineWidth = 3.5;
+      ctx.stroke();
+      roundRect(ctx, bx - btnW / 2 + 14, top + sink + 10, btnW - 28, btnH * 0.22, btnH * 0.11);
+      ctx.fillStyle = alpha(P.surface, 0.18);
+      ctx.fill();
+      ctx.restore();
+      label(ctx, cfg.label || 'Sign up', bx, top + sink + btnH * 0.68, {
+        size: Math.min(30, btnW * 0.13), color: '#FFF7F1', weight: 700,
+      });
+
+      // the cursor, which leaves as the button goes down
+      if (pressed < 0.75) {
+        const cx = bx + btnW * 0.34;
+        const cy = top - 30 + pressed * 26;
+        ctx.save();
+        ctx.globalAlpha = 1 - pressed * 1.3;
+        poly(ctx, [[cx, cy], [cx, cy + 30], [cx + 9, cy + 22], [cx + 19, cy + 36], [cx + 27, cy + 30], [cx + 16, cy + 16], [cx + 27, cy + 12]], P.ink, alpha(P.surface, 0.85), 2);
+        ctx.restore();
+      }
+
+      // ---- where the details end up ------------------------------------
+      const dbW = Math.min(b.w * 0.16, 118);
+      const dbH = Math.min(b.h * 0.42, 196);
+      const dbX = shortcut ? b.x + b.w * 0.66 : b.x + b.w * 0.9;
+      const dbBase = base - 4;
+      dbStack(ctx, dbX, dbBase, dbW, dbH, P.link);
+      label(ctx, shortcut ? 'the database' : 'the table', dbX, dbBase - dbH - 20, {
+        size: 16, color: alpha(P.ink, 0.45), weight: 700, spacing: 1.5,
+      });
+
+      const routeY = top + btnH * 0.5;
+      const fromX = bx + btnW * 0.54;
+      const toX = dbX - dbW * 0.62;
+
+      if (shortcut) {
+        // the wrong version: a short, open drop, crossed at the middle
+        ctx.save();
+        ctx.strokeStyle = alpha(P.stop, 0.8);
+        ctx.lineWidth = 6;
+        ctx.setLineDash([12, 10]);
+        ctx.beginPath();
+        ctx.moveTo(fromX, routeY);
+        ctx.quadraticCurveTo((fromX + toX) / 2, routeY - 40, toX, dbBase - dbH * 0.7);
+        ctx.stroke();
+        ctx.restore();
+        arrow(ctx, [fromX + 8, routeY], [toX - 12, dbBase - dbH * 0.72], { colour: alpha(P.stop, 0.85), width: 5, head: 15 });
+        const mx = (fromX + toX) / 2;
+        cross(ctx, mx, routeY - 24, 44, P.stop, 8);
+        // the cross says it; the cue's own word letters it above, so this
+        // drawing carries no caption of its own. The ring stays quiet: the cross
+        // is the thing to look at, and a circle round it is a second outline.
+        o.focus(mx, routeY - 26, 66, false, true);
+        return;
+      }
+
+      // the right version: a road out of the plinth, three checks, then the table
+      const reach = fromX + (toX - fromX) * route;
+      ctx.save();
+      ctx.strokeStyle = alpha(P.accent, 0.45);
+      ctx.lineWidth = 6;
+      ctx.setLineDash([14, 12]);
+      ctx.lineDashOffset = -o.t * 90;
+      ctx.beginPath();
+      ctx.moveTo(fromX, routeY);
+      ctx.lineTo(reach, routeY);
+      ctx.stroke();
+      ctx.restore();
+
+      const gates = cfg.gates || ['form', 'server', 'store'];
+      gates.forEach((name, i) => {
+        const gx = fromX + (toX - fromX) * (0.3 + i * 0.24);
+        const passed = route > 0.3 + i * 0.24;
+        ctx.beginPath();
+        ctx.arc(gx, routeY, 19, 0, Math.PI * 2);
+        ctx.fillStyle = passed ? mix(P.good, 0.5) : alpha(P.surface, 0.95);
+        ctx.fill();
+        ctx.strokeStyle = passed ? mix(P.good, -0.1) : alpha(P.ink, 0.24);
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        if (passed) tick(ctx, gx, routeY, 20, mix(P.good, -0.35), 4);
+        else label(ctx, String(i + 1), gx, routeY + 6, { size: 18, color: alpha(P.ink, 0.3), weight: 700 });
+        label(ctx, name, gx, routeY + 44, {
+          size: 13, color: alpha(P.ink, passed ? 0.5 : 0.3), weight: 700, spacing: 1,
+        });
+      });
+
+      if (step <= 0) o.focus(bx, top + btnH * 0.5, Math.max(60, btnW * 0.62));
+      else o.focus((fromX + toX) / 2, routeY, Math.max(80, (toX - fromX) * 0.46));
+    },
+  },
+
+  'form-gate': {
+    role: 'demonstrate',
+    about: 'a form of three fields and the gate the whole form has to pass before it is sent',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const cfg = o.options || {};
+      const base = b.y + b.h;
+      const rows = (cfg.rows || [
+        { label: 'email', value: 'ada@example.com' },
+        { label: 'name', value: 'Ada' },
+        { label: 'password', value: '••••••••' },
+      ]).slice(0, 3);
+
+      const cardW = Math.min(b.w * 0.6, 470);
+      const cardH = Math.min(b.h * 0.92, 460);
+      const cardX = b.x;
+      const cardY = base - cardH;
+
+      shadow(ctx, cardX + cardW / 2, cardY + cardH + 8, cardW * 0.42, 16, 0.08);
+      paperCard(ctx, cardX, cardY, cardW, cardH, { r: 22 });
+
+      const pad = cardW * 0.07;
+      label(ctx, 'SIGN UP', cardX + pad, cardY + 44, {
+        size: 17, color: alpha(P.accent, 0.9), weight: 700, align: 'left', spacing: 2.5,
+      });
+      label(ctx, 'a form', cardX + cardW - pad, cardY + 44, {
+        size: 17, color: alpha(P.ink, 0.32), weight: 600, align: 'right',
+      });
+
+      const rowTop = cardY + 74;
+      const rowGap = 14;
+      const rowH = Math.min(84, (cardH - rowTop + cardY - 24 - rowGap * 2) / rows.length);
+
+      const gateX = b.x + b.w * 0.8;
+      const rowStates = rows.map((r) => (r.at === undefined ? 1 : since(o, r.at)));
+      const open = rowStates.every((v) => v > 0.5) ? 1 : 0.16;
+
+      rows.forEach((row, i) => {
+        const y = rowTop + i * (rowH + rowGap);
+        const on = rowStates[i];
+        const empty = !String(row.value || '').length;
+        const dx = empty ? -Math.max(0, 26 * (1 - on)) : 0;
+
+        ctx.save();
+        ctx.translate(dx, 0);
+        roundRect(ctx, cardX + pad, y, cardW - pad * 2, rowH, 12);
+        ctx.fillStyle = alpha(P.surfaceSoft, 0.9);
+        ctx.fill();
+        const bad = empty && on < 0.5;
+        ctx.strokeStyle = bad ? alpha(P.stop, 0.8) : on > 0.5 ? alpha(P.good, 0.55) : alpha(P.ink, 0.14);
+        ctx.lineWidth = bad ? 3 : 2;
+        ctx.stroke();
+
+        label(ctx, row.label, cardX + pad + 16, y + 24, {
+          size: 14, color: alpha(P.ink, 0.38), weight: 700, align: 'left', spacing: 1.5,
+        });
+        label(ctx, empty ? 'empty' : row.value, cardX + pad + 16, y + rowH - 16, {
+          size: Math.min(26, rowH * 0.32), color: empty ? alpha(P.stop, 0.85) : alpha(P.ink, 0.82),
+          weight: empty ? 700 : 500, align: 'left',
+        });
+        if (bad) {
+          label(ctx, 'required', cardX + cardW - pad - 12, y + 24, {
+            size: 13, color: alpha(P.stop, 0.9), weight: 700, align: 'right', spacing: 1,
+          });
+        }
+        if (on > 0.5) tick(ctx, cardX + cardW - pad - 26, y + rowH * 0.54, 24, P.good, 5);
+        ctx.restore();
+      });
+
+      // The gate: an arch the whole form has to pass through, with a bar that
+      // lifts when every field is valid. A single post and a floating bar read
+      // as a lamp post; two posts and a bar across the gap read as a checkpoint.
+      const gateCx = b.x + b.w * 0.79;
+      const gateHalf = Math.min(b.w * 0.13, 96);
+      const postTop = cardY + 40;
+      const postBottom = cardY + cardH - 10;
+      const armY = postTop + 54 + (1 - open) * (cardH * 0.3);
+
+      [-1, 1].forEach((side) => {
+        ctx.save();
+        ctx.strokeStyle = alpha(P.ink, 0.26);
+        ctx.lineWidth = 7;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(gateCx + side * gateHalf, postTop);
+        ctx.lineTo(gateCx + side * gateHalf, postBottom);
+        ctx.stroke();
+        ctx.restore();
+      });
+      // the lintel, so the two posts are one object
+      ctx.save();
+      ctx.strokeStyle = alpha(P.ink, 0.26);
+      ctx.lineWidth = 7;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(gateCx - gateHalf, postTop);
+      ctx.lineTo(gateCx + gateHalf, postTop);
+      ctx.stroke();
+      ctx.restore();
+
+      // the barrier arm: down is shut, up is open
+      ctx.save();
+      ctx.strokeStyle = mix(open > 0.5 ? P.good : P.inkSoft, 0.3);
+      ctx.lineWidth = 12;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(gateCx - gateHalf + 4, armY);
+      ctx.lineTo(gateCx + gateHalf - 4, armY);
+      ctx.stroke();
+      ctx.restore();
+      label(ctx, open > 0.5 ? 'open' : 'shut', gateCx, armY - 22, {
+        size: 15, color: alpha(open > 0.5 ? P.good : P.ink, 0.6), weight: 700, spacing: 1.5,
+      });
+
+      // what comes out the far side: one sealed request, dropped below the arch
+      const leave = cfg.leaveAt === undefined ? 99 : cfg.leaveAt;
+      const out = since(o, leave);
+      if (out > 0) {
+        const pw = Math.min(b.w * 0.2, 118);
+        const px = gateCx - pw / 2;
+        const py = postBottom - 118;
+        ctx.save();
+        ctx.globalAlpha = out;
+        roundRect(ctx, px, py, pw, pw * 0.64, 9);
+        ctx.fillStyle = mix(P.good, 0.6);
+        ctx.fill();
+        ctx.strokeStyle = mix(P.good, -0.18);
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.fillStyle = alpha(P.surface, 0.85);
+        ctx.fillRect(px + 12, py + 12, 40, 3);
+        ctx.fillRect(px + 12, py + 22, 62, 3);
+        lockGlyph(ctx, px + pw - 26, py + pw * 0.44, 24, mix(P.good, -0.2), { closed: 1 });
+        ctx.restore();
+      }
+
+      // the ring follows the field the sentence is on, then the gate
+      const order = cfg.focusAt || [0, 1, -1];
+      const at = order[Math.min(step, order.length - 1)];
+      if (at === -1) o.focus(gateCx, armY, 88, false, true);
+      else {
+        const i = Math.min(rows.length - 1, Math.max(0, at));
+        const y = rowTop + i * (rowH + rowGap);
+        o.focus(cardX + cardW * 0.46, y + rowH * 0.56, Math.max(48, rowH * 0.62), false, true);
+      }
+    },
+  },
+
+  'package-send': {
+    role: 'transform',
+    about: 'the form leaving the browser as one sealed envelope, on a wire that closes around it',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const cfg = o.options || {};
+      const base = b.y + b.h;
+      const nodeW = Math.min(b.w * 0.18, 150);
+      const nodeH = Math.min(b.h * 0.44, 240);
+      const leftX = b.x + nodeW * 0.7;
+      const rightX = b.x + b.w - nodeW * 0.7;
+      const wireY = base - nodeH * 0.5;
+
+      shadow(ctx, leftX, base + 6, nodeW * 0.8, 12, 0.07);
+      crate(ctx, leftX, base, nodeW, nodeH, P.accent);
+      label(ctx, cfg.near || 'your browser', leftX, base - nodeH - nodeW * 0.3, {
+        size: 17, color: alpha(P.ink, 0.45), weight: 700, spacing: 2,
+      });
+      shadow(ctx, rightX, base + 6, nodeW * 0.8, 12, 0.07);
+      crate(ctx, rightX, base, nodeW, nodeH, mix(P.link, 0.12 + 0.2 * since(o, 1)));
+      label(ctx, cfg.far || 'the site', rightX, base - nodeH - nodeW * 0.3, {
+        size: 17, color: alpha(P.ink, 0.45), weight: 700, spacing: 2,
+      });
+
+      const aX = leftX + nodeW * 0.5;
+      const bX = rightX - nodeW * 0.5;
+      const sealed = cfg.sealed ? since(o, 2) : 0;
+
+      ctx.save();
+      ctx.strokeStyle = alpha(P.ink, 0.24);
+      ctx.lineWidth = 8;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(aX, wireY);
+      ctx.lineTo(bX, wireY);
+      ctx.stroke();
+      ctx.restore();
+
+      if (sealed > 0) {
+        ctx.save();
+        ctx.globalAlpha = sealed;
+        ctx.strokeStyle = alpha(P.good, 0.22);
+        ctx.lineWidth = 44;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(aX, wireY);
+        ctx.lineTo(bX, wireY);
+        ctx.stroke();
+        ctx.strokeStyle = alpha(P.good, 0.34);
+        ctx.lineWidth = 30;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      const travel = since(o, 1);
+      const ew = Math.min(190, (bX - aX) * 0.34);
+      const eh = ew * 0.64;
+      // it stops at the far crate's face, not on top of it
+      const ex = aX + ew * 0.45 + (bX - aX - ew * 1.05) * travel;
+      const ey = wireY - eh * 0.5;
+
+      ctx.save();
+      ctx.translate(ex, ey + eh / 2);
+      ctx.rotate(-0.02 + 0.02 * Math.sin(o.frame / 24));
+      ctx.translate(-ex, -(ey + eh / 2));
+      shadow(ctx, ex, ey + eh + 8, ew * 0.4, 12, 0.09);
+      roundRect(ctx, ex - ew / 2, ey, ew, eh, 12);
+      ctx.fillStyle = mix(P.surfaceSoft, 0.12);
+      ctx.fill();
+      ctx.strokeStyle = alpha(P.ink, 0.22);
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(ex - ew / 2 + 2, ey + 2);
+      ctx.lineTo(ex, ey + eh * 0.56);
+      ctx.lineTo(ex + ew / 2 - 2, ey + 2);
+      ctx.stroke();
+      ctx.restore();
+
+      label(ctx, cfg.label || 'SIGN UP', ex, ey + eh * 0.86, {
+        size: Math.min(21, ew * 0.15), color: alpha(P.ink, 0.8), weight: 700,
+      });
+      lockGlyph(ctx, ex + ew * 0.32, ey + eh * 0.2, 24, P.good, { closed: 1 });
+
+      if (sealed > 0.2) {
+        ctx.save();
+        ctx.globalAlpha = sealed;
+        // the cue's own word already says "sealed", so the band gets the lock and
+        // no second caption under it
+        lockGlyph(ctx, (aX + bX) / 2, wireY - 52, 34, mix(P.good, -0.05), { closed: 1 });
+        ctx.restore();
+      }
+
+      if (step >= 2) o.focus((aX + bX) / 2, wireY - 24, 92);
+      else o.focus(ex, ey + eh * 0.5, Math.max(64, eh * 0.95));
+    },
+  },
+
+  'server-checks': {
+    role: 'demonstrate',
+    about: 'the server, and the three questions it answers before anything is written down',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const cfg = o.options || {};
+      const base = b.y + b.h;
+      const rows = (cfg.rows || [
+        { q: 'is it allowed?', a: 'yes' },
+        { q: 'already a member?', a: 'no - new' },
+        { q: 'rules followed?', a: 'yes' },
+      ]).slice(0, 3);
+
+      const srvW = Math.min(b.w * 0.2, 160);
+      const srvH = Math.min(b.h * 0.52, 250);
+      const srvX = b.x + srvW * 0.62;
+
+      shadow(ctx, srvX, base + 4, srvW * 0.76, 12, 0.08);
+      crate(ctx, srvX, base, srvW, srvH, mix(P.link, 0.08));
+      label(ctx, 'the server', srvX, base - srvH - srvW * 0.3, {
+        size: 16, color: alpha(P.ink, 0.45), weight: 700, spacing: 1.5,
+      });
+      const busy = Math.abs(Math.sin(o.t * Math.PI * 2.2));
+      ctx.beginPath();
+      ctx.arc(srvX + srvW * 0.2, base - srvH * 0.7, 6, 0, Math.PI * 2);
+      ctx.fillStyle = alpha(P.good, 0.3 + 0.6 * busy);
+      ctx.fill();
+
+      const rowW = Math.min(b.w * 0.54, 440);
+      const rowH = Math.min(b.h * 0.19, 88);
+      const gap = Math.min(20, Math.max(10, (b.h - rowH * 3) / 8));
+      const rowX = b.x + b.w - rowW;
+      const topY = base - rowH * 3 - gap * 2;
+
+      rows.forEach((row, i) => {
+        const y = topY + i * (rowH + gap);
+        const asked = row.at === undefined ? true : stepOf(o) >= row.at;
+        const done = row.at === undefined ? 1 : since(o, row.at);
+        ctx.save();
+        roundRect(ctx, rowX, y, rowW, rowH, rowH * 0.26);
+        ctx.fillStyle = alpha(P.surface, asked ? 0.96 : 0.5);
+        ctx.fill();
+        ctx.strokeStyle = asked ? alpha(P.good, 0.3 + 0.35 * done) : alpha(P.ink, 0.1);
+        ctx.lineWidth = asked ? 2.5 : 2;
+        ctx.stroke();
+        ctx.restore();
+
+        label(ctx, row.q, rowX + 22, y + rowH * (done > 0.4 ? 0.42 : 0.62), {
+          size: Math.min(22, rowH * 0.3), color: alpha(P.ink, asked ? 0.8 : 0.38), weight: 600, align: 'left',
+        });
+        if (done > 0.4) {
+          tick(ctx, rowX + 34, y + rowH * 0.76, 16, alpha(P.good, done), 3.5);
+          label(ctx, row.a, rowX + 54, y + rowH * 0.82, {
+            size: Math.min(16, rowH * 0.22), color: alpha(P.good, 0.95 * done), weight: 700, align: 'left',
+          });
+        } else {
+          label(ctx, '?', rowX + rowW - 28, y + rowH * 0.66, {
+            size: Math.min(30, rowH * 0.44), color: alpha(P.ink, 0.18), weight: 700, align: 'right',
+          });
+        }
+      });
+
+      // the record, once every question has been answered
+      const recordAt = cfg.recordAt === undefined ? 99 : cfg.recordAt;
+      const made = since(o, recordAt);
+      if (made > 0) {
+        const cw = Math.min(rowW * 0.8, 300);
+        const chh = cw * 0.36;
+        const cx = b.x + b.w - cw;
+        const cy = topY + rowH * 3 + gap * 2 + 14 - (1 - made) * 22;
+        ctx.save();
+        ctx.globalAlpha = made;
+        shadow(ctx, cx + cw / 2, cy + chh + 6, cw * 0.34, 12, 0.08);
+        paperCard(ctx, cx, cy, cw, chh, { r: 14 });
+        label(ctx, 'ACCOUNT', cx + 18, cy + 28, {
+          size: 14, color: alpha(P.accent, 0.9), weight: 700, align: 'left', spacing: 2,
+        });
+        label(ctx, cfg.email || 'a new row', cx + 18, cy + chh - 16, {
+          size: Math.min(22, chh * 0.28), color: alpha(P.ink, 0.8), weight: 500, align: 'left',
+        });
+        tick(ctx, cx + cw - 26, cy + chh * 0.5, 22, P.good, 5);
+        ctx.restore();
+      }
+
+      const order = cfg.focusAt || [0, 1, 2];
+      const at = Math.max(0, Math.min(rows.length - 1, order[Math.min(step, order.length - 1)]));
+      const ry = topY + at * (rowH + gap);
+      o.focus(rowX + rowW * 0.4, ry + rowH * 0.5, Math.max(50, rowH * 0.68), false, true);
+    },
+  },
+
+  'recap-steps': {
+    role: 'label',
+    about: 'the film in three words, one card each, arrived in order',
+    draw(ctx, b, o) {
+      const cfg = o.options || {};
+      const words = (cfg.words || ['VALIDATE', 'PROTECT', 'STORE']).slice(0, 3);
+      const subs = cfg.subs || ['the form', 'the connection', 'the password'];
+      const base = b.y + b.h;
+      const row = b.w > b.h * 1.1;
+      const gap = Math.min(20, b.w * 0.03);
+      const n = words.length;
+
+      for (let i = 0; i < n; i++) {
+        const on = since(o, i);
+        let x;
+        let y;
+        let w;
+        let h;
+        if (row) {
+          w = (b.w - gap * (n - 1)) / n;
+          h = Math.min(b.h * 0.92, 300);
+          x = b.x + i * (w + gap);
+          y = base - h;
+        } else {
+          w = b.w;
+          h = Math.min((b.h - gap * (n - 1)) / n, 190);
+          x = b.x;
+          y = base - (h + gap) * (n - i) + gap;
+        }
+        ctx.save();
+        // the three arrive together and stay: a recap that reveals itself one
+        // word at a time is not a recap, it is a second explanation
+        ctx.globalAlpha = 1;
+        shadow(ctx, x + w / 2, y + h + 6, w * 0.36, 12, 0.07);
+        paperCard(ctx, x, y, w, h, { r: 20 });
+        // the number, and the word under it, and one line saying which check it was
+        ctx.beginPath();
+        ctx.arc(x + 34, y + 36, 19, 0, Math.PI * 2);
+        ctx.fillStyle = alpha(P.accent, 0.18);
+        ctx.fill();
+        label(ctx, String(i + 1), x + 34, y + 43, { size: 20, color: mix(P.accent, -0.12), weight: 700 });
+        if (on > 0.45) tick(ctx, x + w - 34, y + 36, 22, alpha(P.good, on), 5);
+
+        ctx.save();
+        ctx.font = `600 ${Math.min(40, w * 0.2)}px ${FONT_SERIF}`;
+        ctx.fillStyle = P.ink;
+        ctx.textAlign = 'center';
+        ctx.fillText(words[i], x + w / 2, y + h * 0.62);
+        ctx.restore();
+        label(ctx, subs[i] || '', x + w / 2, y + h * 0.8, {
+          size: Math.min(17, w * 0.09), color: alpha(P.ink, 0.42), weight: 600, spacing: 1,
+        });
+        ctx.restore();
+      }
+
+      const at = Math.max(0, Math.min(n - 1, stepOf(o)));
+      const cw2 = row ? (b.w - gap * (n - 1)) / n : b.w;
+      const ch2 = row ? Math.min(b.h * 0.92, 300) : Math.min((b.h - gap * (n - 1)) / n, 190);
+      const cx = row ? b.x + at * (cw2 + gap) + cw2 / 2 : b.x + b.w / 2;
+      const cy = row ? base - ch2 / 2 : base - (ch2 + gap) * (n - at) + gap + ch2 / 2;
+      // the ring is a share of the card, not its half: at half it hangs over both
+      // neighbours and the word it is pointing at
+      o.focus(cx, cy, Math.max(56, Math.min(cw2, ch2) * 0.42), false, true);
+    },
+  },
+
+  'checks-row': {
+    role: 'compare',
+    about: 'the four checks standing between a click and an account, with the button beside them',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const cfg = o.options || {};
+      const base = b.y + b.h;
+      const items = (cfg.items || ['email format', 'required fields', 'allowed?', 'hashed password']).slice(0, 4);
+      const small = cfg.small || { label: 'the button', sub: 'one click' };
+      const n = items.length;
+
+      // the four checks run down the bench as a column of cards
+      const cw = Math.min(b.w * 0.62, 420);
+      const gap = Math.min(16, b.h * 0.03);
+      const chh = Math.min(74, (b.h - gap * (n - 1)) / n);
+      const cx = b.x;
+      const top = base - chh * n - gap * (n - 1);
+
+      items.forEach((item, i) => {
+        const y = top + i * (chh + gap);
+        const on = since(o, 1) > 0 ? 1 : 0;
+        ctx.save();
+        roundRect(ctx, cx, y, cw, chh, 14);
+        ctx.fillStyle = alpha(P.surface, 0.95);
+        ctx.fill();
+        ctx.strokeStyle = alpha(P.ink, 0.12);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+        tick(ctx, cx + 30, y + chh * 0.5, Math.min(24, chh * 0.42), alpha(P.good, on), 4);
+        label(ctx, item, cx + 58, y + chh * 0.62, {
+          size: Math.min(22, chh * 0.34), color: alpha(P.ink, 0.8), weight: 600, align: 'left',
+        });
+        label(ctx, String(i + 1), cx + cw - 24, y + chh * 0.62, {
+          size: Math.min(19, chh * 0.3), color: alpha(P.ink, 0.28), weight: 700, align: 'right',
+        });
+      });
+
+      // the button, alone on the other side: the whole comparison in one look
+      const bw = Math.min(b.w * 0.26, 190);
+      const bh = bw * 0.4;
+      const bx = b.x + b.w - bw * 0.94;
+      const by = base - bh - Math.min(b.h * 0.1, 44);
+      shadow(ctx, bx, by + bh + 10, bw * 0.5, 12, 0.08);
+      roundRect(ctx, bx - bw / 2, by, bw, bh, bh * 0.3);
+      ctx.fillStyle = alpha(P.accent, 0.9);
+      ctx.fill();
+      ctx.strokeStyle = mix(P.accent, -0.28);
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      label(ctx, small.label, bx, by + bh * 0.62, {
+        size: Math.min(22, bw * 0.13), color: '#FFF7F1', weight: 700,
+      });
+      label(ctx, small.sub, bx, by + bh + 34, {
+        size: 15, color: alpha(P.ink, 0.4), weight: 700, spacing: 1.5,
+      });
+      // the cross goes on the button's corner: struck through the middle it
+      // lands on the button's own label
+      if (step >= 1) cross(ctx, bx + bw * 0.5 - 16, by + 12, Math.min(40, bh * 0.54), alpha(P.stop, 0.72), 4.5);
+      label(ctx, cfg.smallNote || 'not the security', bx, by - 18, {
+        size: 15, color: alpha(P.stop, 0.75), weight: 700, spacing: 1.2,
+      });
+
+      const at = (cfg.focusAt || [0, 1, 2, -1])[Math.min(step, 3)];
+      if (at === 3) o.focus(bx, by + bh * 0.5, Math.max(62, bw * 0.62), false, true);
+      else if (at === -1) {
+        // "the checks" is a claim about all four, so the ring holds the column:
+        // half its height, and never smaller than one card
+        const colH = chh * n + gap * (n - 1);
+        o.focus(cx + cw * 0.5, top + colH / 2, Math.max(chh * 0.82, colH * 0.42), false, true);
+      } else {
+        const i = Math.max(0, Math.min(n - 1, at));
+        const y = top + i * (chh + gap);
+        o.focus(cx + cw * 0.5, y + chh * 0.5, Math.max(56, chh * 0.7), false, true);
+      }
+    },
+  },
+
+  'account-row': {
+    role: 'demonstrate',
+    about: 'one new row in the accounts table, and the password cell turning into a hash',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const cfg = o.options || {};
+      const base = b.y + b.h;
+      const tw = Math.min(b.w * 0.96, 740);
+      const th = Math.min(b.h * 0.9, 396);
+      const tx = b.x + (b.w - tw) / 2;
+      const ty = base - th;
+      const pad = tw * 0.055;
+
+      shadow(ctx, tx + tw / 2, ty + th + 8, tw * 0.4, 16, 0.08);
+      paperCard(ctx, tx, ty, tw, th, { r: 22 });
+
+      label(ctx, 'accounts', tx + pad, ty + 40, {
+        size: 17, color: alpha(P.accent, 0.9), weight: 700, align: 'left', spacing: 2,
+      });
+      const cols = [pad, tw * 0.42, tw * 0.74];
+      ['email', 'password', 'created'].forEach((c, i) => {
+        label(ctx, c, tx + cols[i], ty + 74, {
+          size: 13, color: alpha(P.ink, 0.34), weight: 700, align: 'left', spacing: 1.2,
+        });
+      });
+      ctx.save();
+      ctx.strokeStyle = alpha(P.ink, 0.12);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(tx + pad, ty + 88);
+      ctx.lineTo(tx + tw - pad, ty + 88);
+      ctx.stroke();
+      ctx.restore();
+
+      const rowH = Math.min(60, (th - 190) / 3.1);
+      const oldRows = (cfg.oldRows || [
+        ['ada@example.com', '9f2c…c41a', '2026-02'],
+        ['bo@example.com', '77be…31d0', '2026-05'],
+      ]).slice(0, 2);
+      const rowY = (i) => ty + 108 + i * (rowH + 12);
+      oldRows.forEach((row, i) => {
+        const y = rowY(i);
+        [0, 1, 2].forEach((c) => {
+          label(ctx, row[c], tx + cols[c], y + rowH * 0.62, {
+            size: Math.min(18, rowH * 0.36), color: alpha(P.ink, 0.3), weight: 500, align: 'left',
+          });
+        });
+      });
+
+      // the new row: it arrives on the first cue and the cell changes on the second
+      const arrived = since(o, 0);
+      const hashed = since(o, 1);
+      const ny = rowY(2);
+      ctx.save();
+      ctx.globalAlpha = 0.2 + 0.8 * arrived;
+      ctx.translate(0, (1 - arrived) * -18);
+      roundRect(ctx, tx + pad * 0.5, ny - 2, tw - pad, rowH + 6, 10);
+      ctx.fillStyle = alpha(P.accent, 0.09 + 0.06 * hashed);
+      ctx.fill();
+      ctx.strokeStyle = alpha(P.accent, 0.34);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      const fs = Math.min(19, rowH * 0.38);
+      label(ctx, cfg.email || 'ada@example.com', tx + cols[0], ny + rowH * 0.66, {
+        size: fs, color: alpha(P.ink, 0.86), weight: 600, align: 'left',
+      });
+      label(ctx, cfg.created || '2026-10', tx + cols[2], ny + rowH * 0.66, {
+        size: fs * 0.92, color: alpha(P.ink, 0.5), weight: 500, align: 'left',
+      });
+
+      // the cell that matters: readable password, then a hash character by character
+      const plain = String(cfg.password || 'sunflower22');
+      const hashedText = String(cfg.hash || '9f2c1b7e…c41a');
+      const shown = hashed > 0
+        ? hashedText.split('').map((ch, i) => (i / hashedText.length <= hashed ? ch : plain[i] || '•')).join('')
+        : plain;
+      label(ctx, shown, tx + cols[1], ny + rowH * 0.66, {
+        size: fs, color: hashed > 0.5 ? mix(P.good, -0.12) : alpha(P.ink, 0.9), weight: 600, align: 'left',
+      });
+      ctx.restore();
+
+      // the note goes above the table: over the row it would cover the one cell
+      // the beat is about
+      if (hashed > 0.3) {
+        chip(ctx, tx + cols[1] - 30, ty - 46, hashed > 0.85 ? 'a hash, not the password' : 'hashing', {
+          fill: mix(P.good, 0.88), ink: mix(P.good, -0.24), size: 15,
+        });
+      }
+      if (hashed > 0.6) lockGlyph(ctx, tx + tw - pad * 0.6, ny + rowH * 0.5, 26, P.good, { closed: 1 });
+
+      // the first cue is about the row, the second about the cell: two sizes of
+      // the same mark, so the close-up is a move and not a new object
+      if (step <= 0) o.focus(tx + tw * 0.5, ny + rowH * 0.5, Math.max(70, tw * 0.36), false, true);
+      else o.focus(tx + cols[1] + tw * 0.09, ny + rowH * 0.5, 54, false, true);
+    },
+  },
+
+  'session-key': {
+    role: 'demonstrate',
+    about: 'the key that a session leaves behind, carried to the next page instead of a password',
+    draw(ctx, b, o) {
+      const cfg = o.options || {};
+      const carried = since(o, 1);
+      const base = b.y + b.h;
+      const cardW = Math.min(b.w * 0.34, 258);
+      const cardH = Math.min(b.h * 0.74, 330);
+      const leftX = b.x + b.w * 0.02;
+      const rightX = b.x + b.w - cardW - b.w * 0.02;
+      const cardY = base - cardH;
+
+      const drawCard = (x, title, sub, signed) => {
+        shadow(ctx, x + cardW / 2, cardY + cardH + 8, cardW * 0.4, 14, 0.08);
+        paperCard(ctx, x, cardY, cardW, cardH, { r: 20 });
+        // the avatar: a head and shoulders, enough to be "you"
+        const ax = x + cardW / 2;
+        const ay = cardY + cardH * 0.34;
+        const r = Math.min(cardW * 0.2, 54);
+        ctx.beginPath();
+        ctx.arc(ax, ay, r, 0, Math.PI * 2);
+        ctx.fillStyle = alpha(P.accent, 0.22);
+        ctx.fill();
+        ctx.strokeStyle = alpha(P.accent, 0.5);
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(ax, ay - r * 0.16, r * 0.34, 0, Math.PI * 2);
+        ctx.fillStyle = alpha(P.ink, 0.4);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(ax, ay + r * 0.62, r * 0.58, r * 0.34, 0, Math.PI, 0);
+        ctx.fill();
+        label(ctx, title, ax, cardY + cardH * 0.66, {
+          size: Math.min(26, cardW * 0.1), color: alpha(P.ink, 0.85), weight: 600,
+        });
+        label(ctx, sub, ax, cardY + cardH * 0.78, {
+          size: Math.min(17, cardW * 0.068), color: alpha(P.ink, 0.45), weight: 600, spacing: 1,
+        });
+        if (signed) tick(ctx, x + cardW - 34, cardY + 34, 22, P.good, 5);
+      };
+
+      drawCard(leftX, cfg.name || 'ada', 'signed in', true);
+      drawCard(rightX, 'next page', '', carried > 0.5);
+
+      // the password prompt on the second page, crossed out once the key arrives
+      const py = cardY + cardH - 44;
+      roundRect(ctx, rightX + 28, py, cardW - 56, 34, 8);
+      ctx.fillStyle = alpha(P.ink, 0.05);
+      ctx.fill();
+      ctx.strokeStyle = alpha(P.ink, 0.18);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      label(ctx, '••••••', rightX + 42, py + 24, {
+        size: 18, color: alpha(P.ink, 0.4), weight: 600, align: 'left',
+      });
+      if (carried > 0.55) {
+        cross(ctx, rightX + cardW / 2, py + 17, cardW * 0.44, alpha(P.stop, 0.9), 4);
+      }
+
+      // the key: it appears beside the profile, then travels to the next page
+      const kw = Math.min(cardW * 0.62, 170);
+      const homeX = leftX + cardW + (rightX - leftX - cardW) * 0.2;
+      const kx = homeX + (rightX + 40 - homeX) * carried;
+      const ky = cardY + cardH * 0.4;
+      const appear = cfg.show === false ? 1 : since(o, 0);
+      ctx.save();
+      ctx.globalAlpha = 0.2 + 0.8 * appear;
+      ctx.translate(kx, ky);
+      ctx.rotate(-0.12 + 0.24 * carried);
+      shadow(ctx, 0, kw * 0.4, kw * 0.34, 10, 0.1);
+      // the bow
+      ctx.beginPath();
+      ctx.arc(0, -kw * 0.16, kw * 0.2, 0, Math.PI * 2);
+      ctx.fillStyle = mix(P.accent, 0.35);
+      ctx.fill();
+      ctx.strokeStyle = mix(P.accent, -0.2);
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, -kw * 0.16, kw * 0.08, 0, Math.PI * 2);
+      ctx.fillStyle = alpha(P.surface, 0.9);
+      ctx.fill();
+      // the blade and its teeth
+      roundRect(ctx, -kw * 0.06, kw * 0.02, kw * 0.12, kw * 0.44, 4);
+      ctx.fillStyle = mix(P.accent, 0.3);
+      ctx.fill();
+      ctx.strokeStyle = mix(P.accent, -0.2);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      [0.18, 0.3].forEach((t) => {
+        ctx.fillStyle = mix(P.accent, 0.2);
+        ctx.fillRect(kw * 0.06, kw * t, kw * 0.1, kw * 0.055);
+      });
+      ctx.restore();
+
+      // the key labels itself, so the ring is enough: a note on top of the key's
+      // own name is a second label in the same place
+      o.focus(carried > 0.5 ? rightX + cardW / 2 : kx, carried > 0.5 ? cardY + cardH * 0.55 : ky, carried > 0.5 ? 82 : 84, false, true);
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // 0110 - HTTP vs HTTPS
+  //
+  // This film is one distinction, so every object is the same two ends and the
+  // difference between them: a wire with no lock, two lanes side by side, a
+  // certificate compared, a shopfront wearing a real lock. The padlock appears
+  // in all four and means something slightly smaller each time.
+  // -------------------------------------------------------------------------
+
+  'padlock-myth': {
+    role: 'transform',
+    about: 'a padlock held up as the answer, turning into the question it actually is',
+    draw(ctx, b, o) {
+      const cfg = o.options || {};
+      const turn = cfg.question ? since(o, 0) : 0;
+      const base = b.y + b.h;
+      const s = Math.min(b.w * 0.52, b.h * 0.5, 260);
+      const cx = b.x + b.w / 2;
+      const cy = base - s * 0.72;
+
+      // the pedestal the lock is displayed on: this is a demonstration, not a brand
+      shadow(ctx, cx, base + 6, s * 0.6, 16, 0.09);
+      crate(ctx, cx, base, s * 0.86, s * 0.24, mix(P.inkSoft, 0.82));
+
+      // The lock goes, the question arrives in the same place. Cross-fading the
+      // two instead of swapping them leaves a pale question mark behind a grey
+      // padlock, which is neither one thing nor the other.
+      if (turn < 1) {
+        ctx.save();
+        ctx.globalAlpha = 1 - turn;
+        lockGlyph(ctx, cx, cy, s, P.good, { closed: 1 - turn * 0.5 });
+        ctx.restore();
+      }
+      if (turn > 0.05) {
+        const grow = Math.min(1, turn * 1.4);
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, turn * 1.6);
+        ctx.translate(cx, cy);
+        ctx.scale(0.72 + 0.28 * grow, 0.72 + 0.28 * grow);
+        ctx.font = `700 ${s * 0.96}px ${FONT_SERIF}`;
+        ctx.fillStyle = mix(P.accent, -0.14);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('?', 0, s * 0.04);
+        ctx.restore();
+      }
+
+      if (!cfg.question) {
+        // the tick that makes the promise: the lock is doing exactly what it says
+        ctx.save();
+        ctx.globalAlpha = 0.5 + 0.5 * Math.abs(Math.sin(o.t * Math.PI * 1.6));
+        tick(ctx, cx + s * 0.5, cy - s * 0.34, 26, P.good, 6);
+        ctx.restore();
+        chip(ctx, cx - 78, base - s * 0.24 - 54, 'encrypted', {
+          fill: mix(P.good, 0.88), ink: mix(P.good, -0.24), size: 17,
+        });
+        o.focus(cx, cy, Math.max(80, s * 0.62), true);
+      } else {
+        chip(ctx, cx - 62, base - s * 0.24 + 18, cfg.chip || 'safe?', {
+          fill: mix(P.accent, 0.86), ink: mix(P.accent, -0.3), size: 17,
+        });
+        o.focus(cx, cy - s * 0.18, Math.max(80, s * 0.6), true);
+      }
+    },
+  },
+
+  'two-lanes': {
+    role: 'compare',
+    about: 'the same trip twice: one lane in the open, one inside a tube',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const cfg = o.options || {};
+      const base = b.y + b.h;
+      const lit = cfg.lit || null;
+
+      const nodeW = Math.min(b.w * 0.16, 120);
+      const nodeH = Math.min(b.h * 0.34, 190);
+      const leftX = b.x + nodeW * 0.62;
+      const rightX = b.x + b.w - nodeW * 0.62;
+      const laneTop = base - b.h * 0.72;
+      const laneBottom = base - b.h * 0.22;
+
+      // the two ends, which are the same two ends for both lanes
+      shadow(ctx, leftX, base + 6, nodeW * 0.7, 12, 0.07);
+      crate(ctx, leftX, base, nodeW, nodeH, P.accent);
+      label(ctx, 'you', leftX, base - nodeH - nodeW * 0.34, {
+        size: 17, color: alpha(P.ink, 0.45), weight: 700, spacing: 2,
+      });
+      shadow(ctx, rightX, base + 6, nodeW * 0.7, 12, 0.07);
+      crate(ctx, rightX, base, nodeW, nodeH, mix(P.link, 0.12));
+      label(ctx, 'the site', rightX, base - nodeH - nodeW * 0.34, {
+        size: 17, color: alpha(P.ink, 0.45), weight: 700, spacing: 2,
+      });
+
+      const x0 = leftX + nodeW * 0.5;
+      const x1 = rightX - nodeW * 0.5;
+
+      const lane = (y, sealed, dim) => {
+        ctx.save();
+        ctx.globalAlpha = dim ? 0.45 : 1;
+        if (sealed) {
+          // the tube: a thick soft line with a lighter core, so it reads as a
+          // container the packets are inside rather than a decorated wire
+          ctx.strokeStyle = alpha(P.good, 0.2);
+          ctx.lineWidth = 46;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(x0, y);
+          ctx.lineTo(x1, y);
+          ctx.stroke();
+          ctx.strokeStyle = alpha(P.good, 0.42);
+          ctx.lineWidth = 34;
+          ctx.stroke();
+        } else {
+          ctx.strokeStyle = alpha(P.ink, 0.24);
+          ctx.lineWidth = 7;
+          ctx.setLineDash([16, 12]);
+          ctx.beginPath();
+          ctx.moveTo(x0, y);
+          ctx.lineTo(x1, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // the traffic: readable notes in the open, sealed blocks in the tube
+        const n = 4;
+        for (let i = 0; i < n; i++) {
+          const p = (o.frame / 96 + i / n) % 1;
+          const px = x0 + (x1 - x0) * p;
+          ctx.save();
+          ctx.globalAlpha = dim ? 0.4 : 1;
+          if (sealed) {
+            roundRect(ctx, px - 12, y - 12, 24, 24, 5);
+            ctx.fillStyle = mix(P.good, 0.62);
+            ctx.fill();
+            ctx.strokeStyle = mix(P.good, -0.1);
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.fillStyle = alpha(P.surface, 0.75);
+            ctx.fillRect(px - 6, y - 1, 12, 3);
+          } else {
+            roundRect(ctx, px - 14, y - 11, 28, 22, 4);
+            ctx.fillStyle = alpha(P.surface, 0.96);
+            ctx.fill();
+            ctx.strokeStyle = alpha(P.ink, 0.22);
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.fillStyle = alpha(P.ink, 0.36);
+            ctx.fillRect(px - 8, y - 5, 16, 2);
+            ctx.fillRect(px - 8, y, 11, 2);
+          }
+          ctx.restore();
+        }
+
+        if (sealed) {
+          lockGlyph(ctx, (x0 + x1) / 2, y, 30, P.good, { closed: 1 });
+        } else {
+          // the snooper, only on the open lane
+          const sx = (x0 + x1) / 2;
+          const sy = y + 58;
+          ctx.save();
+          ctx.strokeStyle = alpha(P.ink, 0.32);
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy + 42);
+          ctx.lineTo(sx, sy + 8);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(sx, sy - 2, 13, 0, Math.PI * 2);
+          ctx.fillStyle = alpha(P.ink, 0.14);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = alpha(P.ink, 0.3);
+          ctx.fillRect(sx - 13, sy - 7, 26, 6);
+          ctx.restore();
+        }
+
+        label(ctx, sealed ? 'https' : 'http', x0 + 8, y - (sealed ? 34 : 26), {
+          size: 18, color: alpha(sealed ? P.good : P.ink, 0.75), weight: 700, align: 'left', spacing: 2,
+        });
+      };
+
+      lane(laneTop, false, lit === 'tunnel');
+      lane(laneBottom, true, false);
+
+      const focusTunnel = lit === 'tunnel' || step >= 1;
+      o.focus(
+        (x0 + x1) / 2,
+        focusTunnel ? laneBottom : laneTop,
+        Math.max(90, Math.min(160, (x1 - x0) * 0.24))
+      );
+    },
+  },
+
+  'certificate-match': {
+    role: 'demonstrate',
+    about: 'the domain you asked for, the certificate the site presents, and the browser comparing them',
+    draw(ctx, b, o) {
+      const step = stepOf(o);
+      const cfg = o.options || {};
+      const base = b.y + b.h;
+      const matched = since(o, 1);
+
+      const cardW = Math.min(b.w * 0.4, 290);
+      const cardH = Math.min(b.h * 0.68, 330);
+      const gap = b.w * 0.1;
+      const leftX = b.x + b.w * 0.03;
+      const rightX = leftX + cardW + gap;
+      const cardY = base - cardH;
+
+      // ---- the domain card: what you typed -----------------------------
+      shadow(ctx, leftX + cardW / 2, cardY + cardH + 8, cardW * 0.4, 14, 0.08);
+      paperCard(ctx, leftX, cardY, cardW, cardH, { r: 20 });
+      label(ctx, 'you asked for', leftX + 24, cardY + 40, {
+        size: 15, color: alpha(P.ink, 0.4), weight: 700, align: 'left', spacing: 1.5,
+      });
+      ctx.save();
+      roundRect(ctx, leftX + 20, cardY + 60, cardW - 40, 46, 10);
+      ctx.fillStyle = alpha(P.ink, 0.05);
+      ctx.fill();
+      ctx.restore();
+      label(ctx, cfg.domain || 'nao.explains', leftX + 34, cardY + 90, {
+        size: Math.min(24, cardW * 0.1), color: alpha(P.ink, 0.85), weight: 600, align: 'left',
+      });
+      // a browser-ish frame below it
+      ctx.save();
+      ctx.strokeStyle = alpha(P.ink, 0.14);
+      ctx.lineWidth = 2;
+      roundRect(ctx, leftX + 20, cardY + 126, cardW - 40, cardH * 0.4, 10);
+      ctx.stroke();
+      ctx.restore();
+      label(ctx, 'a page', leftX + cardW / 2, cardY + 180, {
+        size: 16, color: alpha(P.ink, 0.3), weight: 600,
+      });
+
+      // ---- the certificate card: what the site presents ---------------
+      const presented = since(o, 0);
+      ctx.save();
+      ctx.globalAlpha = 0.25 + 0.75 * presented;
+      ctx.translate(0, (1 - presented) * -26);
+      shadow(ctx, rightX + cardW / 2, cardY + cardH + 8, cardW * 0.4, 14, 0.08);
+      paperCard(ctx, rightX, cardY, cardW, cardH, { r: 20 });
+      label(ctx, 'certificate', rightX + 24, cardY + 40, {
+        size: 15, color: alpha(P.accent, 0.85), weight: 700, align: 'left', spacing: 2,
+      });
+      label(ctx, 'issued to', rightX + 24, cardY + 76, {
+        size: 14, color: alpha(P.ink, 0.36), weight: 700, align: 'left', spacing: 1.5,
+      });
+      label(ctx, cfg.domain || 'nao.explains', rightX + 24, cardY + 108, {
+        size: Math.min(24, cardW * 0.1), color: alpha(P.ink, 0.85), weight: 600, align: 'left',
+      });
+      // the seal: a small ring with a star, which is what a certificate looks like
+      const sx = rightX + cardW - 54;
+      const sy = cardY + cardH - 58;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 26, 0, Math.PI * 2);
+      ctx.fillStyle = mix(matched > 0.5 ? P.good : P.inkSoft, 0.55);
+      ctx.fill();
+      ctx.strokeStyle = mix(matched > 0.5 ? P.good : P.inkSoft, -0.2);
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      label(ctx, 'CA', sx, sy + 7, { size: 16, color: alpha(P.surface, 0.9), weight: 700 });
+      ctx.restore();
+
+      // ---- the comparison ---------------------------------------------
+      const midX = leftX + cardW + gap / 2;
+      ctx.save();
+      ctx.strokeStyle = alpha(matched > 0.4 ? P.good : P.ink, matched > 0.4 ? 0.6 : 0.18);
+      ctx.lineWidth = 4;
+      ctx.setLineDash(matched > 0.4 ? [] : [10, 10]);
+      ctx.beginPath();
+      ctx.moveTo(leftX + cardW + 6, cardY + cardH * 0.42);
+      ctx.lineTo(rightX - 6, cardY + cardH * 0.42);
+      ctx.stroke();
+      ctx.restore();
+      if (matched > 0.4) {
+        tick(ctx, midX, cardY + cardH * 0.42, 26, alpha(P.good, matched), 5);
+        label(ctx, 'same', midX, cardY + cardH * 0.42 - 34, {
+          size: 16, color: alpha(P.good, 0.9), weight: 700, spacing: 1.5,
+        });
+      }
+
+      // ---- the door that opens on the match ---------------------------
+      const open = since(o, 1);
+      const dw = Math.min(b.w * 0.14, 96);
+      const dh = Math.min(b.h * 0.3, 190);
+      const dx = b.x + b.w - dw - 6;
+      shadow(ctx, dx + dw / 2, base + 4, dw * 0.7, 10, 0.07);
+      crate(ctx, dx + dw / 2, base, dw, dh, mix(P.good, 0.1 + 0.25 * open));
+
+      const at = (cfg.focusAt || [1, 0])[Math.min(step, (cfg.focusAt || [1, 0]).length - 1)];
+      if (at === 1) o.focus(rightX + cardW / 2, cardY + cardH * 0.4, Math.max(70, cardW * 0.5));
+      else o.focus(midX, cardY + cardH * 0.42, 78);
+    },
+  },
+
+  'scam-shop': {
+    role: 'compare',
+    about: 'an invented shopfront with a real padlock on the door, and the flags that give it away',
+    draw(ctx, b, o) {
+      const cfg = o.options || {};
+      const base = b.y + b.h;
+      const shown = since(o, 0);
+      const flags = cfg.flags ? since(o, 1) : since(o, 0) * 0.6;
+      const verdict = cfg.verdict ? since(o, 1) : 0;
+
+      const w = Math.min(b.w * 0.62, 420);
+      const h = Math.min(b.h * 0.62, 330);
+      const cx = b.x + b.w * 0.42;
+      const left = cx - w / 2;
+      const top = base - h;
+
+      // the building
+      ctx.save();
+      ctx.globalAlpha = 0.25 + 0.75 * shown;
+      shadow(ctx, cx, base + 6, w * 0.46, 16, 0.09);
+      paperCard(ctx, left, top, w, h, { r: 16 });
+
+      // awning: stripes, because a shop that wants your money has an awning
+      const awY = top + 6;
+      const awH = h * 0.2;
+      for (let i = 0; i < 6; i++) {
+        roundRect(ctx, left + (w / 6) * i, awY, w / 6 - 2, awH, 4);
+        ctx.fillStyle = i % 2 ? alpha(P.stop, 0.5) : alpha(P.surfaceSoft, 0.95);
+        ctx.fill();
+      }
+      ctx.strokeStyle = alpha(P.ink, 0.14);
+      ctx.lineWidth = 2;
+      roundRect(ctx, left, awY, w, awH, 6);
+      ctx.stroke();
+
+      // the sign, which is the kind of promise a scam makes
+      label(ctx, cfg.sign || 'BIG DEALS', cx, top + awH + 48, {
+        size: Math.min(30, w * 0.1), color: alpha(P.ink, 0.8), weight: 700, spacing: 2,
+      });
+      label(ctx, cfg.offer || 'half price, today only', cx, top + awH + 78, {
+        size: 16, color: alpha(P.ink, 0.42), weight: 600,
+      });
+
+      // the door and the lock on it
+      const doorW = w * 0.24;
+      const doorH = h * 0.4;
+      const dx = cx - doorW / 2;
+      const dy = base - doorH - 16;
+      roundRect(ctx, dx, dy, doorW, doorH, 6);
+      ctx.fillStyle = alpha(P.ink, 0.14);
+      ctx.fill();
+      ctx.strokeStyle = alpha(P.ink, 0.22);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // the padlock: the same green lock as everywhere else in this film
+      lockGlyph(ctx, cx + w * 0.3, dy + doorH * 0.2, 40, P.good, { closed: 1 });
+      chip(ctx, cx + w * 0.3 - 44, dy + doorH * 0.2 + 34, 'https', {
+        fill: mix(P.good, 0.88), ink: mix(P.good, -0.24), size: 15,
+      });
+      ctx.restore();
+
+      // the flags: what the lock cannot see
+      if (flags > 0) {
+        const items = (cfg.flagsList || ['who owns this?', 'pay by transfer', 'no address']).slice(0, 3);
+        // The flags stack upward, each one a little further right, so three of
+        // them read as three and not as one grey smear: a fixed indentation of
+        // 2% of the card put all three on top of each other.
+        items.forEach((text, i) => {
+          const fx = left + w * 0.02 + i * 26;
+          const fy = top - 30 - i * 38;
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, Math.min(1, flags * 1.4 - i * 0.2));
+          const tw = Math.min(w * 0.56, 250);
+          roundRect(ctx, fx, fy - 24, tw, 32, 16);
+          ctx.fillStyle = mix(P.stop, 0.9);
+          ctx.fill();
+          ctx.strokeStyle = alpha(P.stop, 0.5);
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(fx + 14, fy - 24);
+          ctx.lineTo(fx + 14, fy - 32);
+          ctx.stroke();
+          label(ctx, text, fx + 26, fy - 2, {
+            size: 15, color: mix(P.stop, -0.25), weight: 700, align: 'left',
+          });
+          ctx.restore();
+        });
+      }
+
+      // the verdict: the shop is crossed, the lock is not
+      if (verdict > 0.3) {
+        ctx.save();
+        ctx.globalAlpha = verdict;
+        cross(ctx, cx - w * 0.34, top + h * 0.5, Math.min(120, h * 0.5), alpha(P.stop, 0.5), 9);
+        ctx.restore();
+      }
+
+      // the ring holds the flags when they are up, the padlock when they are not
+      o.focus(
+        flags > 0.2 ? left + w * 0.3 : cx + w * 0.3,
+        flags > 0.2 ? top - 62 : dy + doorH * 0.2,
+        flags > 0.2 ? Math.max(58, w * 0.2) : 62,
+        false,
+        true
+      );
+    },
+  },
+
+  'save-card': {
+    role: 'label',
+    about: 'the save frame: two claims with a not-equals sign between them, propped on the cat',
+    draw(ctx, b, o) {
+      const cfg = o.options || {};
+      const stand = cfg.stand !== false;
+      const standH = stand ? Math.min(78, b.h * 0.16) : 0;
+      const cw = Math.min(b.w, 660);
+      const chh = Math.min(b.h - standH - 10, 330, Math.max(230, cw * 0.5));
+      const x = b.x + (b.w - cw) / 2;
+      const y = b.y + b.h - standH - chh;
+      const k = Math.max(0.72, Math.min(1, cw / 600, chh / 320));
+
+      shadow(ctx, x + cw / 2, y + chh + 10, cw * 0.4, 16, 0.08);
+      paperCard(ctx, x, y, cw, chh, { r: 26 });
+
+      label(ctx, (cfg.kicker || 'remember').toUpperCase(), x + 34 * k, y + 44 * k, {
+        size: 18 * k, color: alpha(P.accent, 0.92), weight: 700, align: 'left', spacing: 2.5,
+      });
+
+      // "A ≠ B" as a printed comparison: two lines on the left, the sign in the
+      // margin on the right. Putting the sign between the lines lands it on top
+      // of the second line's own words.
+      const signR = Math.min(40 * k, chh * 0.14);
+      const signX = x + cw - 34 * k - signR;
+      const textW = cw - 68 * k - signR * 2 - 16;
+      const lines = [cfg.a || 'encrypted connection', cfg.b || 'honest website'];
+      ctx.save();
+      ctx.font = `600 ${Math.min(40, cw * 0.072) * k}px ${FONT_SERIF}`;
+      ctx.fillStyle = P.ink;
+      ctx.textAlign = 'left';
+      lines.forEach((line, i) => {
+        ctx.fillStyle = i === 0 ? P.ink : alpha(P.ink, 0.7);
+        let text = line;
+        while (ctx.measureText(text).width > textW && text.length > 8) text = `${text.slice(0, -2).trim()}…`;
+        ctx.fillText(text, x + 34 * k, y + chh * (i === 0 ? 0.48 : 0.76));
+      });
+      ctx.restore();
+
+      const sy = y + chh * 0.62;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(signX, sy, signR, 0, Math.PI * 2);
+      ctx.fillStyle = P.surface;
+      ctx.fill();
+      ctx.strokeStyle = alpha(P.stop, 0.5);
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.font = `700 ${signR * 1.3}px ${FONT_SERIF}`;
+      ctx.fillStyle = mix(P.stop, -0.05);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const glyph = cfg.sign || '≠';
+      ctx.font = `700 ${Math.min(signR * 1.3, 52)}px ${glyph === '≠' ? FONT_SERIF : FONT_SANS}`;
+      ctx.fillText(glyph, signX, sy + 2);
+      ctx.restore();
+
+      if (stand) catCushion(ctx, b.x + b.w / 2, b.y + b.h + 4, Math.min(b.w * 0.42, 300));
+
+      o.focus(x + cw / 2, y + chh * 0.62, Math.max(70, cw * 0.3), false, true);
     },
   },
 };
@@ -3941,6 +5381,33 @@ export const SCENES = {
   ep_dk_caveat: { subjects: ['job-cards'], kicker: 'the catch' },
   ep_dk_recap: { subjects: ['job-cards'], kicker: 'the short version' },
   ep_dk_outro: { subjects: ['closing-card'], kicker: 'the pair' },
+
+  // 0109 - what happens when you click Sign Up
+  // Every scene is a station on one queue, so the film can cut between them
+  // without ever showing two stations as if they were alternatives.
+  ep_su_button: { subjects: ['signup-button'], kicker: 'the button' },
+  ep_su_shortcut: { subjects: ['signup-button'], kicker: 'unchecked' },
+  ep_su_form: { subjects: ['form-gate'], kicker: 'the form' },
+  ep_su_send: { subjects: ['package-send'], kicker: 'the request' },
+  ep_su_server: { subjects: ['server-checks'], kicker: 'the server' },
+  ep_su_store: { subjects: ['account-row'], kicker: 'the record' },
+  ep_su_session: { subjects: ['session-key'], kicker: 'the session' },
+  ep_su_jobs: { subjects: ['checks-row'], kicker: 'the catch' },
+  ep_su_recap: { subjects: ['recap-steps'], kicker: 'the short version' },
+  ep_su_outro: { subjects: ['closing-card'], kicker: 'remember' },
+
+  // 0110 - HTTP vs HTTPS
+  // One distinction, four objects: the padlock, the two lanes, the certificate
+  // compared, and a shopfront wearing the same lock as the bank.
+  ep_hs_lock: { subjects: ['padlock-myth'], kicker: 'the padlock' },
+  ep_hs_rules: { subjects: ['link-path'], kicker: 'the rules' },
+  ep_hs_lanes: { subjects: ['two-lanes'], kicker: 'two lanes' },
+  ep_hs_middle: { subjects: ['https-lock'], kicker: 'the middle' },
+  ep_hs_cert: { subjects: ['certificate-match'], kicker: 'the certificate' },
+  ep_hs_catch: { subjects: ['scam-shop'], kicker: 'the catch' },
+  ep_hs_badge: { subjects: ['job-cards'], kicker: 'two claims' },
+  ep_hs_save: { subjects: ['save-card'], kicker: 'the short version' },
+  ep_hs_outro: { subjects: ['closing-card'], kicker: 'the padlock myth' },
 };
 
 // ---------------------------------------------------------------------------
@@ -4015,7 +5482,7 @@ function paintScene(ctx, shot, frame, t) {
   // An empty list is a decision - a close-up of her has no props - while a
   // missing list means "whatever the scene draws by default". Conflating the two
   // is how a reaction shot silently gets a prop box it can never fill.
-  const subjects = (Array.isArray(shot.subjects)
+  let subjects = (Array.isArray(shot.subjects)
     ? shot.subjects
     : scene.subjects.map((id) => ({ id, role: SUBJECTS[id]?.role }))
   ).filter((s) => SUBJECTS[s.id]);

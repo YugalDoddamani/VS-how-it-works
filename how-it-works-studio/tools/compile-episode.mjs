@@ -198,6 +198,94 @@ const SUBJECT_OPTIONS = {
     },
     12: { 'closing-card': { kicker: 'different jobs', title: 'Cloudflare or Docker?', parts: ['DOCKER', 'CLOUDFLARE'], note: 'one stack, sometimes' } },
   },
+  '0109': {
+    // The options are the *content* of the demonstration: which field is empty,
+    // which question the server asks next, what the password was. The cues say
+    // when each of those happens.
+    1: { 'signup-button': { label: 'Sign up', gates: ['form', 'server', 'store'] } },
+    2: { 'signup-button': { shortcut: true } },
+    3: {
+      'form-gate': {
+        rows: [
+          { label: 'email', value: 'ada@example.com', at: 1 },
+          { label: 'name', value: 'Ada', at: 2 },
+          { label: 'password', value: '••••••••••', at: 2 },
+        ],
+        focusAt: [0, 0, -1],
+        leaveAt: 2,
+      },
+    },
+    4: {
+      'form-gate': {
+        rows: [
+          { label: 'email', value: 'ada@example.com', at: 0 },
+          { label: 'name', value: '', at: 2 },
+          { label: 'password', value: '••••••••••', at: 0 },
+        ],
+        focusAt: [1, 1, -1],
+      },
+    },
+    5: { 'package-send': { label: 'SIGN UP', near: 'your browser', far: 'the site', sealed: true } },
+    6: {
+      'server-checks': {
+        rows: [
+          { q: 'is it allowed?', a: 'yes', ok: true, at: 1 },
+          { q: 'already a member?', a: 'no - new', ok: true, at: 2 },
+          { q: 'rules followed?', a: 'yes', ok: true, at: 99 },
+        ],
+        focusAt: [0, 0, 1],
+      },
+    },
+    7: {
+      'server-checks': {
+        rows: [
+          { q: 'is it allowed?', a: 'yes', ok: true, at: 0 },
+          { q: 'already a member?', a: 'no - new', ok: true, at: 0 },
+          { q: 'rules followed?', a: 'yes', ok: true, at: 0 },
+        ],
+        focusAt: [2, 2],
+        recordAt: 1,
+        email: 'ada@example.com',
+      },
+    },
+    8: { 'account-row': { email: 'ada@example.com', password: 'sunflower22', hash: '9f2c1b7e…c41a' } },
+    9: { 'session-key': { name: 'ada' } },
+    10: {
+      // four checks, one button: the list is what makes the account, and the
+      // button is the smallest thing on the bench
+      'checks-row': {
+        items: ['email format', 'required fields', 'allowed?', 'hashed password'],
+        small: { label: 'the button', sub: 'one click' },
+        focusAt: [3, 3, 0, -1],
+      },
+    },
+    // the recaps are the three steps as labels beside the crates: words inside
+    // the crates were covered by the card's own numbered list
+    11: { 'recap-steps': { words: ['VALIDATE', 'PROTECT', 'STORE'], subs: ['the form', 'the connection', 'the password'], showIndex: false } },
+    12: { 'closing-card': { kicker: 'one click', title: 'What sign up really does', parts: ['VALIDATE', 'PROTECT', 'STORE'], note: 'several safeguards' } },
+  },
+  '0110': {
+    1: { 'padlock-myth': {} },
+    2: { 'padlock-myth': { question: true, chip: 'safe?' } },
+    3: { 'link-path': { near: 'your browser', far: 'the site', http: true, req: 'GET /page', res: '200 OK' } },
+    4: { 'two-lanes': {} },
+    5: { 'https-lock': {} },
+    6: { 'certificate-match': { domain: 'nao.explains' } },
+    7: { 'two-lanes': { lit: 'tunnel' } },
+    8: { 'scam-shop': { sign: 'BIG DEALS', offer: 'half price, today only' } },
+    9: { 'scam-shop': { flags: true, verdict: true, sign: 'BIG DEALS', offer: 'half price, today only' } },
+    10: {
+      'job-cards': {
+        mark: '≠',
+        note: 'the lock is only half of it',
+        a: { tag: 'THE CONNECTION', sub: 'sealed, end to end', tone: '#4C9A6A', icon: 'lock', mark: 'tick' },
+        b: { tag: 'THE BUSINESS', sub: 'still unknown', tone: '#C4505A', icon: 'shop', mark: 'cross' },
+        focusAt: [0, 1, 0, 1],
+      },
+    },
+    11: { 'save-card': { kicker: 'remember', a: 'encrypted connection', b: 'honest website', sign: 'is not', stand: true } },
+    12: { 'closing-card': { kicker: 'the padlock myth', title: 'HTTPS protects the connection', parts: ['SEALED', 'CERTIFIED'], note: 'check the site too' } },
+  },
   '0102': {
     5: { 'rule-cards': { broken: true }, 'rule-machine': { broken: true } },
     10: { checkpoint: { failing: true } },
@@ -218,6 +306,119 @@ const SUBJECT_OPTIONS = {
  * fails instead of the picture going silent.
  */
 const CUES = {
+  '0109': {
+    // The button is pressed on its own word, and the road of checks opens on
+    // "journey": the hook is a promise, so the picture has to make it here.
+    1: [
+      { at: 'Sign', tag: '' },
+      { at: 'journey', tag: 'a long way' },
+    ],
+    2: [
+      { at: 'details', tag: 'your details' },
+      { at: 'unchecked', tag: 'unchecked' },
+    ],
+    3: [
+      { at: 'form', tag: 'the form' },
+      { at: 'email', tag: 'email' },
+      { at: 'valid', tag: 'looks valid' },
+    ],
+    4: [
+      { at: 'Required', tag: 'required' },
+      { at: 'filled', tag: 'filled in' },
+      { at: 'stops', tag: 'stops' },
+    ],
+    5: [
+      { at: 'sends', tag: 'sent' },
+      { at: 'server', tag: '' },
+      { at: 'encrypted', tag: 'sealed' },
+    ],
+    6: [
+      { at: 'server', tag: '' },
+      { at: 'allowed', tag: 'allowed?' },
+      { at: 'email', tag: 'new account?' },
+    ],
+    7: [
+      { at: 'rules', tag: 'rules ok' },
+      { at: 'created', tag: 'created' },
+    ],
+    8: [
+      { at: 'designed', tag: '' },
+      { at: 'hash', tag: 'a hash' },
+      { at: 'password', tag: 'not the password' },
+    ],
+    9: [
+      { at: 'session', tag: 'a session' },
+      { at: 'signed', tag: 'still signed in' },
+    ],
+    10: [
+      { at: 'important', tag: '' },
+      { at: 'button', tag: 'the button' },
+      { at: 'secure', tag: 'not the security' },
+      { at: 'checks', tag: 'the checks' },
+    ],
+    11: [
+      { at: 'Validate', tag: '' },
+      { at: 'Protect', tag: '' },
+      { at: 'Store', tag: '' },
+    ],
+    12: [
+      { at: 'One', tag: '' },
+      { at: 'safeguards', tag: 'several safeguards' },
+    ],
+  },
+  '0110': {
+    1: [
+      { at: 'padlock', tag: 'the padlock' },
+      { at: 'important', tag: 'it matters' },
+    ],
+    2: [
+      { at: 'think', tag: 'not this' },
+    ],
+    3: [
+      { at: 'rules', tag: 'http' },
+      { at: 'browser', tag: '', note: 'quiet' },
+      { at: 'information', tag: 'messages', note: 'quiet' },
+    ],
+    4: [
+      { at: 'same', tag: '' },
+      { at: 'encrypted', tag: 'sealed' },
+      { at: 'TLS', tag: 'TLS' },
+    ],
+    5: [
+      { at: 'stops', tag: '' },
+      { at: 'network', tag: 'on the network' },
+      { at: 'changing', tag: 'cannot change it' },
+    ],
+    6: [
+      { at: 'certificate', tag: 'certificate' },
+      { at: 'domain', tag: 'the right domain' },
+    ],
+    7: [
+      { at: 'configured', tag: '' },
+      { at: 'protection', tag: 'protected' },
+    ],
+    8: [
+      { at: 'catch', tag: 'the catch' },
+      { at: 'HTTPS', tag: 'https too' },
+    ],
+    9: [
+      { at: 'padlock', tag: '' },
+      { at: 'honest', tag: 'no promise' },
+      { at: 'real', tag: '' },
+    ],
+    10: [
+      { at: 'connection', tag: 'a connection' },
+      { at: 'badge', tag: 'not a badge' },
+    ],
+    11: [
+      { at: 'encrypted', tag: 'encrypted' },
+      { at: 'honest', tag: 'not honest' },
+    ],
+    12: [
+      { at: 'protects', tag: '' },
+      { at: 'site', tag: 'check the site' },
+    ],
+  },
   '0108': {
     // The film's whole job is to keep two things apart, so most of these cues
     // are a change of *which* object the ring is on rather than a change of
@@ -372,7 +573,7 @@ const EXTENDED_POSES = new Set(['pointing', 'onefinger', 'explaining', 'gesture'
  * Beats whose authored pose is the point of the shot - the finger heart that
  * ends the film is not improved by being replaced with a pointing hand.
  */
-const POSE_IS_THE_POINT = new Set(['0107:11', '0108:12']);
+const POSE_IS_THE_POINT = new Set(['0107:11', '0108:12', '0109:12', '0110:12']);
 
 const EMPHASIS_WORDS = new Set([
   'not', 'never', 'one', 'two', 'three', 'four', 'loop', 'check', 'goal',
@@ -456,6 +657,16 @@ const EPISODE_WORLDS = {
     1: 'ep_dk_hook', 2: 'ep_dk_analogy', 3: 'ep_dk_pack', 4: 'ep_dk_image',
     5: 'ep_dk_edge', 6: 'ep_dk_cache', 7: 'ep_dk_stack', 8: 'ep_dk_layers',
     9: 'ep_dk_jobs', 10: 'ep_dk_caveat', 11: 'ep_dk_recap', 12: 'ep_dk_outro',
+  },
+  '0109': {
+    1: 'ep_su_button', 2: 'ep_su_shortcut', 3: 'ep_su_form', 4: 'ep_su_form',
+    5: 'ep_su_send', 6: 'ep_su_server', 7: 'ep_su_server', 8: 'ep_su_store',
+    9: 'ep_su_session', 10: 'ep_su_jobs', 11: 'ep_su_recap', 12: 'ep_su_outro',
+  },
+  '0110': {
+    1: 'ep_hs_lock', 2: 'ep_hs_lock', 3: 'ep_hs_rules', 4: 'ep_hs_lanes',
+    5: 'ep_hs_middle', 6: 'ep_hs_cert', 7: 'ep_hs_lanes', 8: 'ep_hs_catch',
+    9: 'ep_hs_catch', 10: 'ep_hs_badge', 11: 'ep_hs_save', 12: 'ep_hs_outro',
   },
   '0104': {
     1: 'ep_wifi_title', 2: 'ep_wifi_title', 3: 'ep_wifi_router', 4: 'ep_wifi_channels',

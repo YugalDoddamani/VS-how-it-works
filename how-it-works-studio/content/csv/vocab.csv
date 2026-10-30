@@ -176,3 +176,16 @@ prop_id,edge-cache,edge cache,"0108: a cached copy per visitor, and a blocked pa
 prop_id,stack-tower,stack tower,0108: the container on a server with the layer in front,FALSE
 prop_id,job-cards,job cards,"0108: two cards, one job each",FALSE
 prop_id,closing-card,closing card,0108: the sign-off card,FALSE
+prop_id,signup-button,sign-up button,"0109: the button, pressed, and the route it opens into",FALSE
+prop_id,form-gate,form gate,"0109: fields read at a gate, one bounced and resubmitted",FALSE
+prop_id,package-send,sealed request,0109: the envelope leaving the browser with a lock on it,FALSE
+prop_id,server-checks,server checks,0109: the three questions the server asks before anything is stored,FALSE
+prop_id,account-row,account row,"0109: a row added to the table, password cell hashed",FALSE
+prop_id,session-key,session key,0109: a key carried to the next page instead of a password,FALSE
+prop_id,padlock-myth,padlock myth,0110: the lock that turns into a question mark,FALSE
+prop_id,two-lanes,two lanes,"0110: the same trip twice, one exposed and one enclosed",FALSE
+prop_id,certificate-match,certificate match,0110: the domain and the certificate compared before the door opens,FALSE
+prop_id,scam-shop,scam shop,0110: an invented shopfront with a genuine lock on the door,FALSE
+prop_id,save-card,save card,0110: encrypted connection is not an honest website,FALSE
+prop_id,checks-row,checks row,0109: the four checks standing between a click and an account,FALSE
+prop_id,recap-steps,recap steps,"0109: the film in three words, one card each",FALSE
